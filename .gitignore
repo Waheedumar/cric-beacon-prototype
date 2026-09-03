@@ -1,0 +1,9 @@
+# --- Duplicate engine files (stale / throwaway) ---
+_check.mjs
+_data.mjs
+_run.mjs
+_sim.mjs
+
+# --- Local helper scripts ---
+list_files.ps1
+secret_scan.ps1
