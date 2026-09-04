@@ -1241,11 +1241,16 @@ const SHOT_MODEL = {
   keeper     : { t:'Defensive Block',d:4  },
   slip       : { t:'Defensive Block',d:3  }
 };
-function deriveShot(d){
+/* Deterministic hash-based PRNG — same seed always produces the same value. */
+function seededRand(seed){
+  let x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+function deriveShot(d, seed){
   const base = SHOT_MODEL[d.dir] || { t:'Defensive Block', d:4 };
   let dist;
-  if (d.runs === 6)      dist = 68 + Math.round(Math.random() * 14);
-  else if (d.runs === 4) dist = base.d + 10 + Math.round(Math.random() * 8);
+  if (d.runs === 6)      dist = 68 + Math.round(seededRand(seed) * 14);
+  else if (d.runs === 4) dist = base.d + 10 + Math.round(seededRand(seed + 1) * 8);
   else if (d.runs >= 1)  dist = Math.round(base.d * 0.55 + d.runs * 3);
   else                   dist = Math.round(base.d * 0.35);
   return { type: base.t, distance: dist, direction: (d.dir || 'unknown').replace(/-/g,' ') };
@@ -1264,7 +1269,7 @@ function buildFeed(def){
       const striker = s.batsmen[strikerIdx];
       const bowler = s.bowlers[ov.bowler];
       const outName = wicket ? striker.name : null;
-      const shot = shotDetail || deriveShot({ runs, dir });
+      const shot = shotDetail || deriveShot({ runs, dir }, ov.over * 100 + (i + 1));
 
       // --- apply the delivery to the state ---
       striker.balls++;
