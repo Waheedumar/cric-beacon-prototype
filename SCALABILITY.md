@@ -80,19 +80,22 @@ completeness and accuracy of the data provided.
 
 ## 5. Live AI Insights
 
+> **Full technical specification: [AI_INTELLIGENCE.md](AI_INTELLIGENCE.md)**
+
 The insight panel currently generates its commentary from pre-written template rules
 that branch on conditions such as "if wicket, say X; if boundary, say Y." This
 works well enough to show what the panel looks like and how it behaves, but the
 text is selected from a set of branches rather than genuinely reasoned.
 
-A real LLM integration would take the live match state as its input — current
-score, partnership size, bowler figures, venue conditions, momentum trend — and
-produce natural-language analysis that reflects what is actually happening. The
-architectural seam is the same: the engine exposes a clean data object, and the
-insight service reads from it. Whether that service calls a branching template
-function or an LLM API is a swap at the service layer, not a change to the data
-contract. The difference between the prototype and production is the intelligence
-sitting behind that seam.
+Two independent services replace the current template layer. The **probability
+service** (XGBoost / gradient-boosted trees, not an LLM) produces per-ball win
+probabilities and SHAP-driven driver attributions for the "why" modal. The **LLM
+commentary service** (Claude Sonnet, with an open-weights fallback) writes the
+insight card and the modal lede in natural language from a strict JSON input
+contract. Both services share the same state bundle built from the delivery object
+the engine already produces — `buildFeed` and every downstream consumer are
+unchanged. The swap-in plan has six independently-revertable steps from today's
+template deltas to the full production stack.
 
 ---
 
