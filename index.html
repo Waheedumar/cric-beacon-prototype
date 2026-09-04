@@ -1212,6 +1212,112 @@ const MOCK_MATCHES = {
         [0,null, 86,'good','leg',null,'Left alone on the leg side. The batsmen leave those.']
       ], momentum:{ away:23, rr:3.6, w:0, p:32 } }
     ]
+  },
+
+  wanderers: {
+    id:'wanderers',
+    label:'SA v IND · The Wanderers',
+    format:'Test Match',
+    stage:'Day 4 — Final Session',
+    venue:{ name:'The Wanderers Stadium', city:'Johannesburg, South Africa',
+            pitch:'High bounce, true', weather:'Clear', temp:'28°C', wind:'11 km/h',
+            boundary:'64 m × 68 m', floodlights:false },
+    theme:{ grassA:0x3A8C3F, grassB:0x2E7835, outfield:0x2A6B30, pitch:0xCCB07A,
+            skyTop:0x1E4A7A, skyBot:0x5A8EC0, stand:0x1A1A2E, seat:0x2A2A4A, night:false },
+    teams:{
+      home:{ key:'sa', name:'SOUTH AFRICA', short:'SA', flag:'🇿🇦', kit:0x007C4A, cap:0xF5B800,
+             players:[
+               { id:'dz', name:'Tony de Zorzi',  role:'Opener',       pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:34, balls:58, fours:4, sixes:0, sr:58.6 } },
+               { id:'vm', name:'Erl van der Merwe', role:'Opener',    pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:22, balls:41, fours:2, sixes:0, sr:53.7 } },
+               { id:'mk', name:'Aiden Markram',   role:'Batsman',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:83, balls:136, fours:9, sixes:0, sr:61.0 } },
+               { id:'ts', name:'Tristan Stubbs',  role:'Batsman',     pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:55, balls:72, fours:6, sixes:1, sr:76.4 } },
+               { id:'vd', name:'Rassie van der Dussen', role:'Batsman', pos:{x: 0.0, z: 14.6}, stats:{ runs:8, balls:14, fours:1, sixes:0, sr:57.1 } }
+             ] },
+      away:{ key:'ind', name:'INDIA', short:'IND', flag:'🇮🇳', kit:0x1380D8, cap:0xCC2A1E,
+             players:[
+               { id:'jb', name:'Jasprit Bumrah',     role:'Fast Bowler',    pos:{x: 0.35, z:-STUMP_Z - 2.2}, stats:{ overs:20, maidens:5, runs:68, wickets:4, econ:3.40 } },
+               { id:'ms', name:'Mohammed Siraj',      role:'Fast Bowler',    pos:{x: 0.0, z: 0.0}, stats:{ overs:17, maidens:3, runs:62, wickets:2, econ:3.65 } },
+               { id:'ra', name:'Ravichandran Ashwin', role:'Off Spinner',    pos:{x: 0.0, z: 0.0}, stats:{ overs:11, maidens:2, runs:41, wickets:1, econ:3.73 } }
+             ] }
+    },
+    battingTeam:'home',
+    innings:{ current:'South Africa 4th innings', firstInnings:{ team:'ind', total:412 } },
+    field:{ standard:FIELD_STANDARD, attacking:FIELD_ATTACKING },
+    perOverRuns:{ home:[2,4,1,3,2,5,4,3,2,4,1,6,3,2,5,1,4,2,3,5,4,2,1,3,2,4,5,3,2,4,1,3,2,4,5,3,2,4,1,3,5,4,2,3,4,2,5,1,3,4,2,3,5,4,1,2,3,4,5,3,2,4,1,5,3,2,4,5,1,3,4,2,3,5,4,1,2,3,4,5,2,3,1,4,5,3,2,4,1,5], away:[2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4] },
+    ai:{ current:{ away:58 }, baseline:{ away:47, over:43 }, projected:{ from:287, to:268 },
+         newBallOver:80, rr10:4.20,
+         lastWicket:{ text:'Erl van der Merwe c Pant b Bumrah 22', over:'42.3' } },
+    momentumHistory:[
+      { over:43, away:47, rr:3.85, w:0, p:40 },
+      { over:44, away:46, rr:3.88, w:0, p:42 },
+      { over:45, away:45, rr:3.91, w:0, p:44 },
+      { over:46, away:44, rr:3.94, w:0, p:46 },
+      { over:47, away:43, rr:3.97, w:0, p:48 },
+      { over:48, away:42, rr:4.00, w:0, p:50 }
+    ],
+    start:{
+      runs:226, wickets:2, over:50, ball:4,
+      batsmen:[
+        { name:'Aiden Markram', short:'MARKRAM', runs:83, balls:136, fours:9, sixes:0, onStrike:true,  form:8, pressure:5 },
+        { name:'Tristan Stubbs', short:'STUBBS',  runs:55, balls:72,  fours:6, sixes:1, onStrike:false, form:9, pressure:4 }
+      ],
+      partnership:{ runs:171, balls:198 },
+      bowlers:{
+        bumrah:{ name:'Jasprit Bumrah', style:'Right-arm fast', overs:20, maidens:5, runs:68, wickets:4 },
+        siraj:{ name:'Mohammed Siraj', style:'Right-arm fast-medium', overs:17, maidens:3, runs:62, wickets:2 }
+      },
+      toCome:['Rassie van der Dussen','Kyle Verreynne','Marco Jansen','Kagiso Rabada']
+    },
+    overs:[
+      { over:51, bowler:'bumrah', balls:[
+        [1,null,142,'good','middle','midwicket','Pushed into the leg side for one. Markram keeps strike.'],
+        [0,null,145,'good','off',null,'Left alone outside off. Bumrah probing the channel.'],
+        [4,null,143,'full','leg','midwicket','FOUR — clipped off the pads with a flowing wrist. SA ahead of par.'],
+        [1,null,140,'good','middle','mid-on','Worked through mid-on for one. Stubbs faces the next.'],
+        [2,null,144,'good','off','cover','Punched through covers. Two runs. Quick hands between the wickets.'],
+        [3,null,141,'good','middle','midwicket','Driven firmly to midwicket, three runs. Solid running.']
+      ], momentum:{ away:40, rr:4.60, w:0, p:57 } },
+      { over:52, bowler:'siraj', balls:[
+        [1,null,136,'full','off','cover','Driven crisply through covers. SA keeping the scoreboard moving.'],
+        [0,null,138,'good','off',null,'Beaten outside off. Siraj making the ball talk.'],
+        [4,null,134,'full','off','cover','FOUR — driven on the up through extra cover. Beautiful timing.'],
+        [1,null,137,'good','middle','midwicket','Worked to midwicket for one. Strike rotates.'],
+        [1,null,139,'full','leg','midwicket','Flicked off the pads for a single. Easy rotation.'],
+        [0,null,141,'good','off',null,'Defended solidly into the pitch. Good over from Siraj.']
+      ], momentum:{ away:38, rr:4.55, w:0, p:59 } },
+      { over:53, bowler:'bumrah', balls:[
+        [1,null,144,'good','middle','mid-on','Nudged into the leg side. Markram to face.'],
+        [0,null,146,'good','off',null,'Beaten by the bounce. Bumrah extracting extra movement off the seam.'],
+        [1,null,142,'good','middle','midwicket','Worked away for a single. SA collecting singles.'],
+        [0,null,147,'good','off',null,'Left alone. The bounce is carrying on this Joburg pitch.'],
+        [1,null,143,'good','leg','midwicket','Tucked to midwicket for one. Stubbs on strike.'],
+        [2,null,145,'good','off','cover','Driven through covers. Two more. Partnership building.']
+      ], momentum:{ away:36, rr:4.50, w:0, p:61 } },
+      { over:54, bowler:'ashwin', balls:[
+        [1,null, 89,'good','off','long-off','Pushed to long-off for one. Stubbs gets the strike.'],
+        [0,null, 91,'good','off',null,'Turn and bounce. Ashwin testing the batsmen with extra flight.'],
+        [4,null, 87,'full','leg','midwicket','FOUR — swept hard to the midwicket fence. Stubbs picking Ashwin off.'],
+        [1,null, 90,'good','middle','mid-on','Worked to mid-on for a single. Markram rotates.'],
+        [1,null, 88,'good','off','long-off','Pushed to long-off. Another single. SA are running well.'],
+        [0,null, 92,'good','off',null,'Defended. The partnership is a lesson in running between wickets.']
+      ], momentum:{ away:34, rr:4.45, w:0, p:63 } },
+      { over:55, bowler:'siraj', balls:[
+        [1,null,138,'good','middle','midwicket','Worked to midwicket for one. Stubbs keeps strike.'],
+        [0,null,140,'good','off',null,'Left alone on length. Siraj searching for the edge.'],
+        [0,null,139,'good','off',null,'Defended off the front foot. Watchful from Stubbs.'],
+        [4,null,135,'full','off','cover','FOUR — driven through covers. SA moving at 4.45 to the win.'],
+        [1,null,137,'good','middle','mid-on','Driven to mid-on. Quick single taken. Markram to face.'],
+        [1,null,136,'good','leg','midwicket','Nudged fine for a single. Over finishes level with par.']
+      ], momentum:{ away:32, rr:4.40, w:0, p:65 } },
+      { over:56, bowler:'bumrah', balls:[
+        [0,null,146,'good','off',null,'Beaten. The Johannesburg bounce troubling the SA batsmen.'],
+        [1,null,144,'good','middle','mid-on','Worked through mid-on. Markram keeps the strike.'],
+        [0,null,148,'good','off',null,'Dot. Bumrah winning the battle of wills, one ball at a time.'],
+        [1,null,142,'good','leg','midwicket','Tickled fine for one. SA two runs behind par.'],
+        [0,null,145,'good','off',null,'Played and missed. The new ball is doing just enough.'],
+        [1,null,143,'good','middle','midwicket','Pushed to midwicket for a single. Stubbs survives the over.']
+      ], momentum:{ away:31, rr:4.35, w:0, p:67 } }
+    ]
   }
 };
 
