@@ -1263,8 +1263,21 @@ const MOCK_MATCHES = {
         short:'SL',
         flag:'🇱🇰',
         kit:0x132860,
-        cap:0x8B1A1A,
-        players:[]
+        cap:0x1A3A80,       // navy blue — standard SL cap
+        players:[
+          { id:'pn', name:'Pathum Nissanka',  role:'Opener',      pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:892, balls:648, fours:96,  sixes:26,  sr:137.7 } },
+          { id:'kp', name:'Kusal Perera',     role:'Opener',      pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:1248, balls:857, fours:118, sixes:52,  sr:145.6 } },
+          { id:'km', name:'Kusal Mendis',     role:'WK-Batsman',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:1576, balls:1048, fours:162, sixes:64,  sr:150.4 } },
+          { id:'ca', name:'Charith Asalanka', role:'Batsman',     pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:734,  balls:498,  fours:72,  sixes:28,  sr:147.4 } },
+          { id:'ss', name:'Sadeera Samarawickrama', role:'Batsman',pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:412,  balls:299,  fours:38,  sixes:14,  sr:137.8 } },
+          { id:'da', name:'Dasun Shanaka',    role:'All-rounder', pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:578,  balls:378,  fours:54,  sixes:32,  sr:152.9 } },
+          { id:'dw', name:'Dunith Wellalage', role:'All-rounder', pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:324,  balls:228,  fours:28,  sixes:12,  sr:142.1 } },
+          { id:'ma', name:'Mahendra Chandana',role:'All-rounder', pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:186,  balls:138,  fours:16,  sixes:6,   sr:134.8 } },
+          { id:'dm', name:'Dilshan Madushanka',role:'Bowler',     pos:{x: 0.0, z:-STUMP_Z - 2.5}, stats:{ overs:18, maidens:1, runs:142, wickets:17, econ:7.89 } },
+          { id:'ch', name:'Chamindu Pathum',  role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 2.2}, stats:{ overs:12, maidens:1, runs:88,  wickets:12, econ:7.33 } },
+          { id:'wa', name:'Wanindu Hasaranga',role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 3.0}, stats:{ overs:22, maidens:2, runs:148, wickets:26, econ:6.73 } },
+          { id:'mt', name:'Matheesha Pathirana',role:'Bowler',   pos:{x: 0.0, z:-STUMP_Z - 2.2}, stats:{ overs:16, maidens:0, runs:122, wickets:22, econ:7.63 } }
+        ]
       },
       away:{
         key:'wi',
@@ -1272,8 +1285,20 @@ const MOCK_MATCHES = {
         short:'WI',
         flag:'🏴',
         kit:0x800000,
-        cap:0xF5C400,
-        players:[]
+        cap:0xF5C400,       // gold/yellow — standard WI cap
+        players:[
+          { id:'bk', name:'Brandon King',    role:'Batsman',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:1248, balls:884, fours:128, sixes:44,  sr:141.2 } },
+          { id:'nc', name:'Nicholas Pooran', role:'WK-Batsman',  pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:1562, balls:986, fours:148, sixes:82,  sr:158.4 } },
+          { id:'sm', name:'Shai Hope',      role:'Batsman',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:892,  balls:638,  fours:88,  sixes:32,  sr:139.8 } },
+          { id:'rl', name:'Rovman Powell',  role:'Batsman',     pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:726,  balls:462,  fours:64,  sixes:42,  sr:157.1 } },
+          { id:'sh', name:'Sherfane Rutherford',role:'Batsman',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:498,  balls:348,  fours:46,  sixes:24,  sr:143.1 } },
+          { id:'gj', name:'Garrick Moses',   role:'WK-Batsman',  pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:284,  balls:208,  fours:26,  sixes:12,  sr:136.5 } },
+          { id:'rh', name:'Romario Shepherd',role:'All-rounder',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:324,  balls:214,  fours:28,  sixes:18,  sr:151.4 } },
+          { id:'aj', name:'Alzarri Joseph',  role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 2.5}, stats:{ overs:28, maidens:2, runs:196, wickets:32, econ:7.00 } },
+          { id:'sj', name:'Shamar Joseph',   role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 2.2}, stats:{ overs:14, maidens:1, runs:98,  wickets:18, econ:7.00 } },
+          { id:'cs', name:'Cole Johnson',   role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 3.0}, stats:{ overs:10, maidens:0, runs:76,  wickets:12, econ:7.60 } },
+          { id:'rp', name:'Roston Chase',   role:'All-rounder',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:548,  balls:402,  fours:48,  sixes:18,  sr:136.3 } }
+        ]
       }
     },
     battingTeam:'home',
