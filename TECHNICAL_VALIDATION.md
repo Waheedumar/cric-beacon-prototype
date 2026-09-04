@@ -229,19 +229,119 @@ Full details: [SCALABILITY.md §7](SCALABILITY.md#7-multi-match-and-mobile-scala
 
 ---
 
-## 8. Document Index
+## 8. Capability Categorization — A / B / C
 
-| Document | What it is | Audience |
-|---|---|---|
-| `TECHNICAL_VALIDATION.md` | This document — executive summary of all 7 questions | Client, product manager |
-| `SCHEMA.md` | Annotated reference of every field in the match document | Engineers, data team |
-| `ARCHITECTURE.md` | How the three layers fit together, the data seam, the live-feed integration plan | Engineers, technical lead |
-| `AI_INTELLIGENCE.md` | Full specification for the probability model and LLM commentary service | Engineers, data scientists, product |
-| `SCALABILITY.md` | Production scalability assessment — all 7 questions, with links to AI_INTELLIGENCE.md where relevant | Client, technical stakeholders |
+> **Required for client presentation.** Maps every production capability into one of
+> three categories so the client can see at a glance what is shipped, what is
+> designed, and what is gated on third-party commitments.
+>
+> - **Category A — Implemented and demonstrated.** Working in the prototype, verifiable
+>   today.
+> - **Category B — Architecturally designed, requires production engineering.** The
+>   design, contracts, and call paths are specified in the supporting documents; the
+>   code needs to be written and the systems provisioned.
+> - **Category C — Dependent on external services or licensed data.** Cannot ship
+>   without a third-party commitment (data provider contract, messaging API key,
+>   licensed feature feed, etc.).
+
+### 8.1 Live Cricket Data
+
+| Category | Status |
+|---|---|
+| **A** | Prototype loads a normalised match document and renders every ball correctly across 4 venues (Lord's, Galle, MCG, Hambantota). The `theme` block drives all visual variation; the engine has no per-match code paths. |
+| **B** | The data seam is specified in [ARCHITECTURE.md §4](ARCHITECTURE.md#4-how-a-live-feed-would-plug-in): a single adapter layer normalises provider shape → internal match document. `buildFeed` and every downstream consumer remain unchanged. |
+| **C** | A live cricket data provider contract. Options: **Cricsheet** (free, ball-by-ball CSV/JSON, ideal for prototypes and self-serve builds), **Stats Perform** (commercial, lowest latency, enterprise contract), **Sportradar** (commercial, broadest coverage). The provider choice determines the adapter shape but not the engine. |
+
+### 8.2 Full LLM Integration (Insight Card + Why Modal)
+
+| Category | Status |
+|---|---|
+| **A** | The prototype renders the insight card and why modal from real `delivery` and `state` data. Four template branches pick a string from `updateAIInsight()`; templated driver cards in the why modal. |
+| **B** | Fully specified in [AI_INTELLIGENCE.md](AI_INTELLIGENCE.md). Six-step swap-in plan from today's templates to the production stack: state-bundle builder, stub probability model, XGBoost service, SHAP-driven driver cards, LLM insight card, LLM why-modal lede. Each step is independently deployable and independently revertable. |
+| **C** | LLM provider account and billing. Primary: **Anthropic Claude Sonnet** (cost-effective, strong instruction-following, tool-use). Fallback: open-weights model (e.g. Llama-3.1-8B) on own infra. Per-innings cost at current Sonnet pricing is well under $0.10. |
+
+### 8.3 Fantasy Intelligence
+
+| Category | Status |
+|---|---|
+| **A** | The fantasy points table is already in the prototype, rendered from real delivery data (runs, wickets, strike rate, economy). It updates ball by ball. |
+| **B** | A fantasy rule engine is a new consumer of the same `delivery` feed — no engine changes. Per-platform rule sets (Dream11, My11Circle, MPL) plug in as separate evaluators against the same state bundle used by the AI services. Documented at a high level in [SCALABILITY.md §6](SCALABILITY.md#6-fantasy-intelligence-and-alert-systems-whatsapp--telegram). |
+| **C** | Per-platform partnership and rule licensing. Each fantasy platform has its own scoring matrix and API; commercial terms vary. |
+
+### 8.4 WhatsApp / Telegram Alerts
+
+| Category | Status |
+|---|---|
+| **A** | The data feed is a clean event stream — the panels already consume it ball by ball. Nothing in the engine blocks an alert subscriber. |
+| **B** | A new data subscriber listens to the same feed, evaluates alert rules (e.g. wicket, milestone, probability swing > 5pp), and routes output to the messaging channel. Server-side only; the client engine is unaffected. |
+| **C** | **WhatsApp Business API** access (via Meta-approved BSP such as Twilio, Gupshup, or 360dialog — each requires business verification, ~1–2 weeks for approval). **Telegram Bot API** (free, immediate, bot token only). |
+
+### 8.5 Player and Venue Models
+
+| Category | Status |
+|---|---|
+| **A** | Player data is in the match document: `teams.home.players[]` and `teams.away.players[]` carry name, role, position, and career/tournament stats. The Player Intelligence panel renders this data. The 3D engine renders two batsmen, one bowler, and eleven fielders per match — the same model every time, recoloured per `theme.kit` / `theme.cap`. |
+| **B** | The schema supports a deeper player/venue model (career stats, head-to-head records, venue history, pitch reports) by adding fields to the match document or wiring a player/venue lookup service. No engine changes. The probability model's feature set already includes per-batter and per-bowler engineered features (see [AI_INTELLIGENCE.md §2.3](AI_INTELLIGENCE.md#23-feature-set)). |
+| **C** | A licensed player/venue data source. Options: **Cricsheet** (free, player names + match-level stats), **Statsguru** (free, granular career stats via scraping — fragile), **Stats Perform / Sportradar** (commercial, structured player + venue + pitch feeds). |
+
+### 8.6 Real-Time Synchronization
+
+| Category | Status |
+|---|---|
+| **A** | The engine is event-driven: every delivery triggers a re-render of all panels from a single delivery object. The 3D engine already animates the ball on a Catmull-Rom spline; the scorecard, wagon wheel, and stats panels all update in the same frame. |
+| **B** | A WebSocket subscription on top of `buildFeed`. New balls append to `deliveries[]` directly; no `buildFeed` re-run. The engine is already idempotent over the same delivery object. Specified in [ARCHITECTURE.md §4](ARCHITECTURE.md#4-how-a-live-feed-would-plug-in). |
+| **C** | WebSocket gateway / server-sent-events infrastructure on the data-provider side. Most commercial providers offer WebSocket or SSE endpoints; Cricsheet requires a polling layer. |
+
+### 8.7 Production Analytics
+
+| Category | Status |
+|---|---|
+| **A** | None in the prototype. |
+| **B** | Standard event tracking on the client (delivery view, panel open, timeline scrub, AI insight open, why-modal open) + server-side aggregation. The engine emits the natural events already; the analytics layer is a downstream consumer. Reuses the same event-stream architecture as the alert system. |
+| **C** | An analytics platform: PostHog / Amplitude / Mixpanel (client SDK + server) for product analytics, plus a logging backend (Datadog / Grafana Loki) for engine telemetry. No required vendor lock-in. |
+
+### 8.8 Multi-User Infrastructure
+
+| Category | Status |
+|---|---|
+| **A** | Each browser session is fully independent. The prototype supports unlimited concurrent users with zero server-side state — every user runs the same code with the same data. |
+| **B** | A thin server that fans out delivery events to connected browsers. The fan-out layer is small (a websocket gateway backed by the provider feed); the client engine is unchanged. Per-session state (favourites, alert preferences) is per-user, not shared. Specified in [SCALABILITY.md §3](SCALABILITY.md#3-multiple-users). |
+| **C** | Hosting and bandwidth. Options: Vercel Edge + Vercel Functions (already in use per `Vercel Plugin Session Context`), Cloudflare Workers + Durable Objects, or a dedicated WebSocket gateway on AWS / Fly.io. The per-user bandwidth cost is dominated by the match feed (~2 KB/s sustained). |
+
+### 8.9 Summary Matrix
+
+| Capability | A — Implemented | B — Designed, needs engineering | C — External dependency |
+|---|---|---|---|
+| Live cricket data | Prototype + 4 venues | Adapter layer | Data provider (Cricsheet / Stats Perform / Sportradar) |
+| Full LLM integration | Templated insight + why modal | Six-step swap plan in `AI_INTELLIGENCE.md` | LLM account (Claude Sonnet + open-weights fallback) |
+| Fantasy Intelligence | Points table from real data | Per-platform rule engine | Platform partnership / rule license |
+| WhatsApp / Telegram alerts | — (engine is event-stream-ready) | Alert subscriber + routing | WhatsApp Business API (BSP) or Telegram Bot |
+| Player and venue models | Player panel + career stats in match doc | Extended feature set in probability model | Licensed player/venue data source |
+| Real-time synchronization | Event-driven engine | WebSocket subscription | Provider WebSocket/SSE or polling |
+| Production analytics | — | Event tracking layer | Analytics platform (PostHog / Amplitude) |
+| Multi-user infrastructure | Per-session isolation | Server fan-out | Hosting + bandwidth |
 
 ---
 
-## 9. What Is Proven vs. What Needs Building
+## 9. Document Index
+
+> **Note on numbering:** the section numbers in this document (§1 through §8) are
+> internal headings for the executive summary. They do **not** map to the client's
+> numbered list of validation items — they cover the same topics in a different
+> order. Cross-references to `SCHEMA.md`, `ARCHITECTURE.md`, `AI_INTELLIGENCE.md`,
+> and `SCALABILITY.md` use those documents' own section numbers.
+
+| Document | What it is | Audience |
+|---|---|---|
+| `TECHNICAL_VALIDATION.md` | This document — executive summary, A/B/C capability matrix, and provenance index | Client, product manager |
+| `SCHEMA.md` | Annotated reference of every field in the match document | Engineers, data team |
+| `ARCHITECTURE.md` | How the three layers fit together, the data seam, the live-feed integration plan | Engineers, technical lead |
+| `AI_INTELLIGENCE.md` | Full specification for the probability model and LLM commentary service | Engineers, data scientists, product |
+| `SCALABILITY.md` | Production scalability assessment — multi-match, live updates, multi-user, new competitions, AI, fantasy/alerts, mobile | Client, technical stakeholders |
+
+---
+
+## 10. What Is Proven vs. What Needs Building
 
 | | Proven today | Needs building |
 |---|---|---|
@@ -261,7 +361,7 @@ capability detection, and instance management.
 
 ---
 
-## 10. Next Steps
+## 11. Next Steps
 
 1. **Select a data provider** — Cricsheet (free, ball-by-ball), Stats Perform, or
    Sportradar. This determines the adapter shape.
