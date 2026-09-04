@@ -1137,7 +1137,7 @@ const MOCK_MATCHES = {
       stand: 0x2A2A2A, seat: 0x1A1A1A, night: true
     },
     teams: {
-      home: { key: 'nz', name: 'New Zealand', short: 'NZ', flag: '🇳🇿', kit: '#000000', cap: '#FFFFFF',
+      home: { key: 'nz', name: 'New Zealand', short: 'NZ', flag: '🇳🇿', kit: 0x000000, cap: 0xFFFFFF,
         players:[
           { id:'h1', name:'Finn Anderson',   role:'Opener',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:23, balls:56, fours:2, sixes:0, sr:41.1 } },
           { id:'h2', name:'Kane Williamson',  role:'Top-order',  pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:45, balls:128, fours:5, sixes:1, sr:35.2 } },
@@ -1146,7 +1146,7 @@ const MOCK_MATCHES = {
           { id:'h5', name:'Tom Latham',       role:'WK-Batsman', pos:{x: 18.0, z: 8.0},          stats:{ runs:18, balls:41, fours:2, sixes:0, sr:43.9 } }
         ]
       },
-      away: { key: 'bd', name: 'Bangladesh', short: 'BD', flag: '🇧🇩', kit: '#006A4E', cap: '#F7C800',
+      away: { key: 'bd', name: 'Bangladesh', short: 'BD', flag: '🇧🇩', kit: 0x006A4E, cap: 0xF7C800,
         players:[
           { id:'b1', name:'Taskin Ahmed',    role:'Fast Bowler',      pos:{x: 0.35, z:-STUMP_Z - 2.2}, stats:{ overs:12, maidens:3, runs:45, wickets:2, econ:3.75 } },
           { id:'b2', name:'Taijul Islam',    role:'Spin All-rounder', pos:{x: 0.0, z: 0.0},          stats:{ overs:28, maidens:8, runs:52, wickets:1, econ:2.21 } },
