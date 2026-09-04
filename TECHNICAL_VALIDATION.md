@@ -338,6 +338,7 @@ Full details: [SCALABILITY.md §7](SCALABILITY.md#7-multi-match-and-mobile-scala
 | `ARCHITECTURE.md` | How the three layers fit together, the data seam, the live-feed integration plan | Engineers, technical lead |
 | `AI_INTELLIGENCE.md` | Full specification for the probability model and LLM commentary service | Engineers, data scientists, product |
 | `SCALABILITY.md` | Production scalability assessment — multi-match, live updates, multi-user, new competitions, AI, fantasy/alerts, mobile | Client, technical stakeholders |
+| `TEST_MATCH_E_SCHEMA_GAPS.md` | Honest report of schema limitations hit while authoring Test Match E (SL v WI, Premadasa, T20I) — gaps G1–G4, not worked around | Client, schema designers |
 
 ---
 
