@@ -1304,11 +1304,119 @@ const MOCK_MATCHES = {
     battingTeam:'home',
     innings:{ current:'Sri Lanka innings', firstInnings:{ team:'away', total:0 } },
     field:{ standard:FIELD_STANDARD, attacking:FIELD_ATTACKING },
-    perOverRuns:{ home:[], away:[] },
-    ai:{ current:{ away:50 }, baseline:{ away:50, over:1 }, projected:{ from:0, to:0 }, newBallOver:80, rr10:0, lastWicket:{ text:'—', over:0 } },
-    momentumHistory:[],
-    start:{ runs:0, wickets:0, over:0, ball:0, batsmen:[], partnership:{ runs:0, balls:0 }, bowlers:{}, toCome:[] },
-    overs:[]
+    perOverRuns:{ home:[8,3,5,6,3], away:[] },
+    ai:{ current:{ away:35 }, baseline:{ away:50, over:1 }, projected:{ from:0, to:0 }, newBallOver:80, rr10:5.00,
+         lastWicket:{ text:'Charith Asalanka c Pooran b Johnson 2', over:'5.5' } },
+    momentumHistory:[
+      { over:1, away:50, rr:8.00, w:0, p:50 },
+      { over:2, away:48, rr:5.50, w:1, p:58 },
+      { over:3, away:42, rr:5.33, w:1, p:62 },
+      { over:4, away:38, rr:5.40, w:0, p:55 },
+      { over:5, away:35, rr:5.00, w:1, p:65 }
+    ],
+    start:{
+      runs:0, wickets:0, over:0, ball:0,
+      batsmen:[
+        { name:'Pathum Nissanka', short:'NISSANKA', runs:0, balls:0, fours:0, sixes:0, onStrike:true,  form:5, pressure:5 },
+        { name:'Kusal Perera',    short:'PERERA',   runs:0, balls:0, fours:0, sixes:0, onStrike:false, form:5, pressure:5 }
+      ],
+      partnership:{ runs:0, balls:0 },
+      bowlers:{
+        joseph_a:{ name:'Alzarri Joseph',  style:'Right-arm fast',      overs:0, maidens:0, runs:0,  wickets:0 },
+        hasaranga:{ name:'Wanindu Hasaranga', style:'Right-arm leg-spin',overs:0, maidens:0, runs:0,  wickets:0 },
+        joseph_s:{ name:'Shamar Joseph',   style:'Right-arm fast-medium', overs:0, maidens:0, runs:0, wickets:0 },
+        johnson:  { name:'Cole Johnson',   style:'Left-arm fast-medium',  overs:0, maidens:0, runs:0, wickets:0 }
+      },
+      toCome:['Kusal Mendis','Charith Asalanka','Sadeera Samarawickrama','Dasun Shanaka','Dunith Wellalage','Mahendra Chandana','Dilshan Madushanka','Chamindu Pathum','Wanindu Hasaranga','Matheesha Pathirana']
+    },
+    // -----------------------------------------------------------------------
+    // 5 overs of T20I action. Deliberately exercises schema gaps G1-G4 — see
+    // TEST_MATCH_E_SCHEMA_GAPS.md for the per-ball limitation log.
+    //
+    // Demonstrated events:
+    //   Singles, doubles, fours, six, dots           (legal deliveries)
+    //   LBW, Bowled, Caught                          (dismissal text — G2 gap)
+    //   Wide (over 2.1)                              (G1 gap: encoded as 1 run)
+    //   No-ball + Free-hit (over 4.2 + 4.3)          (G1 + G4 gaps)
+    //   Leg-bye (over 5.3)                           (G3 gap: encoded as 1 run)
+    //   Strike rotation, end-of-over swap, partnership reset on wicket
+    // -----------------------------------------------------------------------
+    overs:[
+      // --- Over 1 — Alzarri Joseph, Nissanka on strike --------------------
+      { over:1, bowler:'joseph_a', balls:[
+        [0, null, 142, 'good',   'off',    null,         'Solid defensive block, straight bat. No run.' ],
+        [1, null, 139, 'good',   'middle', 'mid-on',     'Nudged into the leg side for a quick single.' ],
+        [4, null, 145, 'full',   'off',    'cover',      'FOUR — driven on the up through extra cover, beautiful timing.' ],
+        [1, null, 141, 'good',   'middle', 'square-leg', 'Tucked off the hips for one, strike rotates.' ],
+        [0, null, 144, 'good',   'off',    null,         'Beaten outside off — late swing from Joseph.' ],
+        [2, null, 140, 'full',   'middle', 'mid-on',     'Driven through mid-on, comfortable two.' ]
+      ], momentum:{ away:50, rr:8.00, w:0, p:50 } },
+
+      // --- Over 2 — Wanindu Hasaranga, Perera on strike -------------------
+      // Ball 2.1: WIDE down leg → G1 hit. Encoded as [1, null, ...] with
+      // "WIDE" prefix in text. The engine still credits the run to KP and
+      // swaps strike on the odd value. This is the G1 limitation exactly.
+      // Ball 2.5: LBW — Kusal Perera trapped in front. G2 hit: dismissal
+      // type encoded only as text in the wicket string.
+      { over:2, bowler:'hasaranga', balls:[
+        [1, null,  89, 'full',   'leg',    'keeper',     'WIDE — sliding down leg side, called by umpire. Hasaranga overpitches.' ],
+        [0, null,  86, 'good',   'off',    null,         'Defended, big turn from the rough outside off.' ],
+        [1, null,  88, 'good',   'middle', 'midwicket',  'Pushed to midwicket for a single.' ],
+        [0, null,  90, 'good',   'off',    null,         'Beaten in the flight — no shot offered.' ],
+        [0, 'Kusal Perera lbw b Hasaranga 6', 87, 'full', 'middle', null,         'WICKET — straightening, trapped on the back pad. Umpire raises the finger. Perera departs for 6.' ],
+        [1, null,  85, 'good',   'leg',    'square-leg', 'First ball for Mendis, tucked off the pads for one.' ]
+      ], momentum:{ away:48, rr:5.50, w:1, p:58 } },
+
+      // --- Over 3 — Shamar Joseph, Mendis on strike -----------------------
+      // Ball 3.5: BOWLED — Mendis cleaned up. G2 hit: "b Shamar Joseph"
+      // dismissal text only. Engine has no structured dismissal-type field.
+      { over:3, bowler:'joseph_s', balls:[
+        [0, null, 138, 'good',   'off',    null,         'Defended off the front foot, watchful start.' ],
+        [0, null, 140, 'bouncer','body',   null,         'Sharp bouncer, swayed out of the way.' ],
+        [4, null, 136, 'full',   'off',    'cover',      'FOUR — driven crisply through extra cover, races to the rope.' ],
+        [0, null, 142, 'good',   'middle', null,         'Defended back down the pitch.' ],
+        [0, 'Kusal Mendis b Shamar Joseph 5', 144, 'yorker', 'middle', null,  'WICKET — BOWLED! Yorker crashes into middle stump. Mendis cleaned up for 5.' ],
+        [1, null, 139, 'good',   'leg',    'midwicket',  'New batsman Asalanka gets off the mark with a single to midwicket.' ]
+      ], momentum:{ away:42, rr:5.33, w:1, p:62 } },
+
+      // --- Over 4 — Alzarri Joseph, Asalanka on strike --------------------
+      // Ball 4.2: NO-BALL → G1 hit. Encoded as [1, null, ...] with "NO-BALL"
+      // prefix in text. Engine credits the 1 to the batsman and to the
+      // bowler (incorrectly — in real cricket a no-ball adds 1 to the team
+      // total but is NOT credited as a run to bowler or batsman). Strike
+      // rotation also wrong: real cricket a no-ball doesn't strike-rotate,
+      // but engine swaps on odd runs.
+      //
+      // Ball 4.3: FREE-HIT delivery → G4 hit. Encoded as a normal ball
+      // (no isFreeHit field). The four runs scored off it would not have
+      // counted as a dismissal in real cricket, but the engine has no
+      // notion of free-hit protection. We mark it in the text.
+      { over:4, bowler:'joseph_a', balls:[
+        [0, null, 143, 'good',   'off',    null,         'Left alone outside off, good judgement from Asalanka.' ],
+        [1, null, 141, 'full',   'leg',    'midwicket',  'NO-BALL — Joseph oversteps! Driven through midwicket, free-hit next ball.' ],
+        [4, null, 140, 'full',   'leg',    'midwicket',  'FREE-HIT — driven through midwicket, races to the fence. No dismissal possible.' ],
+        [0, null, 144, 'good',   'off',    null,         'Defended into the pitch, no run.' ],
+        [1, null, 139, 'good',   'middle', 'mid-on',     'Worked to mid-on for a quick single, strike rotates.' ],
+        [0, null, 146, 'good',   'off',    null,         'Left alone outside off to end a busy over.' ]
+      ], momentum:{ away:38, rr:5.40, w:0, p:55 } },
+
+      // --- Over 5 — Cole Johnson, Nissanka on strike ----------------------
+      // Ball 5.3: LEGBYE → G3 hit. Encoded as [1, null, ...] with "LEGBYE"
+      // prefix in text. Engine credits the run to the batsman (PN) — in
+      // real cricket, a legbye does NOT credit the batsman, but engine
+      // has no batRuns / extraType field to distinguish.
+      //
+      // Ball 5.5: CAUGHT at long-on — Asalanka out. G2 hit (descriptive
+      // text only, no structured dismissal type).
+      { over:5, bowler:'johnson', upcoming:true, balls:[
+        [0, null, 137, 'good',   'off',    null,         'Defended off the back foot, no run.' ],
+        [2, null, 135, 'full',   'middle', 'long-on',    'Driven down the ground to long-on, comfortable two.' ],
+        [1, null, 132, 'good',   'leg',    'fine-leg',   'LEGBYE — worked off the pads, no bat involved. Fine leg fields.' ],
+        [0, null, 138, 'good',   'off',    null,         'Left alone outside off, good length from Johnson.' ],
+        [0, 'Charith Asalanka c Pooran b Johnson 2', 136, 'full', 'leg', 'long-on', 'WICKET — lofted down the ground, Pooran settles under it at long-on. Asalanka departs for 2.' ],
+        [0, null, 134, 'good',   'off',    null,         'New batsman Samarawickrama defends his first ball watchfully.' ]
+      ], momentum:{ away:35, rr:5.00, w:1, p:65 } }
+    ]
   }
 };
 

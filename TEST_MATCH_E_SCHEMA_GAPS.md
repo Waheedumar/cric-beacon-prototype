@@ -107,11 +107,46 @@ batsman's dismissal would be recorded identically to a normal wicket.
 
 ## Per-ball limitation log
 
-_(Populated during Step 2 ball-by-ball authoring)_
+Each row is a concrete event from the authored 5-over passage where a
+schema gap was hit. The "Engine credits" column shows exactly what the
+`buildFeed` state-update logic in `index.html:1371-1379` records for the
+event, so the client can see the difference between the cricket reality
+and the engine's state.
 
-| Over.Ball | Event attempted | Gap hit | How represented instead |
-|---|---|---|---|
-| _TBD_ | _TBD_ | _TBD_ | _TBD_ |
+| Over.Ball | Event | Gap | How represented | Engine credits (real cricket) | What the engine actually does |
+|---|---|---|---|---|---|
+| 2.1 | Wide down leg, no ball faced | **G1** | `[1, null, 89, 'full', 'leg', 'keeper', 'WIDE — …']` | +1 to team total, +1 to bowler.extras, **0 to batsman**, **no strike rotation** | +1 to batsman (KP), +1 to bowler.runs, **strike swap on odd value** (KP→PN), `s.partnership.runs += 1` |
+| 2.5 | LBW — Perera out | **G2** | `[0, 'Kusal Perera lbw b Hasaranga 6', 87, 'full', 'middle', null, 'WICKET — …']` | Dismissal type as 'lbw' available to analytics/fantasy; new batsman on strike | Dismissal text is the ONLY representation; engine treats it as a display label. New batsman (KM) on strike. Partnership reset to 0/0. |
+| 3.5 | Bowled — Mendis out | **G2** | `[0, 'Kusal Mendis b Shamar Joseph 5', 144, 'yorker', 'middle', null, 'WICKET — …']` | Dismissal type as 'bowled' available | Same as above — only text representation. New batsman (CA) on strike. |
+| 4.2 | No-ball + 1 bat-run through midwicket | **G1** | `[1, null, 141, 'full', 'leg', 'midwicket', 'NO-BALL — …']` | +1 team extra (no-ball) + 1 bat run, total 2 this ball; **+0 to bowler** (no-balls not charged); **no strike rotation** | +1 to batsman (CA), +1 to bowler.runs, strike swap (CA→PN), partnership += 1 — **bowler incorrectly charged 1 run, strike incorrectly rotated** |
+| 4.3 | Free-hit (the ball after 4.2 no-ball) | **G4** | `[4, null, 140, 'full', 'leg', 'midwicket', 'FREE-HIT — …']` — **normal ball encoding** | Batsman cannot be dismissed off this ball (except run-out); the schema has no signal for that | Ball recorded as a normal legal 4 — a free-hit catch would be recorded identically to any other wicket |
+| 5.3 | Leg-bye off the pads, no bat | **G3** | `[1, null, 132, 'good', 'leg', 'fine-leg', 'LEGBYE — …']` | +1 to team total, **+0 to batsman.runs**, +0 to bowler.runs | +1 to batsman (PN), +1 to bowler.runs, strike swap, partnership += 1 — **batsman and bowler both incorrectly credited** |
+| 5.5 | Caught at long-on — Asalanka out | **G2** | `[0, 'Charith Asalanka c Pooran b Johnson 2', 136, 'full', 'leg', 'long-on', 'WICKET — …']` | Dismissal type 'caught' available | Same as 2.5/3.5 — text-only. New batsman (SS) on strike. Partnership reset. |
+
+### Other balls in the passage (no schema gap hit)
+
+For context, the rest of the 30 balls are legal deliveries (dots, singles,
+doubles, fours) and exercise the engine correctly:
+
+- **Singles:** 1.2, 1.4, 2.3, 2.6, 3.6, 4.5 (six events)
+- **Doubles:** 1.6, 5.2 (two events)
+- **Fours (off the bat):** 1.3, 3.3, 4.3 (three events) — note 4.3 was a
+  free-hit delivery (G4); the four itself is a normal off-the-bat boundary,
+  but it would have been unimpeachable for dismissal purposes
+- **Sixes:** 0 events authored (could have added one; variety is sufficient
+  without it)
+- **Dots:** 1.1, 1.5, 2.2, 2.4, 3.1, 3.2, 3.4, 4.1, 4.4, 4.6, 5.1, 5.4,
+  5.6 (thirteen events)
+- **Wickets:** 2.5 (LBW), 3.5 (Bowled), 5.5 (Caught) — three events, all
+  text-only representation per G2
+
+### What the demo will look like
+
+Total: **25/3** after 5 overs. The three G1/G3/G4 gaps (balls 2.1, 4.2,
+4.3, 5.3) all show in the live UI as ordinary legal deliveries — there
+is no visual marker that anything unusual happened. The cricket-aware
+reader can spot the events in the per-ball text, but the engine state
+(wickets, runs, partnerships, bowling figures) is wrong for those balls.
 
 ---
 
@@ -120,17 +155,32 @@ _(Populated during Step 2 ball-by-ball authoring)_
 The current schema handles **legal deliveries** correctly. Its gaps are
 entirely in **extras** and **dismissal categorisation**:
 
-| Gap | Severity | Blocks |
-|---|---|---|
-| G1 — Extras encoding | High | Accurate strike rates, bowling economy, fantasy points for extras |
-| G2 — Dismissal types | Medium | Per-dismissal analytics, type-specific fantasy scoring |
-| G3 — Bye/leg-bye split | Medium | Batting accuracy in player stats and projections |
-| G4 — Free-hit rule | Low (T20-specific) | Accurate T20 powerplay and death-overs modelling |
+| Gap | Severity | Blocks | Confirmed by ball |
+|---|---|---|---|
+| G1 — Extras encoding | **High** | Accurate strike rates, bowling economy, fantasy points for extras | 2.1 (wide), 4.2 (no-ball) |
+| G2 — Dismissal types | **High** | Per-dismissal analytics, type-specific fantasy scoring | 2.5 (lbw), 3.5 (bowled), 5.5 (caught) |
+| G3 — Bye/leg-bye split | **Medium** | Batting accuracy in player stats and projections | 5.3 (leg-bye) |
+| G4 — Free-hit rule | **Medium** (T20-specific) | Accurate T20 powerplay and death-overs modelling | 4.3 (free-hit ball) |
 
 All four gaps are **schema extension items** — the fix is to add fields to the
 delivery contract, not to change the rendering engine. `buildFeed` and every
 downstream panel are pure functions of the delivery object; adding
 `extraType`, `dismissalType`, and `isFreeHit` fields requires changes only to
 the adapter/normaliser layer and `buildFeed`, not to the 3D engine or UI panels.
+
+### Quick demo reference (which balls to inspect in the live UI)
+
+Open `index.html` → select **SL v WI · R. Premadasa** → press Play on
+the ball-by-ball timeline:
+
+| Ball | What to look for | What the UI will show |
+|---|---|---|
+| 2.1 | Wide down leg (G1) | Text reads "WIDE — sliding down leg side, called by umpire." But: Perera credited with 1 run; Joseph's bowling figures inflated by 1 run; strike rotated to Nissanka (incorrect — wide should not rotate strike) |
+| 2.5 | LBW dismissal (G2) | Text reads "WICKET — straightening, trapped on the back pad." But: no 'lbw' type field available for analytics; dismissal shown only as a string |
+| 3.5 | Bowled dismissal (G2) | Text reads "WICKET — BOWLED! Yorker crashes into middle stump." Same G2 limitation as above |
+| 4.2 | No-ball (G1) | Text reads "NO-BALL — Joseph oversteps! Driven through midwicket." Engine incorrectly charges Joseph 1 run and rotates strike (real cricket: no run to bowler, no strike rotation) |
+| 4.3 | Free-hit (G4) | Text reads "FREE-HIT — driven through midwicket, races to the fence." No schema signal for free-hit. Engine treats it as a normal boundary-four; any dismissal on this ball would be recorded identically to a normal wicket |
+| 5.3 | Leg-bye (G3) | Text reads "LEGBYE — worked off the pads, no bat involved." Engine credits Nissanka with 1 run — in real cricket a leg-bye does not credit the batsman; his strike rate and stats are inflated |
+| 5.5 | Caught dismissal (G2) | Text reads "WICKET — lofted down the ground, Pooran settles under it." Same G2 limitation — no structured 'caught' type field |
 
 See also: [SCHEMA.md](SCHEMA.md) for the current annotated field reference.
