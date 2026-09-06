@@ -100,8 +100,9 @@ function buildFeed(def) {
           }
         }
 
-        // --- free-hit rule (format-aware)
-        const isLimitedOvers = !def.format.includes('Test') && !def.format.includes('first class');
+        // --- free-hit rule (format-aware, case-insensitive)
+        const fmt = (def.format || '').toLowerCase();
+        const isLimitedOvers = !fmt.includes('test') && !fmt.includes('first class');
         const freeHit = isLimitedOvers && prevWasNoBall;
         let freeHitRejected = false;
         if (freeHit && dismissed && dismissalType && dismissalType !== 'runout') {

@@ -1530,10 +1530,12 @@ function buildFeed(def){
         }
       }
 
-      // --- free-hit rule (Phase 2) ------------------------------------------
+      // --- free-hit rule (Phase 2, format-aware) ---------------------------
       // Free-hits apply only in limited-overs formats (T20, ODI). They do
       // NOT apply in Test cricket or first-class cricket.
-      const isLimitedOvers = !def.format.includes('Test') && !def.format.includes('first class');
+      // Case-insensitive: handles 'Test Match', 'test match', 'First-Class', etc.
+      const fmt = (def.format || '').toLowerCase();
+      const isLimitedOvers = !fmt.includes('test') && !fmt.includes('first class');
       const freeHit = isLimitedOvers && prevWasNoBall;
       let freeHitRejected = false;
       if (freeHit && dismissed && dismissalType && dismissalType !== 'runout'){
