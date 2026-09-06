@@ -1,0 +1,221 @@
+{
+  "id": "premadasa",
+  "label": "SL v WI · R. Premadasa",
+  "format": "T20 International",
+  "stage": "T20I · Colombo · Night Match",
+  "venue": {
+    "name": "R. Premadasa Stadium",
+    "city": "Colombo, Sri Lanka",
+    "pitch": "Spin-friendly, slow turn",
+    "weather": "Humid, clear",
+    "temp": "29°C",
+    "wind": "8 km/h",
+    "boundary": "65 m × 65 m",
+    "floodlights": true
+  },
+  "theme": {
+    "grassA": 3042106,
+    "grassB": 3837002,
+    "outfield": 2777136,
+    "pitch": 13938816,
+    "skyTop": 264466,
+    "skyBot": 794160,
+    "stand": 1185822,
+    "seat": 1845304,
+    "night": true
+  },
+  "teams": {
+    "home": {
+      "key": "sl",
+      "name": "SRI LANKA",
+      "short": "SL",
+      "flag": "🇱🇰",
+      "kit": 1255520,
+      "cap": 1718912,
+      "players": [
+        { "id": "pn", "name": "Pathum Nissanka",       "role": "Opener",     "pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 892,  "balls": 648,  "fours": 96,  "sixes": 26,  "sr": 137.7 } },
+        { "id": "kp", "name": "Kusal Perera",          "role": "Opener",     "pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 1248, "balls": 857,  "fours": 118, "sixes": 52,  "sr": 145.6 } },
+        { "id": "km", "name": "Kusal Mendis",          "role": "WK-Batsman", "pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 1576, "balls": 1048, "fours": 162, "sixes": 64,  "sr": 150.4 } },
+        { "id": "ca", "name": "Charith Asalanka",      "role": "Batsman",    "pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 734,  "balls": 498,  "fours": 72,  "sixes": 28,  "sr": 147.4 } },
+        { "id": "ss", "name": "Sadeera Samarawickrama","role": "Batsman",    "pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 412,  "balls": 299,  "fours": 38,  "sixes": 14,  "sr": 137.8 } },
+        { "id": "da", "name": "Dasun Shanaka",         "role": "All-rounder","pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 578,  "balls": 378,  "fours": 54,  "sixes": 32,  "sr": 152.9 } },
+        { "id": "dw", "name": "Dunith Wellalage",      "role": "All-rounder","pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 324,  "balls": 228,  "fours": 28,  "sixes": 12,  "sr": 142.1 } },
+        { "id": "ma", "name": "Mahendra Chandana",     "role": "All-rounder","pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 186,  "balls": 138,  "fours": 16,  "sixes": 6,   "sr": 134.8 } },
+        { "id": "dm", "name": "Dilshan Madushanka",    "role": "Bowler",     "pos": { "x":  0.0,  "z": -12.56 }, "stats": { "overs": 18,   "maidens": 1,  "runs": 142,  "wickets": 17, "econ": 7.89 } },
+        { "id": "ch", "name": "Chamindu Pathum",       "role": "Bowler",     "pos": { "x":  0.0,  "z": -12.26 }, "stats": { "overs": 12,   "maidens": 1,  "runs": 88,   "wickets": 12, "econ": 7.33 } },
+        { "id": "wa", "name": "Wanindu Hasaranga",    "role": "Bowler",     "pos": { "x":  0.0,  "z": -13.06 }, "stats": { "overs": 22,   "maidens": 2,  "runs": 148,  "wickets": 26, "econ": 6.73 } },
+        { "id": "mt", "name": "Matheesha Pathirana",   "role": "Bowler",     "pos": { "x":  0.0,  "z": -12.26 }, "stats": { "overs": 16,   "maidens": 0,  "runs": 122,  "wickets": 22, "econ": 7.63 } }
+      ]
+    },
+    "away": {
+      "key": "wi",
+      "name": "WEST INDIES",
+      "short": "WI",
+      "flag": "🏴",
+      "kit": 8388608,
+      "cap": 16106496,
+      "players": [
+        { "id": "bk", "name": "Brandon King",          "role": "Batsman",    "pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 1248, "balls": 884,  "fours": 128, "sixes": 44,  "sr": 141.2 } },
+        { "id": "nc", "name": "Nicholas Pooran",       "role": "WK-Batsman", "pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 1562, "balls": 986,  "fours": 148, "sixes": 82,  "sr": 158.4 } },
+        { "id": "sm", "name": "Shai Hope",             "role": "Batsman",    "pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 892,  "balls": 638,  "fours": 88,  "sixes": 32,  "sr": 139.8 } },
+        { "id": "rl", "name": "Rovman Powell",          "role": "Batsman",    "pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 726,  "balls": 462,  "fours": 64,  "sixes": 42,  "sr": 157.1 } },
+        { "id": "sh", "name": "Sherfane Rutherford",   "role": "Batsman",    "pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 498,  "balls": 348,  "fours": 46,  "sixes": 24,  "sr": 143.1 } },
+        { "id": "gj", "name": "Garrick Moses",          "role": "WK-Batsman", "pos": { "x": -0.62, "z":  9.44 }, "stats": { "runs": 284,  "balls": 208,  "fours": 26,  "sixes": 12,  "sr": 136.5 } },
+        { "id": "rh", "name": "Romario Shepherd",      "role": "All-rounder","pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 324,  "balls": 214,  "fours": 28,  "sixes": 18,  "sr": 151.4 } },
+        { "id": "aj", "name": "Alzarri Joseph",        "role": "Bowler",     "pos": { "x":  0.0,  "z": -12.56 }, "stats": { "overs": 28,   "maidens": 2,  "runs": 196,  "wickets": 32, "econ": 7.00 } },
+        { "id": "sj", "name": "Shamar Joseph",          "role": "Bowler",     "pos": { "x":  0.0,  "z": -12.26 }, "stats": { "overs": 14,   "maidens": 1,  "runs": 98,   "wickets": 18, "econ": 7.00 } },
+        { "id": "cs", "name": "Cole Johnson",          "role": "Bowler",     "pos": { "x":  0.0,  "z": -13.06 }, "stats": { "overs": 10,   "maidens": 0,  "runs": 76,   "wickets": 12, "econ": 7.60 } },
+        { "id": "rp", "name": "Roston Chase",          "role": "All-rounder","pos": { "x":  0.62, "z": 10.61 }, "stats": { "runs": 548,  "balls": 402,  "fours": 48,  "sixes": 18,  "sr": 136.3 } }
+      ]
+    }
+  },
+  "battingTeam": "home",
+  "innings": {
+    "current": "Sri Lanka innings",
+    "firstInnings": { "team": "away", "total": 0 }
+  },
+  "field": {
+    "standard": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 14.6 },
+      { "id": "sl1", "name": "Slip",       "x": -2.3,  "z": 14.0 },
+      { "id": "gly", "name": "Gully",      "x": -5.6,  "z": 12.6 },
+      { "id": "pnt", "name": "Point",       "x": -24.0, "z":  7.0 },
+      { "id": "cov", "name": "Cover",       "x": -27.0, "z": -6.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -13.0, "z": -22.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":  11.5, "z": -23.0 },
+      { "id": "mwk", "name": "Midwicket",  "x":  26.0, "z": -5.0 },
+      { "id": "sql", "name": "Square leg", "x":  24.0, "z": 10.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  26.0, "z": 54.0 },
+      { "id": "thm", "name": "Third man",  "x": -28.0, "z": 52.0 }
+    ],
+    "attacking": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 13.4 },
+      { "id": "sl1", "name": "Slip",       "x": -2.1,  "z": 12.9 },
+      { "id": "gly", "name": "2nd Slip",   "x": -3.9,  "z": 12.7 },
+      { "id": "pnt", "name": "Gully",      "x": -6.2,  "z": 12.0 },
+      { "id": "cov", "name": "Cover",       "x": -21.0, "z": -4.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -11.0, "z": -18.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":   9.5, "z": -19.0 },
+      { "id": "mwk", "name": "Short leg",  "x":   3.4, "z": 12.2 },
+      { "id": "sql", "name": "Square leg", "x":  20.0, "z":  8.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  22.0, "z": 46.0 },
+      { "id": "thm", "name": "Third man",  "x": -25.0, "z": 46.0 }
+    ]
+  },
+  "perOverRuns": {
+    "home": [8, 3, 5, 6, 3],
+    "away": []
+  },
+  "ai": {
+    "current": { "away": 35 },
+    "baseline": { "away": 50, "over": 1 },
+    "projected": { "from": 0, "to": 0 },
+    "newBallOver": 80,
+    "rr10": 5.00,
+    "lastWicket": { "text": "Charith Asalanka c Pooran b Johnson 2", "over": "5.5" }
+  },
+  "momentumHistory": [
+    { "over": 1, "away": 50, "rr": 8.00, "w": 0, "p": 50 },
+    { "over": 2, "away": 48, "rr": 5.50, "w": 1, "p": 58 },
+    { "over": 3, "away": 42, "rr": 5.33, "w": 1, "p": 62 },
+    { "over": 4, "away": 38, "rr": 5.40, "w": 0, "p": 55 },
+    { "over": 5, "away": 35, "rr": 5.00, "w": 1, "p": 65 }
+  ],
+  "start": {
+    "runs": 0,
+    "wickets": 0,
+    "over": 0,
+    "ball": 0,
+    "batsmen": [
+      { "name": "Pathum Nissanka",    "short": "NISSANKA", "runs": 0, "balls": 0, "fours": 0, "sixes": 0, "onStrike": true,  "form": 5, "pressure": 5 },
+      { "name": "Kusal Perera",       "short": "PERERA",   "runs": 0, "balls": 0, "fours": 0, "sixes": 0, "onStrike": false, "form": 5, "pressure": 5 }
+    ],
+    "partnership": { "runs": 0, "balls": 0 },
+    "bowlers": {
+      "joseph_a":  { "name": "Alzarri Joseph",    "style": "Right-arm fast",       "overs": 0, "maidens": 0, "runs": 0, "wickets": 0 },
+      "hasaranga": { "name": "Wanindu Hasaranga",  "style": "Right-arm leg-spin",   "overs": 0, "maidens": 0, "runs": 0, "wickets": 0 },
+      "joseph_s":  { "name": "Shamar Joseph",      "style": "Right-arm fast-medium","overs": 0, "maidens": 0, "runs": 0, "wickets": 0 },
+      "johnson":    { "name": "Cole Johnson",       "style": "Left-arm fast-medium", "overs": 0, "maidens": 0, "runs": 0, "wickets": 0 }
+    },
+    "toCome": [
+      "Kusal Mendis",
+      "Charith Asalanka",
+      "Sadeera Samarawickrama",
+      "Dasun Shanaka",
+      "Dunith Wellalage",
+      "Mahendra Chandana",
+      "Dilshan Madushanka",
+      "Chamindu Pathum",
+      "Wanindu Hasaranga",
+      "Matheesha Pathirana"
+    ]
+  },
+  "overs": [
+    {
+      "over": 1,
+      "bowler": "joseph_a",
+      "balls": [
+        [0, null, 142, "good",   "off",     null,         "Solid defensive block, straight bat. No run."],
+        [1, null, 139, "good",   "middle",  "mid-on",     "Nudged into the leg side for a quick single."],
+        [4, null, 145, "full",   "off",     "cover",      "FOUR — driven on the up through extra cover, beautiful timing."],
+        [1, null, 141, "good",   "middle",  "square-leg", "Tucked off the hips for one, strike rotates."],
+        [0, null, 144, "good",   "off",     null,         "Beaten outside off — late swing from Joseph."],
+        [2, null, 140, "full",   "middle",  "mid-on",    "Driven through mid-on, comfortable two."]
+      ],
+      "momentum": { "away": 50, "rr": 8.00, "w": 0, "p": 50 }
+    },
+    {
+      "over": 2,
+      "bowler": "hasaranga",
+      "balls": [
+        [1, null, 89, "full",   "leg",    "keeper",     "WIDE — sliding down leg side, called by umpire. Hasaranga overpitches."],
+        [0, null, 86, "good",   "off",    null,         "Defended, big turn from the rough outside off."],
+        [1, null, 88, "good",   "middle", "midwicket",  "Pushed to midwicket for a single."],
+        [0, null, 90, "good",   "off",    null,         "Beaten in the flight — no shot offered."],
+        [0, "Kusal Perera lbw b Hasaranga 6", 87, "full", "middle", null, "WICKET — straightening, trapped on the back pad. Umpire raises the finger. Perera departs for 6."],
+        [1, null, 85, "good",   "leg",    "square-leg", "First ball for Mendis, tucked off the pads for one."]
+      ],
+      "momentum": { "away": 48, "rr": 5.50, "w": 1, "p": 58 }
+    },
+    {
+      "over": 3,
+      "bowler": "joseph_s",
+      "balls": [
+        [0, null, 138, "good",   "off",     null,        "Defended off the front foot, watchful start."],
+        [0, null, 140, "bouncer","body",    null,        "Sharp bouncer, swayed out of the way."],
+        [4, null, 136, "full",   "off",     "cover",     "FOUR — driven crisply through extra cover, races to the rope."],
+        [0, null, 142, "good",   "middle",  null,        "Defended back down the pitch."],
+        [0, "Kusal Mendis b Shamar Joseph 5", 144, "yorker", "middle", null, "WICKET — BOWLED! Yorker crashes into middle stump. Mendis cleaned up for 5."],
+        [1, null, 139, "good",   "leg",     "midwicket", "New batsman Asalanka gets off the mark with a single to midwicket."]
+      ],
+      "momentum": { "away": 42, "rr": 5.33, "w": 1, "p": 62 }
+    },
+    {
+      "over": 4,
+      "bowler": "joseph_a",
+      "balls": [
+        [0, null, 143, "good",   "off",    null,        "Left alone outside off, good judgement from Asalanka."],
+        [1, null, 141, "full",   "leg",    "midwicket","NO-BALL — Joseph oversteps! Driven through midwicket, free-hit next ball."],
+        [4, null, 140, "full",   "leg",    "midwicket","FREE-HIT — driven through midwicket, races to the fence. No dismissal possible."],
+        [0, null, 144, "good",   "off",    null,        "Defended into the pitch, no run."],
+        [1, null, 139, "good",   "middle", "mid-on",   "Worked to mid-on for a quick single, strike rotates."],
+        [0, null, 146, "good",   "off",    null,        "Left alone outside off to end a busy over."]
+      ],
+      "momentum": { "away": 38, "rr": 5.40, "w": 0, "p": 55 }
+    },
+    {
+      "over": 5,
+      "bowler": "johnson",
+      "upcoming": true,
+      "balls": [
+        [0, null, 137, "good",   "off",    null,        "Defended off the back foot, no run."],
+        [2, null, 135, "full",   "middle", "long-on",   "Driven down the ground to long-on, comfortable two."],
+        [1, null, 132, "good",   "leg",    "fine-leg",  "LEGBYE — worked off the pads, no bat involved. Fine leg fields."],
+        [0, null, 138, "good",   "off",    null,        "Left alone outside off, good length from Johnson."],
+        [0, "Charith Asalanka c Pooran b Johnson 2", 136, "full", "leg", "long-on", "WICKET — lofted down the ground, Pooran settles under it at long-on. Asalanka departs for 2."],
+        [0, null, 134, "good",   "off",    null,        "New batsman Samarawickrama defends his first ball watchfully."]
+      ],
+      "momentum": { "away": 35, "rr": 5.00, "w": 1, "p": 65 }
+    }
+  ]
+}
