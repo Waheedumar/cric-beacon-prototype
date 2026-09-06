@@ -1466,28 +1466,106 @@ function buildFeed(def){
   s.toCome = s.toCome.slice();
   const out = [];
   let wicketsInWindow = 0;
+  let prevWasNoBall = false;
+
+  // Per-bowler over tracking for maiden detection
+  const bowlerState = {};   // key -> { legalBalls, runsThisOver, maidens }
 
   def.overs.forEach(ov => {
     ov.balls.forEach((b, i) => {
       const [runs, wicket, speed, length, line, dir, text, shotDetail] = b;
+      const extraType = b[7] || null;
       const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
       const striker = s.batsmen[strikerIdx];
       const bowler = s.bowlers[ov.bowler];
       const outName = wicket ? striker.name : null;
       const shot = shotDetail || deriveShot({ runs, dir }, ov.over * 100 + (i + 1));
 
+      // --- Phase 2: extras / legal-ball accounting ---------------------------
+      // `legal` is false for wides and no-balls — they do not count as a
+      // delivery for over-ball counting, maiden detection, or balls-faced.
+      const isExtra = extraType === 'wide' || extraType === 'noball';
+      const legal = !isExtra;
+      // batRuns: runs credited to the bat. For extras, only no-ball + boundary
+      // or no-ball + run credits bat runs; byes/leg-byes/wides credit 0.
+      let batRuns = runs;
+      if (extraType === 'wide' || extraType === 'bye' || extraType === 'legbye') batRuns = 0;
+      // no-ball: bat runs are whatever was scored off the bat (runs minus the
+      // no-ball penalty). Default: if runs>0 then runs-1, else 0.
+      if (extraType === 'noball' && b.batRuns === undefined) {
+        batRuns = runs > 0 ? runs - 1 : 0;
+      }
+      if (b.batRuns !== undefined) batRuns = b.batRuns;
+      const extraRuns = runs - batRuns;
+
+      // --- structured wicket (Phase 2) --------------------------------------
+      // Accept either the new object form or the legacy free-text string.
+      let dismissalType = null, caughtBy = null, runoutEnd = null, bowledBy = null;
+      let dismissed = !!wicket;
+      if (wicket){
+        if (typeof wicket === 'object' && wicket !== null){
+          dismissalType = wicket.type || null;
+          caughtBy = wicket.caughtBy || null;
+          runoutEnd = wicket.runoutEnd || null;
+          bowledBy = wicket.bowledBy || null;
+        } else {
+          // Legacy: 'Name c Fielder b Bowler Runs' / 'Name st Fielder b Bowler Runs' /
+          //         'Name lbw b Bowler Runs' / 'Name b Bowler Runs'
+          const m = String(wicket).match(
+            /^([A-Z][A-Za-z' .-]+?)\s+(c|st|lbw)(?:\s+(.+?))?\s+b\s+([A-Z][A-Za-z' .-]+)\s+\d+\s*$/
+          );
+          if (m){
+            dismissalType = m[2] === 'st' ? 'stumped' : m[2] === 'lbw' ? 'lbw' : 'caught';
+            caughtBy = m[3] || null;
+            bowledBy = m[4] || null;
+          } else {
+            const m2 = String(wicket).match(
+              /^([A-Z][A-Za-z' .-]+?)\s+b\s+([A-Z][A-Za-z' .-]+)\s+\d+\s*$/
+            );
+            if (m2){
+              dismissalType = 'bowled';
+              bowledBy = m2[2];
+            }
+          }
+        }
+      }
+
+      // --- free-hit rule (Phase 2) ------------------------------------------
+      // The ball after a no-ball is a free-hit: the batsman cannot be dismissed
+      // except by a run-out.
+      const freeHit = prevWasNoBall;
+      let freeHitRejected = false;
+      if (freeHit && dismissed && dismissalType && dismissalType !== 'runout'){
+        freeHitRejected = true;
+        dismissed = false;
+      }
+      prevWasNoBall = extraType === 'noball';
+
       // --- apply the delivery to the state ---
-      striker.balls++;
-      striker.runs += runs;
-      if (runs === 4) striker.fours++;
-      if (runs === 6) striker.sixes++;
+      if (legal) striker.balls++;
+      striker.runs += batRuns;
+      if (batRuns === 4) striker.fours++;
+      if (batRuns === 6) striker.sixes++;
       s.runs += runs;
       s.partnership.runs += runs;
-      s.partnership.balls++;
-      bowler.runs += runs;
+      // no-ball penalty is NOT charged to the bowler; everything else is.
+      bowler.runs += (extraType === 'noball') ? batRuns : runs;
+
+      // over / maiden tracking (legal balls only)
+      const bs = bowlerState[ov.bowler] || (bowlerState[ov.bowler] = { legalBalls: 0, runsThisOver: 0, maidens: 0 });
+      if (legal){
+        bs.legalBalls++;
+        if (i === 5 && bs.legalBalls === 6 && bs.runsThisOver === 0){
+          bs.maidens++;
+          bowler.maidens = (bowler.maidens || 0) + 1;
+        }
+      }
+      bs.runsThisOver += (extraType === 'noball') ? batRuns : runs;
+      if (i === 5) { bs.legalBalls = 0; bs.runsThisOver = 0; }
+
       if (i === 0) bowler.overs++;
 
-      if (wicket){
+      if (dismissed && !freeHitRejected){
         s.wickets++;
         bowler.wickets++;
         wicketsInWindow++;
@@ -1518,11 +1596,19 @@ function buildFeed(def){
         bowlerKey:ov.bowler, bowlerName:s.bowlers[ov.bowler].name,
         strikerName:striker.name,
         runs, wicket:wicket || null, outName,
+        extraType, legal, batRuns, extraRuns,
+        dismissalType, caughtBy, runoutEnd, bowledBy,
+        freeHit, freeHitRejected,
         speed, length, line, dir,
         text,
         shot, // { type, distance, direction } derived above
-        result: wicket ? 'WICKET' : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`,
-        chip: wicket ? 'W' : String(runs),
+        result: freeHitRejected ? 'FREEHIT_REJECTED'
+             : dismissed ? 'WICKET'
+             : runs === 0 ? 'DOT BALL'
+             : runs === 4 ? 'FOUR'
+             : runs === 6 ? 'SIX'
+             : `${runs} RUN${runs>1?'S':''}`,
+        chip: dismissed && !freeHitRejected ? 'W' : String(runs),
         fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard',
         overMomentum: i === 5 ? ov.momentum : null,
         state: JSON.parse(JSON.stringify(s))

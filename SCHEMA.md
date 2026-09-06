@@ -333,18 +333,40 @@ represents one over; `balls[]` is the ordered array of individual deliveries.
 ```js
   overs: [
     { over: 119, bowler: 'henry', upcoming: false, balls: [
-      // Each ball is a 7-element tuple:
-      // [0] runs       — runs scored off this ball (0–6)
-      // [1] wicket    — null, or the dismissal text string (e.g. 'c Latham b Santner 33')
-      // [2] speed      — delivery speed in km/h (int)
-      // [3] length     — 'yorker' | 'full' | 'good' | 'short' | 'bouncer'
+      // Each ball is a 7- or 8-element tuple. Element 8 is optional.
+      //
+      // 7-element form (backward-compatible):
+      // [0] runs       - total runs scored off this ball (0-6)
+      // [1] wicket    - null, or the dismissal text string (e.g. 'c Latham b Santner 33')
+      // [2] speed      - delivery speed in km/h (int)
+      // [3] length     - 'yorker' | 'full' | 'good' | 'short' | 'bouncer'
       //                  (maps to world Z coordinate + height via LENGTHS table)
-      // [4] line       — 'off' | 'fourth' | 'middle' | 'leg' | 'body' | 'wide'
+      // [4] line       - 'off' | 'fourth' | 'middle' | 'leg' | 'body' | 'wide'
       //                  (maps to world X coordinate via LINES table)
-      // [5] dir        — null, or shot direction key from SHOT_DIRS
+      // [5] dir        - null, or shot direction key from SHOT_DIRS
       //                  ('cover', 'midwicket', 'slip', etc.)
       //                  Controls: wagon wheel arc, shot trajectory, fielder positioning
-      // [6] text       — Natural-language commentary sentence for the panel
+      // [6] text       - Natural-language commentary sentence for the panel
+      //
+      // 8-element form (extended, adds extras support):
+      // [7] extraType  - 'wide' | 'noball' | 'bye' | 'legbye' | null
+      //                  The type of extras, if any. null means no extras.
+      //
+      // Additional optional per-ball fields (object form, see below):
+      //   legal: boolean  - false for wide / no-ball (does not count as a legal
+      //                      delivery for over-ball counting or maiden detection)
+      //   batRuns: number - runs credited to the bat (separate from extras);
+      //                      defaults to `runs` when absent
+      //   freeHit: boolean - true when this ball is a free-hit following a
+      //                      no-ball (batsman cannot be dismissed except run-out)
+      //   wicket: object  - structured dismissal, replacing the free-text string:
+      //                      { dismissed: true, type: 'caught' | 'bowled' | 'lbw'
+      //                        | 'runout' | 'stumped' | 'hitwicket',
+      //                        caughtBy: 'Latham' | null,
+      //                        runoutEnd: 'Baz' | null,
+      //                        bowledBy: 'Santner' | null }
+      //                      When `wicket` is present, `runs` at index 0 is the
+      //                      runs scored off the bat (0 for a bowled/caught wicket).
       [1, null, 138, 'good', 'off', 'cover',
        'Steered to cover for a single under lights.'],
       [0, null, 141, 'good', 'fourth', null,
@@ -442,6 +464,40 @@ const SHOT_DIRS = {
 };
 ```
 
+### Extras (Phase 2 extension)
+
+When a ball carries extras, tuple index 7 must be set to one of
+`'wide' | 'noball' | 'bye' | 'legbye'`. The following rules are applied by
+`buildFeed()`:
+
+| Event            | `extraType` | `runs` | `batRuns` | `legal` | Strike rotates? | Bowler charged? | Batsman credited? |
+|------------------|-------------|--------|-----------|---------|-----------------|-----------------|-------------------|
+| Wide             | `'wide'`    | total  | 0         | false   | odd total only  | yes (extras)    | no                |
+| No-ball + bat    | `'noball'`  | total  | off bat   | false   | odd total only  | no-balls no     | yes (bat runs)    |
+| No-ball + run    | `'noball'`  | total  | 0         | false   | odd total only  | no-balls no     | no                |
+| Bye              | `'bye'`     | total  | 0         | true    | odd total only  | yes (extras)    | no                |
+| Leg-bye          | `'legbye'`  | total  | 0         | true    | odd total only  | yes (extras)    | no                |
+| Legal delivery   | `null`      | total  | total     | true    | odd total only  | yes (runs)      | yes (runs)        |
+
+`wicket` is an object (or null). When set, `buildFeed()` consumes it as:
+
+```js
+wicket: { dismissed: true, type: 'caught', caughtBy: 'Latham', runoutEnd: null, bowledBy: 'Santner' }
+```
+
+The free-text form (e.g. `'Alex Carey c Latham b Santner 33'`) remains supported
+as a backward-compatible fallback: `buildFeed()` parses the text with a regex
+to populate the structured fields. When the structured object is present in the
+match document, it takes precedence.
+
+`freeHit: true` is set on the ball immediately after a no-ball. A dismissal on
+a free-hit is recorded but marked `dismissalType: 'runout'` only — all other
+types are rejected by `buildFeed()` and surfaced via the delivery's `text`.
+
+Maiden detection: a bowler records a maiden when an over contains 6 **legal**
+deliveries and zero `bowler.runs` added. A no-ball resets the over; a wide
+also resets the over (no-balls and wides each add to the bowler).
+
 ---
 
 ## Output: Delivery Object (produced by buildFeed)
@@ -461,3 +517,9 @@ match document.
 | `fieldSet` | `'standard'` or `'attacking'` (wicket count > 0) | Fielder repositioning |
 | `winProb`, `winProbPrev` | Computed from delta accumulation | Win probability panel |
 | `overMomentum` | Copied from `ov.momentum` on ball 6 | Momentum chart |
+| `legal`        | Derived from tuple [7] `extraType` (false if wide/noball) | Over-count, maiden detection |
+| `extraType`    | Tuple [7] (`'wide' | 'noball' | 'bye' | 'legbye' \| null`) | Extra-run accounting |
+| `batRuns`      | Derived: if extraType present then runs minus extras | Batting stats, strike rate |
+| `extraRuns`    | Derived: runs on wides, no-balls, byes, leg-byes | Bowling economy, team extras |
+| `wicket`       | Structured: `{dismissed, type, caughtBy, runoutEnd, bowledBy}` replacing free-text | Dismissal analytics, fantasy |
+| `freeHit`      | Boolean true if preceding ball was a no-ball | Free-hit rules, dismissal logic |

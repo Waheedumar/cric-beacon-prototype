@@ -10,3 +10,5 @@ secret_scan.ps1
 
 .vercel
 .env*.local
+.env*.secret
+VITE_SPORTMONKS*
