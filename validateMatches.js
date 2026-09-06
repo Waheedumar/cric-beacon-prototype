@@ -144,7 +144,7 @@ function buildFeed(def) {
           };
           s.partnership = { runs: 0, balls: 0 };
           s.batsmen.forEach((x, k) => x.onStrike = (k === strikerIdx));
-        } else if (runs % 2 === 1) {
+        } else if (legal ? runs % 2 === 1 : extraType === 'legbye') {
           s.batsmen.forEach(x => x.onStrike = !x.onStrike);
         }
 
@@ -250,6 +250,39 @@ function validateMatch(id) {
   const extBalls = deliveries.filter(d => d.extraType !== null).length;
   const structuredWickets = deliveries.filter(d => typeof d.wicket === 'object' && d.wicket !== null).length;
 
+  // Phase 2 free-hit validation — demo match
+  if (id === 'demo') {
+    // Over 2 ball 2: free-hit with a wicket → should be rejected
+    const fhReject = deliveries.find(d => d.key === '2.2');
+    if (!fhReject) {
+      post.push("demo: delivery 2.2 (free-hit) not found");
+    } else {
+      if (!fhReject.freeHit)      post.push("demo: 2.2 should have freeHit=true");
+      if (!fhReject.freeHitRejected) post.push("demo: 2.2 freeHitRejected should be true (wicket on free-hit)");
+      if (fhReject.dismissalType !== 'caught') post.push("demo: 2.2 dismissalType should be 'caught'");
+      if (fhReject.dismissalType && fhReject.dismissed === true) post.push("demo: 2.2 dismissed should be false (free-hit rejected the wicket)");
+      if (fhReject.state.wickets !== 0) post.push("demo: 2.2 wickets should still be 0 (free-hit wicket rejected)");
+    }
+    // Over 2 ball 6: real wicket on legal delivery → should count
+    const realWk = deliveries.find(d => d.key === '2.6');
+    if (realWk) {
+      if (realWk.freeHit)           post.push("demo: 2.6 should NOT be a free-hit");
+      if (!realWk.freeHitRejected)   post.push("demo: 2.6 freeHitRejected should be false (legal delivery)");
+      if (realWk.dismissalType !== 'caught') post.push("demo: 2.6 dismissalType should be 'caught'");
+      if (realWk.dismissed !== true) post.push("demo: 2.6 dismissed should be true (real wicket)");
+      if (realWk.state.wickets !== 1) post.push("demo: 2.6 wickets should be 1 (real wicket counts)");
+    }
+    // Extra type counts for demo match
+    const wideBalls = deliveries.filter(d => d.extraType === 'wide').length;
+    const byeBalls  = deliveries.filter(d => d.extraType === 'bye').length;
+    const lbBalls   = deliveries.filter(d => d.extraType === 'legbye').length;
+    const nbBalls   = deliveries.filter(d => d.extraType === 'noball').length;
+    if (wideBalls !== 2) post.push(`demo: expected 2 wide balls, got ${wideBalls}`);
+    if (byeBalls  !== 1) post.push(`demo: expected 1 bye ball, got ${byeBalls}`);
+    if (lbBalls   !== 2) post.push(`demo: expected 2 leg-bye balls, got ${lbBalls}`);
+    if (nbBalls   !== 1) post.push(`demo: expected 1 no-ball, got ${nbBalls}`);
+  }
+
   const allErrors = [...pre, ...post];
   return {
     id,
@@ -273,7 +306,7 @@ function validateMatch(id) {
 /* ===================================================================
    Run for all 5 matches
    =================================================================== */
-const MATCHES = ['lords', 'galle', 'mcg', 'hambantota', 'premadasa'];
+const MATCHES = ['lords', 'galle', 'mcg', 'hambantota', 'premadasa', 'demo'];
 
 console.log('\n========================================');
 console.log('  validateMatches.js — Phase 2 Regression');

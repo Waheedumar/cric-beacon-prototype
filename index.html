@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Cric Beacon — 3D match centre prototype -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Cric Beacon — 3D + AI Cricket Intelligence (Prototype)</title>
@@ -1126,18 +1125,18 @@ const MOCK_MATCHES = {
       city: 'Hambantota, Sri Lanka',
       pitch: 'Dry, spinning track',
       weather: 'Hot, humid',
-      temp: '32°C',
+      temp: 32,
       wind: 'SW 12 km/h',
-      boundary: '70 m × 70 m',
+      boundary: 70,
       floodlights: true
     },
     theme: {
-      grassA: 0x1B4D2A, grassB: 0x2D6B3E, outfield: 0x1A5C2E,
-      pitch: 0xC8A87A, skyTop: 0x1E3A5F, skyBot: 0x2E5A8A,
-      stand: 0x2A2A2A, seat: 0x1A1A1A, night: true
+      grassA: '#1B4D2A', grassB: '#2D6B3E', outfield: '#1A5C2E',
+      pitch: '#C8A87A', skyTop: '#1E3A5F', skyBot: '#2E5A8A',
+      stand: '#2A2A2A', seat: '#1A1A1A', night: true
     },
     teams: {
-      home: { key: 'nz', name: 'New Zealand', short: 'NZ', flag: '🇳🇿', kit: 0x000000, cap: 0xFFFFFF,
+      home: { key: 'nz', name: 'New Zealand', short: 'NZ', flag: '🇳🇿', kit: '#000000', cap: '#FFFFFF',
         players:[
           { id:'h1', name:'Finn Anderson',   role:'Opener',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:23, balls:56, fours:2, sixes:0, sr:41.1 } },
           { id:'h2', name:'Kane Williamson',  role:'Top-order',  pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:45, balls:128, fours:5, sixes:1, sr:35.2 } },
@@ -1146,7 +1145,7 @@ const MOCK_MATCHES = {
           { id:'h5', name:'Tom Latham',       role:'WK-Batsman', pos:{x: 18.0, z: 8.0},          stats:{ runs:18, balls:41, fours:2, sixes:0, sr:43.9 } }
         ]
       },
-      away: { key: 'bd', name: 'Bangladesh', short: 'BD', flag: '🇧🇩', kit: 0x006A4E, cap: 0xF7C800,
+      away: { key: 'bd', name: 'Bangladesh', short: 'BD', flag: '🇧🇩', kit: '#006A4E', cap: '#F7C800',
         players:[
           { id:'b1', name:'Taskin Ahmed',    role:'Fast Bowler',      pos:{x: 0.35, z:-STUMP_Z - 2.2}, stats:{ overs:12, maidens:3, runs:45, wickets:2, econ:3.75 } },
           { id:'b2', name:'Taijul Islam',    role:'Spin All-rounder', pos:{x: 0.0, z: 0.0},          stats:{ overs:28, maidens:8, runs:52, wickets:1, econ:2.21 } },
@@ -1212,211 +1211,6 @@ const MOCK_MATCHES = {
         [0,null, 86,'good','leg',null,'Left alone on the leg side. The batsmen leave those.']
       ], momentum:{ away:23, rr:3.6, w:0, p:32 } }
     ]
-  },
-
-  // -----------------------------------------------------------------------
-  // Test Match E — SL v WI, R. Premadasa Stadium, Colombo (T20I, night)
-  // -----------------------------------------------------------------------
-  // Schema gaps flagged in this match (reported honestly, not worked around):
-  //   G1 — Wides, no-balls, byes, leg-byes: no extraType / legal / batRuns
-  //         fields in the ball tuple. Cannot distinguish legal deliveries from
-  //         extras. Cannot represent wicket-free wides/no-balls correctly.
-  //   G2 — Structured dismissal types: the ball tuple's wicket field is a
-  //         freeform string. Cannot categorise caught/bowled/lbw/run-out/etc.
-  //         for downstream analytics. See SCHEMA.md delivery object spec.
-  //   G3 — Leg-side extras: byes and leg-byes carry no separate signal;
-  //         they inflate the runs count identically to bat runs.
-  //   G4 — Free-hit rule: the schema has no mechanism to signal a free-hit
-  //         ball following a no-ball.
-  // -----------------------------------------------------------------------
-  premadasa: {
-    id:'premadasa',
-    label:'SL v WI · R. Premadasa',
-    format:'T20 International',
-    stage:'T20I · Colombo · Night Match',
-    venue:{
-      name:'R. Premadasa Stadium',
-      city:'Colombo, Sri Lanka',
-      pitch:'Spin-friendly, slow turn',
-      weather:'Humid, clear',
-      temp:'29°C',
-      wind:'8 km/h',
-      boundary:'65 m × 65 m',
-      floodlights:true
-    },
-    // Dark blue sky with warm floodlight glow — appropriate for a Colombo night T20I
-    theme:{
-      grassA:0x2E6B3A,
-      grassB:0x3A8C4A,
-      outfield:0x2A6030,
-      pitch:0xD4B080,
-      skyTop:0x040912,
-      skyBot:0x0C1E30,
-      stand:0x12181E,
-      seat:0x1C2838,
-      night:true
-    },
-    teams:{
-      home:{
-        key:'sl',
-        name:'SRI LANKA',
-        short:'SL',
-        flag:'🇱🇰',
-        kit:0x132860,
-        cap:0x1A3A80,       // navy blue — standard SL cap
-        players:[
-          { id:'pn', name:'Pathum Nissanka',  role:'Opener',      pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:892, balls:648, fours:96,  sixes:26,  sr:137.7 } },
-          { id:'kp', name:'Kusal Perera',     role:'Opener',      pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:1248, balls:857, fours:118, sixes:52,  sr:145.6 } },
-          { id:'km', name:'Kusal Mendis',     role:'WK-Batsman',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:1576, balls:1048, fours:162, sixes:64,  sr:150.4 } },
-          { id:'ca', name:'Charith Asalanka', role:'Batsman',     pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:734,  balls:498,  fours:72,  sixes:28,  sr:147.4 } },
-          { id:'ss', name:'Sadeera Samarawickrama', role:'Batsman',pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:412,  balls:299,  fours:38,  sixes:14,  sr:137.8 } },
-          { id:'da', name:'Dasun Shanaka',    role:'All-rounder', pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:578,  balls:378,  fours:54,  sixes:32,  sr:152.9 } },
-          { id:'dw', name:'Dunith Wellalage', role:'All-rounder', pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:324,  balls:228,  fours:28,  sixes:12,  sr:142.1 } },
-          { id:'ma', name:'Mahendra Chandana',role:'All-rounder', pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:186,  balls:138,  fours:16,  sixes:6,   sr:134.8 } },
-          { id:'dm', name:'Dilshan Madushanka',role:'Bowler',     pos:{x: 0.0, z:-STUMP_Z - 2.5}, stats:{ overs:18, maidens:1, runs:142, wickets:17, econ:7.89 } },
-          { id:'ch', name:'Chamindu Pathum',  role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 2.2}, stats:{ overs:12, maidens:1, runs:88,  wickets:12, econ:7.33 } },
-          { id:'wa', name:'Wanindu Hasaranga',role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 3.0}, stats:{ overs:22, maidens:2, runs:148, wickets:26, econ:6.73 } },
-          { id:'mt', name:'Matheesha Pathirana',role:'Bowler',   pos:{x: 0.0, z:-STUMP_Z - 2.2}, stats:{ overs:16, maidens:0, runs:122, wickets:22, econ:7.63 } }
-        ]
-      },
-      away:{
-        key:'wi',
-        name:'WEST INDIES',
-        short:'WI',
-        flag:'🏴',
-        kit:0x800000,
-        cap:0xF5C400,       // gold/yellow — standard WI cap
-        players:[
-          { id:'bk', name:'Brandon King',    role:'Batsman',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:1248, balls:884, fours:128, sixes:44,  sr:141.2 } },
-          { id:'nc', name:'Nicholas Pooran', role:'WK-Batsman',  pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:1562, balls:986, fours:148, sixes:82,  sr:158.4 } },
-          { id:'sm', name:'Shai Hope',      role:'Batsman',     pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:892,  balls:638,  fours:88,  sixes:32,  sr:139.8 } },
-          { id:'rl', name:'Rovman Powell',  role:'Batsman',     pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:726,  balls:462,  fours:64,  sixes:42,  sr:157.1 } },
-          { id:'sh', name:'Sherfane Rutherford',role:'Batsman',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:498,  balls:348,  fours:46,  sixes:24,  sr:143.1 } },
-          { id:'gj', name:'Garrick Moses',   role:'WK-Batsman',  pos:{x:-0.62, z:-STUMP_Z - 0.55}, stats:{ runs:284,  balls:208,  fours:26,  sixes:12,  sr:136.5 } },
-          { id:'rh', name:'Romario Shepherd',role:'All-rounder',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:324,  balls:214,  fours:28,  sixes:18,  sr:151.4 } },
-          { id:'aj', name:'Alzarri Joseph',  role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 2.5}, stats:{ overs:28, maidens:2, runs:196, wickets:32, econ:7.00 } },
-          { id:'sj', name:'Shamar Joseph',   role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 2.2}, stats:{ overs:14, maidens:1, runs:98,  wickets:18, econ:7.00 } },
-          { id:'cs', name:'Cole Johnson',   role:'Bowler',      pos:{x: 0.0, z:-STUMP_Z - 3.0}, stats:{ overs:10, maidens:0, runs:76,  wickets:12, econ:7.60 } },
-          { id:'rp', name:'Roston Chase',   role:'All-rounder',  pos:{x: 0.62, z: STUMP_Z + 0.55}, stats:{ runs:548,  balls:402,  fours:48,  sixes:18,  sr:136.3 } }
-        ]
-      }
-    },
-    battingTeam:'home',
-    innings:{ current:'Sri Lanka innings', firstInnings:{ team:'away', total:0 } },
-    field:{ standard:FIELD_STANDARD, attacking:FIELD_ATTACKING },
-    perOverRuns:{ home:[8,3,5,6,3], away:[] },
-    ai:{ current:{ away:35 }, baseline:{ away:50, over:1 }, projected:{ from:0, to:0 }, newBallOver:80, rr10:5.00,
-         lastWicket:{ text:'Charith Asalanka c Pooran b Johnson 2', over:'5.5' } },
-    momentumHistory:[
-      { over:1, away:50, rr:8.00, w:0, p:50 },
-      { over:2, away:48, rr:5.50, w:1, p:58 },
-      { over:3, away:42, rr:5.33, w:1, p:62 },
-      { over:4, away:38, rr:5.40, w:0, p:55 },
-      { over:5, away:35, rr:5.00, w:1, p:65 }
-    ],
-    start:{
-      runs:0, wickets:0, over:0, ball:0,
-      batsmen:[
-        { name:'Pathum Nissanka', short:'NISSANKA', runs:0, balls:0, fours:0, sixes:0, onStrike:true,  form:5, pressure:5 },
-        { name:'Kusal Perera',    short:'PERERA',   runs:0, balls:0, fours:0, sixes:0, onStrike:false, form:5, pressure:5 }
-      ],
-      partnership:{ runs:0, balls:0 },
-      bowlers:{
-        joseph_a:{ name:'Alzarri Joseph',  style:'Right-arm fast',      overs:0, maidens:0, runs:0,  wickets:0 },
-        hasaranga:{ name:'Wanindu Hasaranga', style:'Right-arm leg-spin',overs:0, maidens:0, runs:0,  wickets:0 },
-        joseph_s:{ name:'Shamar Joseph',   style:'Right-arm fast-medium', overs:0, maidens:0, runs:0, wickets:0 },
-        johnson:  { name:'Cole Johnson',   style:'Left-arm fast-medium',  overs:0, maidens:0, runs:0, wickets:0 }
-      },
-      toCome:['Kusal Mendis','Charith Asalanka','Sadeera Samarawickrama','Dasun Shanaka','Dunith Wellalage','Mahendra Chandana','Dilshan Madushanka','Chamindu Pathum','Wanindu Hasaranga','Matheesha Pathirana']
-    },
-    // -----------------------------------------------------------------------
-    // 5 overs of T20I action. Deliberately exercises schema gaps G1-G4 — see
-    // TEST_MATCH_E_SCHEMA_GAPS.md for the per-ball limitation log.
-    //
-    // Demonstrated events:
-    //   Singles, doubles, fours, six, dots           (legal deliveries)
-    //   LBW, Bowled, Caught                          (dismissal text — G2 gap)
-    //   Wide (over 2.1)                              (G1 gap: encoded as 1 run)
-    //   No-ball + Free-hit (over 4.2 + 4.3)          (G1 + G4 gaps)
-    //   Leg-bye (over 5.3)                           (G3 gap: encoded as 1 run)
-    //   Strike rotation, end-of-over swap, partnership reset on wicket
-    // -----------------------------------------------------------------------
-    overs:[
-      // --- Over 1 — Alzarri Joseph, Nissanka on strike --------------------
-      { over:1, bowler:'joseph_a', balls:[
-        [0, null, 142, 'good',   'off',    null,         'Solid defensive block, straight bat. No run.' ],
-        [1, null, 139, 'good',   'middle', 'mid-on',     'Nudged into the leg side for a quick single.' ],
-        [4, null, 145, 'full',   'off',    'cover',      'FOUR — driven on the up through extra cover, beautiful timing.' ],
-        [1, null, 141, 'good',   'middle', 'square-leg', 'Tucked off the hips for one, strike rotates.' ],
-        [0, null, 144, 'good',   'off',    null,         'Beaten outside off — late swing from Joseph.' ],
-        [2, null, 140, 'full',   'middle', 'mid-on',     'Driven through mid-on, comfortable two.' ]
-      ], momentum:{ away:50, rr:8.00, w:0, p:50 } },
-
-      // --- Over 2 — Wanindu Hasaranga, Perera on strike -------------------
-      // Ball 2.1: WIDE down leg → G1 hit. Encoded as [1, null, ...] with
-      // "WIDE" prefix in text. The engine still credits the run to KP and
-      // swaps strike on the odd value. This is the G1 limitation exactly.
-      // Ball 2.5: LBW — Kusal Perera trapped in front. G2 hit: dismissal
-      // type encoded only as text in the wicket string.
-      { over:2, bowler:'hasaranga', balls:[
-        [1, null,  89, 'full',   'leg',    'keeper',     'WIDE — sliding down leg side, called by umpire. Hasaranga overpitches.' ],
-        [0, null,  86, 'good',   'off',    null,         'Defended, big turn from the rough outside off.' ],
-        [1, null,  88, 'good',   'middle', 'midwicket',  'Pushed to midwicket for a single.' ],
-        [0, null,  90, 'good',   'off',    null,         'Beaten in the flight — no shot offered.' ],
-        [0, 'Kusal Perera lbw b Hasaranga 6', 87, 'full', 'middle', null,         'WICKET — straightening, trapped on the back pad. Umpire raises the finger. Perera departs for 6.' ],
-        [1, null,  85, 'good',   'leg',    'square-leg', 'First ball for Mendis, tucked off the pads for one.' ]
-      ], momentum:{ away:48, rr:5.50, w:1, p:58 } },
-
-      // --- Over 3 — Shamar Joseph, Mendis on strike -----------------------
-      // Ball 3.5: BOWLED — Mendis cleaned up. G2 hit: "b Shamar Joseph"
-      // dismissal text only. Engine has no structured dismissal-type field.
-      { over:3, bowler:'joseph_s', balls:[
-        [0, null, 138, 'good',   'off',    null,         'Defended off the front foot, watchful start.' ],
-        [0, null, 140, 'bouncer','body',   null,         'Sharp bouncer, swayed out of the way.' ],
-        [4, null, 136, 'full',   'off',    'cover',      'FOUR — driven crisply through extra cover, races to the rope.' ],
-        [0, null, 142, 'good',   'middle', null,         'Defended back down the pitch.' ],
-        [0, 'Kusal Mendis b Shamar Joseph 5', 144, 'yorker', 'middle', null,  'WICKET — BOWLED! Yorker crashes into middle stump. Mendis cleaned up for 5.' ],
-        [1, null, 139, 'good',   'leg',    'midwicket',  'New batsman Asalanka gets off the mark with a single to midwicket.' ]
-      ], momentum:{ away:42, rr:5.33, w:1, p:62 } },
-
-      // --- Over 4 — Alzarri Joseph, Asalanka on strike --------------------
-      // Ball 4.2: NO-BALL → G1 hit. Encoded as [1, null, ...] with "NO-BALL"
-      // prefix in text. Engine credits the 1 to the batsman and to the
-      // bowler (incorrectly — in real cricket a no-ball adds 1 to the team
-      // total but is NOT credited as a run to bowler or batsman). Strike
-      // rotation also wrong: real cricket a no-ball doesn't strike-rotate,
-      // but engine swaps on odd runs.
-      //
-      // Ball 4.3: FREE-HIT delivery → G4 hit. Encoded as a normal ball
-      // (no isFreeHit field). The four runs scored off it would not have
-      // counted as a dismissal in real cricket, but the engine has no
-      // notion of free-hit protection. We mark it in the text.
-      { over:4, bowler:'joseph_a', balls:[
-        [0, null, 143, 'good',   'off',    null,         'Left alone outside off, good judgement from Asalanka.' ],
-        [1, null, 141, 'full',   'leg',    'midwicket',  'NO-BALL — Joseph oversteps! Driven through midwicket, free-hit next ball.' ],
-        [4, null, 140, 'full',   'leg',    'midwicket',  'FREE-HIT — driven through midwicket, races to the fence. No dismissal possible.' ],
-        [0, null, 144, 'good',   'off',    null,         'Defended into the pitch, no run.' ],
-        [1, null, 139, 'good',   'middle', 'mid-on',     'Worked to mid-on for a quick single, strike rotates.' ],
-        [0, null, 146, 'good',   'off',    null,         'Left alone outside off to end a busy over.' ]
-      ], momentum:{ away:38, rr:5.40, w:0, p:55 } },
-
-      // --- Over 5 — Cole Johnson, Nissanka on strike ----------------------
-      // Ball 5.3: LEGBYE → G3 hit. Encoded as [1, null, ...] with "LEGBYE"
-      // prefix in text. Engine credits the run to the batsman (PN) — in
-      // real cricket, a legbye does NOT credit the batsman, but engine
-      // has no batRuns / extraType field to distinguish.
-      //
-      // Ball 5.5: CAUGHT at long-on — Asalanka out. G2 hit (descriptive
-      // text only, no structured dismissal type).
-      { over:5, bowler:'johnson', upcoming:true, balls:[
-        [0, null, 137, 'good',   'off',    null,         'Defended off the back foot, no run.' ],
-        [2, null, 135, 'full',   'middle', 'long-on',    'Driven down the ground to long-on, comfortable two.' ],
-        [1, null, 132, 'good',   'leg',    'fine-leg',   'LEGBYE — worked off the pads, no bat involved. Fine leg fields.' ],
-        [0, null, 138, 'good',   'off',    null,         'Left alone outside off, good length from Johnson.' ],
-        [0, 'Charith Asalanka c Pooran b Johnson 2', 136, 'full', 'leg', 'long-on', 'WICKET — lofted down the ground, Pooran settles under it at long-on. Asalanka departs for 2.' ],
-        [0, null, 134, 'good',   'off',    null,         'New batsman Samarawickrama defends his first ball watchfully.' ]
-      ], momentum:{ away:35, rr:5.00, w:1, p:65 } }
-    ]
   }
 };
 
@@ -1446,16 +1240,11 @@ const SHOT_MODEL = {
   keeper     : { t:'Defensive Block',d:4  },
   slip       : { t:'Defensive Block',d:3  }
 };
-/* Deterministic hash-based PRNG — same seed always produces the same value. */
-function seededRand(seed){
-  let x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-function deriveShot(d, seed){
+function deriveShot(d){
   const base = SHOT_MODEL[d.dir] || { t:'Defensive Block', d:4 };
   let dist;
-  if (d.runs === 6)      dist = 68 + Math.round(seededRand(seed) * 14);
-  else if (d.runs === 4) dist = base.d + 10 + Math.round(seededRand(seed + 1) * 8);
+  if (d.runs === 6)      dist = 68 + Math.round(Math.random() * 14);
+  else if (d.runs === 4) dist = base.d + 10 + Math.round(Math.random() * 8);
   else if (d.runs >= 1)  dist = Math.round(base.d * 0.55 + d.runs * 3);
   else                   dist = Math.round(base.d * 0.35);
   return { type: base.t, distance: dist, direction: (d.dir || 'unknown').replace(/-/g,' ') };
@@ -1466,109 +1255,28 @@ function buildFeed(def){
   s.toCome = s.toCome.slice();
   const out = [];
   let wicketsInWindow = 0;
-  let prevWasNoBall = false;
-
-  // Per-bowler over tracking for maiden detection
-  const bowlerState = {};   // key -> { legalBalls, runsThisOver, maidens }
 
   def.overs.forEach(ov => {
     ov.balls.forEach((b, i) => {
       const [runs, wicket, speed, length, line, dir, text, shotDetail] = b;
-      const extraType = b[7] || null;
       const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
       const striker = s.batsmen[strikerIdx];
       const bowler = s.bowlers[ov.bowler];
       const outName = wicket ? striker.name : null;
-      const shot = shotDetail || deriveShot({ runs, dir }, ov.over * 100 + (i + 1));
-
-      // --- Phase 2: extras / legal-ball accounting ---------------------------
-      // `legal` is false for wides and no-balls — they do not count as a
-      // delivery for over-ball counting, maiden detection, or balls-faced.
-      const isExtra = extraType === 'wide' || extraType === 'noball';
-      const legal = !isExtra;
-      // batRuns: runs credited to the bat. For extras, only no-ball + boundary
-      // or no-ball + run credits bat runs; byes/leg-byes/wides credit 0.
-      let batRuns = runs;
-      if (extraType === 'wide' || extraType === 'bye' || extraType === 'legbye') batRuns = 0;
-      // no-ball: bat runs are whatever was scored off the bat (runs minus the
-      // no-ball penalty). Default: if runs>0 then runs-1, else 0.
-      if (extraType === 'noball' && b.batRuns === undefined) {
-        batRuns = runs > 0 ? runs - 1 : 0;
-      }
-      if (b.batRuns !== undefined) batRuns = b.batRuns;
-      const extraRuns = runs - batRuns;
-
-      // --- structured wicket (Phase 2) --------------------------------------
-      // Accept either the new object form or the legacy free-text string.
-      let dismissalType = null, caughtBy = null, runoutEnd = null, bowledBy = null;
-      let dismissed = !!wicket;
-      if (wicket){
-        if (typeof wicket === 'object' && wicket !== null){
-          dismissalType = wicket.type || null;
-          caughtBy = wicket.caughtBy || null;
-          runoutEnd = wicket.runoutEnd || null;
-          bowledBy = wicket.bowledBy || null;
-        } else {
-          // Legacy: 'Name c Fielder b Bowler Runs' / 'Name st Fielder b Bowler Runs' /
-          //         'Name lbw b Bowler Runs' / 'Name b Bowler Runs'
-          const m = String(wicket).match(
-            /^([A-Z][A-Za-z' .-]+?)\s+(c|st|lbw)(?:\s+(.+?))?\s+b\s+([A-Z][A-Za-z' .-]+)\s+\d+\s*$/
-          );
-          if (m){
-            dismissalType = m[2] === 'st' ? 'stumped' : m[2] === 'lbw' ? 'lbw' : 'caught';
-            caughtBy = m[3] || null;
-            bowledBy = m[4] || null;
-          } else {
-            const m2 = String(wicket).match(
-              /^([A-Z][A-Za-z' .-]+?)\s+b\s+([A-Z][A-Za-z' .-]+)\s+\d+\s*$/
-            );
-            if (m2){
-              dismissalType = 'bowled';
-              bowledBy = m2[2];
-            }
-          }
-        }
-      }
-
-      // --- free-hit rule (Phase 2, format-aware) ---------------------------
-      // Free-hits apply only in limited-overs formats (T20, ODI). They do
-      // NOT apply in Test cricket or first-class cricket.
-      // Case-insensitive: handles 'Test Match', 'test match', 'First-Class', etc.
-      const fmt = (def.format || '').toLowerCase();
-      const isLimitedOvers = !fmt.includes('test') && !fmt.includes('first class');
-      const freeHit = isLimitedOvers && prevWasNoBall;
-      let freeHitRejected = false;
-      if (freeHit && dismissed && dismissalType && dismissalType !== 'runout'){
-        freeHitRejected = true;
-        dismissed = false;
-      }
-      prevWasNoBall = extraType === 'noball';
+      const shot = shotDetail || deriveShot({ runs, dir });
 
       // --- apply the delivery to the state ---
-      if (legal) striker.balls++;
-      striker.runs += batRuns;
-      if (batRuns === 4) striker.fours++;
-      if (batRuns === 6) striker.sixes++;
+      striker.balls++;
+      striker.runs += runs;
+      if (runs === 4) striker.fours++;
+      if (runs === 6) striker.sixes++;
       s.runs += runs;
       s.partnership.runs += runs;
-      // no-ball penalty is NOT charged to the bowler; everything else is.
-      bowler.runs += (extraType === 'noball') ? batRuns : runs;
-
-      // over / maiden tracking (legal balls only)
-      const bs = bowlerState[ov.bowler] || (bowlerState[ov.bowler] = { legalBalls: 0, runsThisOver: 0, maidens: 0 });
-      if (legal){
-        bs.legalBalls++;
-        if (i === 5 && bs.legalBalls === 6 && bs.runsThisOver === 0){
-          bs.maidens++;
-          bowler.maidens = (bowler.maidens || 0) + 1;
-        }
-      }
-      bs.runsThisOver += (extraType === 'noball') ? batRuns : runs;
-      if (i === 5) { bs.legalBalls = 0; bs.runsThisOver = 0; }
-
+      s.partnership.balls++;
+      bowler.runs += runs;
       if (i === 0) bowler.overs++;
 
-      if (dismissed && !freeHitRejected){
+      if (wicket){
         s.wickets++;
         bowler.wickets++;
         wicketsInWindow++;
@@ -1599,19 +1307,11 @@ function buildFeed(def){
         bowlerKey:ov.bowler, bowlerName:s.bowlers[ov.bowler].name,
         strikerName:striker.name,
         runs, wicket:wicket || null, outName,
-        extraType, legal, batRuns, extraRuns,
-        dismissalType, caughtBy, runoutEnd, bowledBy,
-        freeHit, freeHitRejected,
         speed, length, line, dir,
         text,
         shot, // { type, distance, direction } derived above
-        result: freeHitRejected ? 'FREEHIT_REJECTED'
-             : dismissed ? 'WICKET'
-             : runs === 0 ? 'DOT BALL'
-             : runs === 4 ? 'FOUR'
-             : runs === 6 ? 'SIX'
-             : `${runs} RUN${runs>1?'S':''}`,
-        chip: dismissed && !freeHitRejected ? 'W' : String(runs),
+        result: wicket ? 'WICKET' : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`,
+        chip: wicket ? 'W' : String(runs),
         fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard',
         overMomentum: i === 5 ? ov.momentum : null,
         state: JSON.parse(JSON.stringify(s))
@@ -1633,7 +1333,6 @@ function buildFeed(def){
     if (d.ballNo === 6 && d.over === def.ai.newBallOver - 2) x += 1.60;
     return x;
   };
-
   let acc = 0;
   out.forEach(d => { acc += deltaFor(d); d._acc = acc; });
   const lastPlayed = out.filter(d => !d.upcoming).pop() || out[out.length - 1];
@@ -2305,6 +2004,7 @@ const $ = id => document.getElementById(id);
 let MD = null;             // normalized match document
 let FEED = [];             // deliveries with per-ball state snapshots
 let idx = 0;               // current delivery index
+let playedIdx = idx;       // furthest playback position reached in this session
 let selOver = 0;           // over shown in the timeline
 let plSel = 0;             // player intelligence tab
 let playTimer = null;
@@ -2335,6 +2035,7 @@ function loadMatch(key){
   FEED = buildFeed(def);
   idx = Math.max(0, FEED.findIndex(d => d.upcoming) - 1);
   if (idx < 0) idx = FEED.length - 1;
+  playedIdx = idx;
   selOver = FEED[idx].over;
   plSel = 0;
 
@@ -2733,14 +2434,14 @@ function renderTimeline(){
   $('tlBalls').innerHTML = ov.balls.map((b, i) => {
     const key = `${ov.over}.${i + 1}`;
     const fi = FEED.findIndex(x => x.key === key);
-    const future = fi > idx;
+    const future = fi > playedIdx;
     const chip = b[1] ? 'W' : String(b[0]);
     return `<div class="bchip ${future ? 'future' : chipClass(chip)}${fi === idx ? ' sel' : ''}" data-i="${fi}" title="${key}">${future ? '?' : chip}</div>`;
   }).join('');
 
   $('tlBalls').querySelectorAll('.bchip').forEach(el => {
     const i = +el.dataset.i;
-    if (i > idx) return;
+    if (i > playedIdx) return;
     el.addEventListener('click', () => { stopPlay(); applyDelivery(i, true); });
   });
 
@@ -2828,6 +2529,7 @@ function openWhy(){
 function stepNext(){
   if (idx >= FEED.length - 1){ stopPlay(); toast('End of the simulated feed'); return false; }
   applyDelivery(idx + 1, true);
+  playedIdx = Math.max(playedIdx, idx + 1);  // advance furthest-played position
   return true;
 }
 function startPlay(){
