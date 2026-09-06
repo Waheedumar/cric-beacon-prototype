@@ -1531,9 +1531,10 @@ function buildFeed(def){
       }
 
       // --- free-hit rule (Phase 2) ------------------------------------------
-      // The ball after a no-ball is a free-hit: the batsman cannot be dismissed
-      // except by a run-out.
-      const freeHit = prevWasNoBall;
+      // Free-hits apply only in limited-overs formats (T20, ODI). They do
+      // NOT apply in Test cricket or first-class cricket.
+      const isLimitedOvers = !def.format.includes('Test') && !def.format.includes('first class');
+      const freeHit = isLimitedOvers && prevWasNoBall;
       let freeHitRejected = false;
       if (freeHit && dismissed && dismissalType && dismissalType !== 'runout'){
         freeHitRejected = true;
