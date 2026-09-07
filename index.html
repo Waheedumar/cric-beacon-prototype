@@ -183,6 +183,7 @@ button{font-family:inherit;color:inherit;}
 .bchip.r1,.bchip.r2,.bchip.r3{color:#8FF7C2;border-color:rgba(25,224,122,.35);background:rgba(25,224,122,.1);}
 .bchip.r4,.bchip.r6{color:#08130C;background:linear-gradient(140deg,var(--color-accent-2),#E08A0B);border-color:transparent;font-weight:800;}
 .bchip.w{color:#fff;background:linear-gradient(140deg,#F05252,#B91C1C);border-color:transparent;font-weight:800;}
+.bchip.x{color:#08130C;background:linear-gradient(140deg,var(--color-warning),#B45309);border-color:transparent;font-weight:800;}
 .bchip.future{opacity:.42;cursor:not-allowed;color:#4A5A58;}
 .bchip.future:hover{transform:none;}
 .bchip.sel{box-shadow:0 0 0 2px var(--color-accent),0 0 18px var(--color-accent-glow);}
@@ -1386,6 +1387,10 @@ function deriveShot(d){
   return { type: base.t, distance: dist, direction: (d.dir || 'unknown').replace(/-/g,' ') };
 }
 
+// tuple[7] extraType — optional 8th ball-tuple field: 'wide' | 'noball' | 'bye' | 'legbye'
+const EXTRA_LABEL = { wide:'WIDE', noball:'NO BALL', bye:'BYE', legbye:'LEG BYE' };
+const EXTRA_CHIP  = { wide:'WD',   noball:'NB',      bye:'B',   legbye:'LB' };
+
 function buildFeed(def){
   const s = JSON.parse(JSON.stringify(def.start));
   s.toCome = s.toCome.slice();
@@ -1394,12 +1399,12 @@ function buildFeed(def){
 
   def.overs.forEach(ov => {
     ov.balls.forEach((b, i) => {
-      const [runs, wicket, speed, length, line, dir, text, shotDetail] = b;
+      const [runs, wicket, speed, length, line, dir, text, extraType] = b;
       const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
       const striker = s.batsmen[strikerIdx];
       const bowler = s.bowlers[ov.bowler];
       const outName = wicket ? striker.name : null;
-      const shot = shotDetail || deriveShot({ runs, dir });
+      const shot = deriveShot({ runs, dir });
 
       // --- apply the delivery to the state ---
       striker.balls++;
@@ -1446,8 +1451,9 @@ function buildFeed(def){
         speed, length, line, dir,
         text,
         shot, // { type, distance, direction } derived above
-        result: wicket ? 'WICKET' : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`,
-        chip: wicket ? 'W' : String(runs),
+        extraType: extraType || null, // 'wide' | 'noball' | 'bye' | 'legbye' | null
+        result: wicket ? 'WICKET' : extraType ? EXTRA_LABEL[extraType] : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`,
+        chip: wicket ? 'W' : extraType ? EXTRA_CHIP[extraType] : String(runs),
         fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard',
         overMomentum: i === 5 ? ov.momentum : null,
         state: JSON.parse(JSON.stringify(s))
@@ -2279,6 +2285,7 @@ function chipClass(c){
   if (c === 'W') return 'w';
   if (c === '4' || c === '6') return 'r' + c;
   if (c === '0') return '';
+  if (c === 'WD' || c === 'NB' || c === 'B' || c === 'LB') return 'x';
   return 'r' + c;
 }
 
@@ -2571,7 +2578,7 @@ function renderTimeline(){
     const key = `${ov.over}.${i + 1}`;
     const fi = FEED.findIndex(x => x.key === key);
     const future = fi > playedIdx;
-    const chip = b[1] ? 'W' : String(b[0]);
+    const chip = fi >= 0 ? FEED[fi].chip : (b[1] ? 'W' : String(b[0]));
     return `<div class="bchip ${future ? 'future' : chipClass(chip)}${fi === idx ? ' sel' : ''}" data-i="${fi}" title="${key}">${future ? '?' : chip}</div>`;
   }).join('');
 
