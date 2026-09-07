@@ -187,6 +187,7 @@ button{font-family:inherit;color:inherit;}
 .bchip.future{opacity:.42;cursor:not-allowed;color:#4A5A58;}
 .bchip.future:hover{transform:none;}
 .bchip.sel{box-shadow:0 0 0 2px var(--color-accent),0 0 18px var(--color-accent-glow);}
+.bchip.fh{outline:2px dashed var(--color-accent-2);outline-offset:2px;}
 
 /* ---------------- Stage / 3D ---------------- */
 .stage{
@@ -228,6 +229,7 @@ button{font-family:inherit;color:inherit;}
 .ball-readout .v{font-family:'JetBrains Mono';font-size:14px;font-weight:700;white-space:nowrap;}
 .ball-readout .v.gold{color:var(--color-accent-2);}
 .ball-readout .v.red{color:#FCA5A5;}
+.ball-readout .v.amber{color:var(--color-warning);}
 .hud-bot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
 .plabel{
   position:absolute;transform:translate(-50%,-100%);pointer-events:none;
@@ -1388,8 +1390,24 @@ function deriveShot(d){
 }
 
 // tuple[7] extraType — optional 8th ball-tuple field: 'wide' | 'noball' | 'bye' | 'legbye'
-const EXTRA_LABEL = { wide:'WIDE', noball:'NO BALL', bye:'BYE', legbye:'LEG BYE' };
-const EXTRA_CHIP  = { wide:'WD',   noball:'NB',      bye:'B',   legbye:'LB' };
+const EXTRA_LABEL = { wide:'WIDE', noball:'NO BALL' };
+const EXTRA_CHIP  = { wide:'WD',   noball:'NB' };
+
+// tuple[1] wicket — dismissal type, parsed from a structured {type} object
+// (future-proofing) or from the free-text "Name TYPE b Bowler runs" string.
+const DISMISSAL_LABEL = { caught:'CAUGHT', bowled:'BOWLED', lbw:'LBW', runout:'RUN OUT', stumped:'STUMPED' };
+const DISMISSAL_CHIP  = { caught:'c',      bowled:'b',      lbw:'lbw', runout:'ro',      stumped:'st' };
+function parseDismissal(wicket){
+  if (!wicket) return null;
+  if (typeof wicket === 'object') return wicket.type || null;
+  const s = String(wicket);
+  if (/\brun\s*-?\s*out\b/i.test(s)) return 'runout';
+  if (/\bst\.?\s+\S+[\s\S]*\bb\s+\S/i.test(s)) return 'stumped';
+  if (/\blbw\b/i.test(s)) return 'lbw';
+  if (/\bc\.?\s+\S+[\s\S]*\bb\s+\S/i.test(s)) return 'caught';
+  if (/\bb\s+\S/i.test(s)) return 'bowled';
+  return null;
+}
 
 function buildFeed(def){
   const s = JSON.parse(JSON.stringify(def.start));
@@ -1397,14 +1415,33 @@ function buildFeed(def){
   const out = [];
   let wicketsInWindow = 0;
 
+  // Free-hit only exists in limited-overs cricket (T20I/ODI), never Test/FC.
+  const fmt = (def.format || '').toLowerCase();
+  const isLimitedOvers = !fmt.includes('test') && !fmt.includes('first class');
+  let prevWasNoBall = false;
+
   def.overs.forEach(ov => {
     ov.balls.forEach((b, i) => {
       const [runs, wicket, speed, length, line, dir, text, extraType] = b;
       const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
       const striker = s.batsmen[strikerIdx];
       const bowler = s.bowlers[ov.bowler];
-      const outName = wicket ? striker.name : null;
       const shot = deriveShot({ runs, dir });
+
+      // --- free-hit: applies to the ball immediately after a no-ball, in
+      // limited-overs formats only. On a free-hit, any dismissal EXCEPT a
+      // run-out is invalid and must be voided (real cricket rule).
+      const dismissalType = parseDismissal(wicket);
+      const freeHit = isLimitedOvers && prevWasNoBall;
+      let freeHitRejected = false;
+      let dismissed = !!wicket;
+      if (freeHit && dismissed && dismissalType && dismissalType !== 'runout'){
+        freeHitRejected = true;
+        dismissed = false;
+      }
+      prevWasNoBall = extraType === 'noball';
+
+      const outName = dismissed ? striker.name : null;
 
       // --- apply the delivery to the state ---
       striker.balls++;
@@ -1417,7 +1454,7 @@ function buildFeed(def){
       bowler.runs += runs;
       if (i === 0) bowler.overs++;
 
-      if (wicket){
+      if (dismissed){
         s.wickets++;
         bowler.wickets++;
         wicketsInWindow++;
@@ -1442,6 +1479,26 @@ function buildFeed(def){
         x.pressure = Math.max(1, Math.min(10, Math.round(10 - sr / 11)));
       });
 
+      // --- result/chip: extras get run-count notation (1b/2lb), a real
+      // dismissal gets its specific type (c/b/lbw/ro/st), a rejected
+      // free-hit "wicket" is called out explicitly rather than hidden.
+      const baseChip = extraType === 'wide' ? EXTRA_CHIP.wide
+                     : extraType === 'noball' ? EXTRA_CHIP.noball
+                     : extraType === 'bye' ? `${runs}b`
+                     : extraType === 'legbye' ? `${runs}lb`
+                     : String(runs);
+      const baseResult = extraType === 'wide' ? EXTRA_LABEL.wide
+                        : extraType === 'noball' ? EXTRA_LABEL.noball
+                        : extraType === 'bye' ? `${runs} BYE${runs>1?'S':''}`
+                        : extraType === 'legbye' ? `${runs} LEG BYE${runs>1?'S':''}`
+                        : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`;
+      const wicketChip = DISMISSAL_CHIP[dismissalType] || 'W';
+      const wicketResult = DISMISSAL_LABEL[dismissalType] || 'WICKET';
+      let chip = dismissed ? wicketChip : baseChip;
+      let result = dismissed ? wicketResult : baseResult;
+      if (freeHitRejected) result = `FREE HIT — ${wicketResult} VOID`;
+      else if (freeHit) result = `FREE HIT — ${result}`;
+
       out.push({
         key:`${ov.over}.${i+1}`,
         over:ov.over, ballNo:i+1, upcoming:!!ov.upcoming,
@@ -1452,8 +1509,11 @@ function buildFeed(def){
         text,
         shot, // { type, distance, direction } derived above
         extraType: extraType || null, // 'wide' | 'noball' | 'bye' | 'legbye' | null
-        result: wicket ? 'WICKET' : extraType ? EXTRA_LABEL[extraType] : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`,
-        chip: wicket ? 'W' : extraType ? EXTRA_CHIP[extraType] : String(runs),
+        dismissalType,                // 'caught' | 'bowled' | 'lbw' | 'runout' | 'stumped' | null
+        dismissed,                    // true only if a wicket actually stands
+        freeHit, freeHitRejected,
+        result,
+        chip,
         fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard',
         overMomentum: i === 5 ? ov.momentum : null,
         state: JSON.parse(JSON.stringify(s))
@@ -1470,7 +1530,7 @@ function buildFeed(def){
     if (d.runs === 1 || d.runs === 2) x = -0.14;
     if (d.runs === 4) x = -0.62;
     if (d.runs === 6) x = -0.95;
-    if (d.wicket)     x =  8.40;
+    if (d.dismissed)  x =  8.40;
     // the second new ball coming into range is a real model driver
     if (d.ballNo === 6 && d.over === def.ai.newBallOver - 2) x += 1.60;
     return x;
@@ -1900,11 +1960,11 @@ function buildTrajectory(d){
   let shot = null;
   if (d.dir && SHOT_DIRS[d.dir]){
     const dir = SHOT_DIRS[d.dir];
-    const reach = d.runs >= 4 ? 1.0 : d.wicket ? 0.24 : 0.42 + d.runs * 0.10;
+    const reach = d.runs >= 4 ? 1.0 : d.dismissed ? 0.24 : 0.42 + d.runs * 0.10;
     const end = new THREE.Vector3(dir.x * GR.rx * reach, d.runs === 6 ? 0.4 : 0.14, dir.z * GR.rz * reach);
     // a dismissal ends at the catcher, not at the rope
-    if (d.wicket) end.set(dir.x * 18, 0.95, 12 + dir.z * 8);
-    const height = d.runs === 6 ? 13 : d.runs === 4 ? 2.4 : d.wicket ? 1.9 : 3.2;
+    if (d.dismissed) end.set(dir.x * 18, 0.95, 12 + dir.z * 8);
+    const height = d.runs === 6 ? 13 : d.runs === 4 ? 2.4 : d.dismissed ? 1.9 : 3.2;
     const mid = new THREE.Vector3((meet.x + end.x) / 2, height, (meet.z + end.z) / 2);
     shot = quad(meet, mid, end, 26);
   }
@@ -1936,7 +1996,7 @@ function animateBall(d, showPath = true){
     if (cShot){
       trajB = new THREE.Mesh(
         new THREE.TubeGeometry(cShot, 46, 0.05, 5, false),
-        new THREE.MeshBasicMaterial({ color: d.wicket ? 0xEF4444 : 0xF0B429, transparent:true, opacity:.72 })
+        new THREE.MeshBasicMaterial({ color: d.dismissed ? 0xEF4444 : 0xF0B429, transparent:true, opacity:.72 })
       );
       ballGroup.add(trajB);
     }
@@ -2282,10 +2342,11 @@ function updateScore(){
   $('hudSub').textContent = `${MD.venue.name.toUpperCase()} · ${MD.stage.toUpperCase()} · OVER ${s.over}.${s.ball}`;
 }
 function chipClass(c){
-  if (c === 'W') return 'w';
+  if (c === 'W' || c === 'c' || c === 'b' || c === 'lbw' || c === 'ro' || c === 'st') return 'w';
   if (c === '4' || c === '6') return 'r' + c;
   if (c === '0') return '';
-  if (c === 'WD' || c === 'NB' || c === 'B' || c === 'LB') return 'x';
+  if (c === 'WD' || c === 'NB') return 'x';
+  if (/^\d+(b|lb)$/.test(c)) return 'x'; // byes / leg-byes, e.g. "1b", "2lb"
   return 'r' + c;
 }
 
@@ -2314,14 +2375,14 @@ function updateField(setName){
 /* ---------------- delivery card + HUD readout ---------------- */
 function renderDelivery(d){
   const L = LENGTHS[d.length] || LENGTHS.good;
-  const rc = d.wicket ? 'red' : (d.runs >= 4 ? 'gold' : '');
+  const rc = d.dismissed ? 'red' : d.freeHitRejected ? 'amber' : (d.runs >= 4 ? 'gold' : '');
   $('deliveryTag').textContent = d.upcoming ? 'SIMULATED NEXT' : 'PLAYED';
   $('deliveryTag').className = 'tag ' + (d.upcoming ? 'amber' : 'green');
   $('deliveryCard').innerHTML = `
     <div class="cell"><label>BALL</label><div class="v">${d.over}.${d.ballNo}</div></div>
     <div class="cell"><label>BALL SPEED</label><div class="v">${d.speed} <span style="font-size:11px;color:var(--color-muted)">km/h</span></div></div>
     <div class="cell"><label>LENGTH</label><div class="v sm">${L.label}</div></div>
-    <div class="cell"><label>RESULT</label><div class="v sm" style="color:${d.wicket ? '#FCA5A5' : d.runs >= 4 ? 'var(--color-accent-2)' : 'inherit'}">${d.result}</div></div>`;
+    <div class="cell"><label>RESULT</label><div class="v sm" style="color:${d.dismissed ? '#FCA5A5' : d.freeHitRejected ? 'var(--color-warning)' : d.runs >= 4 ? 'var(--color-accent-2)' : 'inherit'}">${d.result}</div></div>`;
   $('commentary').innerHTML = `<b>${d.bowlerName} to ${d.strikerName}</b> — ${d.text}`;
 
   $('ballReadout').innerHTML = `
@@ -2352,7 +2413,7 @@ function updateAIInsight(){
   const oversToNewBall = Math.max(0, MD.ai.newBallOver - Math.floor(ovs));
   let text;
 
-  if (d.wicket){
+  if (d.dismissed){
     text = `${d.outName} falls — ${d.wicket}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} lose their set batter and a new partnership has to survive ${oversToNewBall <= 2 ? 'the second new ball' : 'the rest of this spell'}. Expect ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} to keep an attacking field for the next 12–18 deliveries.`;
   } else if (d.runs >= 4){
     text = `Boundary releases the pressure. ${d.strikerName}'s scoring against this bowler is trending up, and ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s projected total moves back toward ${MD.ai.projected.from}. ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} will likely respond with a length correction rather than a field change.`;
@@ -2364,7 +2425,7 @@ function updateAIInsight(){
   typeInto($('aiInsight'), text);
 
   const why = [];
-  if (d.wicket) why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is now exposed at ${s.runs}/${s.wickets}`);
+  if (d.dismissed) why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is now exposed at ${s.runs}/${s.wickets}`);
   else why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is under pressure at ${s.runs}/${s.wickets}`);
   why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions — ${MD.venue.weather.toLowerCase()}, ${MD.venue.wind} wind`);
   why.push(s.partnership.balls > 40
@@ -2526,10 +2587,10 @@ function renderSpark(){
   const recent = FEED.slice(Math.max(0, idx - 17), idx + 1);
   const bw = (w - (recent.length - 1) * 3) / Math.max(1, recent.length);
   recent.forEach((d, i) => {
-    const v = d.wicket ? 6 : d.runs;
+    const v = d.dismissed ? 6 : d.runs;
     const bh = Math.max(3, (v / 6) * (h - 14));
     const x = i * (bw + 3);
-    c.fillStyle = d.wicket ? '#EF4444' : d.runs >= 4 ? '#F0B429' : d.runs > 0 ? '#19C46A' : '#1E2A2C';
+    c.fillStyle = d.dismissed ? '#EF4444' : d.runs >= 4 ? '#F0B429' : d.runs > 0 ? '#19C46A' : '#1E2A2C';
     c.globalAlpha = i === recent.length - 1 ? 1 : 0.72;
     c.beginPath();
     const r = Math.min(2.5, bw / 2);
@@ -2579,7 +2640,9 @@ function renderTimeline(){
     const fi = FEED.findIndex(x => x.key === key);
     const future = fi > playedIdx;
     const chip = fi >= 0 ? FEED[fi].chip : (b[1] ? 'W' : String(b[0]));
-    return `<div class="bchip ${future ? 'future' : chipClass(chip)}${fi === idx ? ' sel' : ''}" data-i="${fi}" title="${key}">${future ? '?' : chip}</div>`;
+    const freeHit = fi >= 0 && FEED[fi].freeHit;
+    const title = freeHit ? `${key} — FREE HIT` : key;
+    return `<div class="bchip ${future ? 'future' : chipClass(chip)}${freeHit ? ' fh' : ''}${fi === idx ? ' sel' : ''}" data-i="${fi}" title="${title}">${future ? '?' : chip}</div>`;
   }).join('');
 
   $('tlBalls').querySelectorAll('.bchip').forEach(el => {
@@ -2618,7 +2681,8 @@ function applyDelivery(i, animate){
   if (animate){
     animateBall(d, true);
     $('ballReadout').classList.add('show');
-    if (d.wicket) toast(`WICKET — ${d.wicket}`, 3800);
+    if (d.dismissed) toast(`WICKET — ${d.wicket}`, 3800);
+    else if (d.freeHitRejected) toast(d.result, 3200);
     else if (d.runs >= 4) toast(`${d.runs === 6 ? 'SIX' : 'FOUR'} — ${d.strikerName}`, 2400);
   }
 }
@@ -2633,7 +2697,7 @@ function openWhy(){
   const s = st();
 
   let lede, drivers;
-  if (d.wicket){
+  if (d.dismissed){
     lede = `${otN}'s win probability increased from ${from}% → ${to}% because ${btN} lost a wicket and their projected first-innings total decreased.`;
     drivers = [
       ['🎯', 'Wicket', `${d.wicket} at ${d.over}.${d.ballNo}. A set batter is replaced by a new batter with a materially higher early-dismissal rate.`, `+${(to - from).toFixed(1)}%`],
@@ -2652,7 +2716,7 @@ function openWhy(){
 
   $('whyBody').innerHTML = `
     <div class="delta-viz">
-      <div class="box"><label>${ot.short} BEFORE</label><div class="v" style="color:#7A8B8B">${d.wicket ? from : MD.ai.baseline.away}%</div></div>
+      <div class="box"><label>${ot.short} BEFORE</label><div class="v" style="color:#7A8B8B">${d.dismissed ? from : MD.ai.baseline.away}%</div></div>
       <div class="arrow">→</div>
       <div class="box" style="border-color:rgba(76,125,240,.4);background:rgba(76,125,240,.09)">
         <label>${ot.short} NOW</label><div class="v" style="color:#7FA0FF">${Math.round(to)}%</div></div>
@@ -2883,7 +2947,7 @@ function renderCarousel(){
     { id:'air', label:'Ball In Air', icon:'💨', ts:0.8 },
     { id:'bounce', label:'Ball Bounce', icon:'⚡', ts:1.0 }
   ];
-  const isWicket = d.wicket;
+  const isWicket = d.dismissed;
   const isBoundary = d.runs >= 4;
   const activeStage = isWicket ? 3 : (isBoundary ? 4 : (d.runs > 0 ? 4 : 2));
   $('carousel').innerHTML = stages.map((s, i) => `
