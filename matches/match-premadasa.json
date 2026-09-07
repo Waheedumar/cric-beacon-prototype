@@ -563,7 +563,7 @@
   "perOverRuns": {
     "home": [
       8,
-      3,
+      4,
       5,
       7,
       3,
@@ -738,6 +738,15 @@
           "wide"
         ],
         [
+          0,
+          null,
+          140,
+          "good",
+          "off",
+          null,
+          "Re-bowled after the wide — Nissanka leaves it alone. DOT."
+        ],
+        [
           4,
           null,
           145,
@@ -840,6 +849,24 @@
           "leg",
           null,
           "First ball for Mendis — defended solidly into the pitch."
+        ],
+        [
+          1,
+          null,
+          84,
+          "good",
+          "middle",
+          "mid-on",
+          "Mendis works it back through mid-on for a single. Good running."
+        ],
+        [
+          0,
+          null,
+          87,
+          "good",
+          "off",
+          null,
+          "Hasaranga drifts outside off — Mendis shoulders arms. DOT."
         ]
       ],
       "momentum": {
@@ -966,6 +993,15 @@
           null,
           "Worked to mid-on for a quick single — fielder fumbles! Shanaka pushes through for two. Leg-bye credited.",
           "legbye"
+        ],
+        [
+          0,
+          null,
+          146,
+          "good",
+          "off",
+          null,
+          "Re-bowled after the leg-bye — Asalanka leaves it alone. DOT."
         ],
         [
           0,
@@ -1112,6 +1148,24 @@
           "middle",
           "mid-on",
           "Nudged into the leg side, Nissanka sets off and pushes through for two — strike rotates to Samarawickrama for the next over."
+        ],
+        [
+          0,
+          null,
+          135,
+          "good",
+          "off",
+          null,
+          "Re-bowled after the wide — Nissanka defends watchfully. DOT."
+        ],
+        [
+          0,
+          null,
+          132,
+          "good",
+          "off",
+          null,
+          "Re-bowled after the no-ball — Nissanka leaves it alone. DOT."
         ]
       ],
       "momentum": {
