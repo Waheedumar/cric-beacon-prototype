@@ -180,6 +180,7 @@ button{font-family:inherit;color:inherit;}
   flex-shrink:0;
 }
 .bchip:hover{transform:translateY(-2px) scale(1.06);border-color:var(--color-border-2);}
+.bchip.r0{color:#6B7270;border-color:rgba(140,140,140,.4);background:rgba(140,140,140,.08);}
 .bchip.r1,.bchip.r2,.bchip.r3{color:#8FF7C2;border-color:rgba(25,224,122,.35);background:rgba(25,224,122,.1);}
 .bchip.r4,.bchip.r6{color:#08130C;background:linear-gradient(140deg,var(--color-accent-2),#E08A0B);border-color:transparent;font-weight:800;}
 .bchip.w{color:#fff;background:linear-gradient(140deg,#F05252,#B91C1C);border-color:transparent;font-weight:800;}
@@ -2380,7 +2381,7 @@ function updateScore(){
 function chipClass(c){
   if (c === 'W' || c === 'c' || c === 'b' || c === 'lbw' || c === 'ro' || c === 'st') return 'w';
   if (c === '4' || c === '6') return 'r' + c;
-  if (c === '0') return '';
+  if (c === '0') return 'r0'; // dot ball — visible class
   if (c === 'WD' || c === 'NB') return 'x';
   if (/^\d+(b|lb)$/.test(c)) return 'x'; // byes / leg-byes, e.g. "1b", "2lb"
   return 'r' + c;
