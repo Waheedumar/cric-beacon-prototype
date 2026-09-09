@@ -1427,8 +1427,50 @@ function buildFeed(def){
   const isLimitedOvers = !fmt.includes('test') && !fmt.includes('first class');
   let prevWasNoBall = false;
 
-  def.overs.forEach(ov => {
-    ov.balls.forEach((b, i) => {
+  // If no overs data available (e.g., real SportMonks match without ball-by-ball),
+  // create a synthetic "current state" delivery so the feed isn't empty.
+  // This allows win probability, timeline, and 3D rendering to work.
+  const hasOvers = def.overs && def.overs.length > 0;
+  if (!hasOvers) {
+    const currentBowlerKey = Object.keys(s.bowlers)[0] || 'bowler_0';
+    const striker = s.batsmen.find(b => b.onStrike) || s.batsmen[0];
+    const bowler = s.bowlers[currentBowlerKey];
+    const currentOver = s.over || 0;
+    const currentBall = s.ball || 1;
+
+    out.push({
+      key: `${currentOver}.${currentBall}`,
+      over: currentOver,
+      ballNo: currentBall,
+      upcoming: false,
+      bowlerKey: currentBowlerKey,
+      bowlerName: bowler?.name || 'Unknown Bowler',
+      strikerName: striker?.name || 'Unknown Batsman',
+      runs: 0,
+      wicket: null,
+      outName: null,
+      speed: 130,
+      length: 'full',
+      line: 'middle',
+      dir: 'straight',
+      text: 'Live match — awaiting ball data',
+      shot: { type: 'defensive', distance: 15, direction: 'straight' },
+      extraType: null,
+      batRuns: 0,
+      extraRuns: 0,
+      dismissalType: null,
+      dismissed: false,
+      freeHit: false,
+      freeHitRejected: false,
+      result: 'LIVE',
+      chip: '●',
+      fieldSet: 'standard',
+      overMomentum: null,
+      state: JSON.parse(JSON.stringify(s))
+    });
+  } else {
+    def.overs.forEach(ov => {
+      ov.balls.forEach((b, i) => {
       const [runs, wicket, speed, length, line, dir, text, extraType] = b;
       const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
       const striker = s.batsmen[strikerIdx];
@@ -2291,6 +2333,44 @@ function loadMatch(key){
   }
   renderStatic();
   applyDelivery(idx, false);
+}
+
+/* ---------------- loadRealMatchDoc: load normalized adapter output ---------------- */
+function loadRealMatchDoc(doc){
+  // Set the match document as the current match state
+  MD = doc;
+
+  // Build the feed — will create synthetic delivery if overs is empty
+  FEED = buildFeed(MD);
+
+  // Set initial delivery index to the last played delivery (or last in feed)
+  idx = Math.max(0, FEED.findIndex(d => !d.upcoming) - 1);
+  if (idx < 0) idx = FEED.length - 1;
+  playedIdx = idx;
+  selOver = FEED[idx].over;
+  plSel = 0;
+
+  // Initialize 3D engine if not already running
+  if (!booted){
+    initEngine(MD);
+    booted = true;
+    setTimeout(() => $('loader').classList.add('gone'), 420);
+  } else {
+    applyTheme(MD.theme);
+    buildPlayers(MD);
+    clearTrajectory();
+    setCamera('broadcast');
+    setActiveCam('broadcast');
+  }
+
+  // Render static UI elements (venue, stage, teams, etc.)
+  renderStatic();
+
+  // Apply the current delivery state — use the last non-upcoming delivery
+  // or fall back to the last delivery in the feed
+  const lastPlayedIdx = FEED.findIndex(d => !d.upcoming);
+  const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : FEED.length - 1;
+  applyDelivery(targetIdx, false);
 }
 
 function applyTheme(t){
@@ -3163,9 +3243,22 @@ CANVAS.addEventListener('mousemove', e => {
 
 const sel = $('matchSelect');
 sel.innerHTML = Object.values(MOCK_MATCHES).map(m => `<option value="${m.id}">${m.label}</option>`).join('');
-sel.addEventListener('change', () => {
-  loadMatch(sel.value);
-  toast(`Loaded ${MOCK_MATCHES[sel.value].venue.name} from match JSON — same 3D engine`, 3600);
+sel.innerHTML += `<option value="sm_68949">Somerset v Leicestershire (Live)</option>`;
+sel.addEventListener('change', async () => {
+  const val = sel.value;
+  if (val.startsWith('sm_')){
+    try {
+      const resp = await fetch(`matches/match-real-68949.json`);
+      const doc = await resp.json();
+      loadRealMatchDoc(doc);
+      toast(`Loaded ${doc.label} from live Sportmonks data — same 3D engine`, 3600);
+    } catch (err) {
+      toast('Failed to load real match: ' + err.message, 3600);
+    }
+  } else {
+    loadMatch(val);
+    toast(`Loaded ${MOCK_MATCHES[val].venue.name} from match JSON — same 3D engine`, 3600);
+  }
 });
 
 // nav: smooth scroll + scroll spy
