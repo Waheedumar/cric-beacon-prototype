@@ -2445,12 +2445,13 @@ function updateScore(){
       <div class="s">${b.runs}* <em>(${b.balls})</em></div>
     </div>`).join('');
 
-  const bw = s.bowlers[d.bowlerKey];
+  const bw = s.bowlers[d.bowlerKey] || { name: 'Bowler', wickets: 0, runs: 0 };
   $('bowlerFig').textContent = `${bw.name.toUpperCase()} ${bw.wickets}/${bw.runs}`;
 
   // current over strip (played balls only)
   const ovDef = MD.overs.find(o => o.over === d.over);
-  $('overStrip').innerHTML = ovDef.balls.map((b, i) => {
+  const balls = ovDef ? ovDef.balls : [];
+  $('overStrip').innerHTML = balls.map((b, i) => {
     const played = i + 1 <= d.ballNo;
     const chip = b[1] ? 'W' : String(b[0]);
     return `<div class="bchip ${played ? chipClass(chip) : 'future'}">${played ? chip : '·'}</div>`;
@@ -2473,7 +2474,8 @@ function updatePlayers(){
   const s = st(), d = cur();
   const strike = s.batsmen.find(b => b.onStrike) || s.batsmen[0];
   const other  = s.batsmen.find(b => !b.onStrike) || s.batsmen[1];
-  const bw = s.bowlers[d.bowlerKey];
+  const bowlerKey = d.bowlerKey || Object.keys(s.bowlers)[0] || 'bowler_0';
+  const bw = s.bowlers[bowlerKey] || { name: 'Bowler', wickets: 0, runs: 0 };
 
   setLabel('striker', strike.name, `${strike.runs}*`);
   setLabel('nonstriker', other.name, `${other.runs}*`);
@@ -2658,7 +2660,8 @@ function renderMomentum(){
 /* ---------------- player intelligence ---------------- */
 function renderPlayers(){
   const s = st(), d = cur();
-  const bw = s.bowlers[d.bowlerKey];
+  const bowlerKey = d.bowlerKey || Object.keys(s.bowlers)[0] || 'bowler_0';
+  const bw = s.bowlers[bowlerKey] || { name: 'Bowler', wickets: 0, runs: 0, style: 'unknown' };
   const people = [
     { kind:'bat', ...s.batsmen[0] },
     { kind:'bat', ...s.batsmen[1] },
@@ -2706,6 +2709,18 @@ function meter(label, val, warn){
   return `<div class="meter"><div class="top"><span>${label}</span><b>${v}/10</b></div><div class="seg">${bars}</div></div>`;
 }
 function renderSpark(){
+  if (!FEED || FEED.length === 0) {
+    const cv = $('spark');
+    const w = cv.clientWidth || 300, h = 52;
+    cv.width = w; cv.height = h;
+    const c = cv.getContext('2d');
+    c.clearRect(0, 0, w, h);
+    c.fillStyle = '#5A6A68';
+    c.font = '600 8px "JetBrains Mono", monospace';
+    c.textAlign = 'center';
+    c.fillText('No delivery data', w / 2, h / 2);
+    return;
+  }
   const cv = $('spark');
   const dpr = Math.min(window.devicePixelRatio, 2);
   const w = cv.clientWidth || 300, h = 52;
@@ -2761,7 +2776,14 @@ function renderFantasy(){
 
 /* ---------------- timeline ---------------- */
 function renderTimeline(){
-  const ov = MD.overs.find(o => o.over === selOver) || MD.overs[0];
+  const ov = MD.overs.find(o => o.over === selOver);
+  if (!ov) {
+    $('tlLabel').textContent = 'OVER — no ball-by-ball data';
+    $('tlBalls').innerHTML = '<div class="bchip">no data</div>';
+    $('btnPrev').disabled = true;
+    $('btnNext').disabled = true;
+    return;
+  }
   $('tlLabel').textContent = `OVER ${ov.over}`;
   $('overTabs').querySelectorAll('.otab').forEach(b => b.classList.toggle('on', +b.dataset.over === selOver));
 
