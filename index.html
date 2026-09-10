@@ -2573,7 +2573,8 @@ function typeInto(el, text){
 
 /* ---------------- momentum ---------------- */
 function momentumSeries(){
-  const extra = FEED.slice(0, idx + 1).filter(d => d.overMomentum)
+  if (!MD || !MD.momentumHistory) return [];
+  const extra = (FEED || []).slice(0, idx + 1).filter(d => d.overMomentum)
     .map(d => ({ over:d.over, ...d.overMomentum }));
   return MD.momentumHistory.concat(extra).slice(-10);
 }
@@ -2586,6 +2587,17 @@ function renderMomentum(){
   const c = cv.getContext('2d');
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.clearRect(0, 0, w, h);
+
+  // Graceful empty‑state when there is no ball‑by‑ball data
+  if (series.length === 0){
+    c.fillStyle = '#5A6A68';
+    c.font = '600 10px "JetBrains Mono", monospace';
+    c.textAlign = 'center';
+    c.fillText('Momentum data unavailable', w / 2, h / 2);
+    $('momBars').innerHTML = '';
+    $('momStats').innerHTML = '';
+    return;
+  }
 
   const pad = { l:26, r:8, t:10, b:20 };
   const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
