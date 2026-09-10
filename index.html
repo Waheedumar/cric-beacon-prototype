@@ -1432,9 +1432,10 @@ function buildFeed(def){
   // This allows win probability, timeline, and 3D rendering to work.
   const hasOvers = def.overs && def.overs.length > 0;
   if (!hasOvers) {
-    const currentBowlerKey = Object.keys(s.bowlers)[0] || 'bowler_0';
-    const striker = s.batsmen.find(b => b.onStrike) || s.batsmen[0];
-    const bowler = s.bowlers[currentBowlerKey];
+    const batsmen = Array.isArray(s.batsmen) ? s.batsmen : [];
+    const currentBowlerKey = (s.bowlers && Object.keys(s.bowlers).length) ? Object.keys(s.bowlers)[0] : 'bowler_0';
+    const striker = batsmen.find(b => b.onStrike) || batsmen[0];
+    const bowler = s.bowlers ? s.bowlers[currentBowlerKey] : undefined;
     const currentOver = s.over || 0;
     const currentBall = s.ball || 1;
 
@@ -1472,7 +1473,7 @@ function buildFeed(def){
     def.overs.forEach(ov => {
       ov.balls.forEach((b, i) => {
       const [runs, wicket, speed, length, line, dir, text, extraType] = b;
-      const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
+      const strikerIdx = (s && s.batsmen && s.batsmen.length) ? s.batsmen.findIndex(x => x.onStrike) : -1;
       const striker = s.batsmen[strikerIdx];
       const bowler = s.bowlers[ov.bowler];
       const shot = deriveShot({ runs, dir });
@@ -2315,8 +2316,8 @@ function loadMatch(key){
   stopPlay();
   MD = def;
   FEED = buildFeed(def);
-  idx = Math.max(0, FEED.findIndex(d => d.upcoming) - 1);
-  if (idx < 0) idx = FEED.length - 1;
+  idx = Math.max(0, ((FEED || []).findIndex(d => d.upcoming)) - 1);
+  if (idx < 0) idx = (FEED || []).length - 1;
   playedIdx = idx;
   selOver = FEED[idx].over;
   plSel = 0;
@@ -2345,8 +2346,8 @@ function loadRealMatchDoc(doc){
   FEED = buildFeed(MD);
 
   // Set initial delivery index to the last played delivery (or last in feed)
-  idx = Math.max(0, FEED.findIndex(d => !d.upcoming) - 1);
-  if (idx < 0) idx = FEED.length - 1;
+  idx = Math.max(0, ((FEED || []).findIndex(d => !d.upcoming)) - 1);
+  if (idx < 0) idx = (FEED || []).length - 1;
   playedIdx = idx;
   selOver = FEED[idx].over;
   plSel = 0;
@@ -2369,8 +2370,8 @@ function loadRealMatchDoc(doc){
 
   // Apply the current delivery state — use the last non-upcoming delivery
   // or fall back to the last delivery in the feed
-  const lastPlayedIdx = FEED.findIndex(d => !d.upcoming);
-  const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : FEED.length - 1;
+  const lastPlayedIdx = (FEED || []).findIndex(d => !d.upcoming);
+  const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : (FEED || []).length - 1;
   applyDelivery(targetIdx, false);
 }
 
@@ -2472,8 +2473,9 @@ function chipClass(c){
 /* ---------------- 3D bindings ---------------- */
 function updatePlayers(){
   const s = st(), d = cur();
-  const strike = s.batsmen.find(b => b.onStrike) || s.batsmen[0];
-  const other  = s.batsmen.find(b => !b.onStrike) || s.batsmen[1];
+  const batsmen = Array.isArray(s.batsmen) ? s.batsmen : [];
+const strike = batsmen.find(b => b.onStrike) || batsmen[0];
+  const other  = batsmen.find(b => !b.onStrike) || batsmen[1];
   const bowlerKey = d.bowlerKey || Object.keys(s.bowlers)[0] || 'bowler_0';
   const bw = s.bowlers[bowlerKey] || { name: 'Bowler', wickets: 0, runs: 0 };
 
@@ -2776,7 +2778,7 @@ function renderFantasy(){
 
 /* ---------------- timeline ---------------- */
 function renderTimeline(){
-  const ov = MD.overs.find(o => o.over === selOver);
+  const ov = (MD.overs && MD.overs.find(o => o.over === selOver)) || undefined;
   if (!ov) {
     $('tlLabel').textContent = 'OVER — no ball-by-ball data';
     $('tlBalls').innerHTML = '<div class="bchip">no data</div>';
@@ -2789,7 +2791,7 @@ function renderTimeline(){
 
   $('tlBalls').innerHTML = ov.balls.map((b, i) => {
     const key = `${ov.over}.${i + 1}`;
-    const fi = FEED.findIndex(x => x.key === key);
+    const fi = (FEED || []).findIndex(x => x.key === key);
     const future = fi > playedIdx;
     const chip = fi >= 0 ? FEED[fi].chip : (b[1] ? 'W' : String(b[0]));
     const freeHit = fi >= 0 && FEED[fi].freeHit;
