@@ -2444,6 +2444,7 @@ function updateScore(){
   const s = st(), d = cur();
   const bt = batTeam(), ot = bowlTeam();
   const first = MD.innings.firstInnings;
+  const complete = isComplete();
 
   const scoreStage = complete
   ? MD.stage.toUpperCase().replace('DEMO', 'COMPLETED')
@@ -2453,7 +2454,6 @@ function updateScore(){
     `<span>·</span><span>OVER ${s.over}.${s.ball}</span>`;
 
   const trail = first.total - s.runs;
-  const complete = isComplete();
   const battingSub = complete ? `FINAL · ${s.over}.${s.ball} OV` : `BATTING · ${s.over}.${s.ball} OV`;
   const bowlingSub = complete ? `FINAL · 1ST INNINGS` : `ALL OUT · 1ST INNINGS`;
 
