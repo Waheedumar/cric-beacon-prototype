@@ -512,17 +512,9 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
     id    : `sm_${id}`,
     label : matchName || `${away.name} v ${home.name}`,
     format: _mapFormat(stage, league),
+    status: _mapStatus(smResponse),
     stage : _buildStageLabel(smResponse),
-    venue : {
-      name   : smResponse.venue?.name || 'Unknown Venue',
-      city   : smResponse.venue?.city || '',
-      pitch  : mockScoreboard.pitch_type || 'Unknown',
-      weather: mockScoreboard.weather || '',
-      temp   : mockScoreboard.temperature || '',
-      wind   : '',
-      boundary: '',
-      floodlights: mockScoreboard.floodlights || false,
-    },
+    venue : _buildVenue(smResponse, mockScoreboard),
     theme : _buildTheme(smResponse),
     teams,
     battingTeam,
@@ -532,7 +524,7 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
     },
     field         : _standardField(),
     perOverRuns   : { home: [], away: [] },
-    ai            : _buildAiDefaults(),
+    ai            : _buildAiDefaults(smResponse),
     momentumHistory: [],
     start,
     overs,
@@ -843,6 +835,36 @@ function _groupBallsIntoOvers(smBalls, ctx) {
     });
 }
 
+function _mapStatus(smResponse) {
+  // Determine if the match is complete based on available data.
+  // If there are 2+ completed scoreboard innings, the match is complete.
+  // If there's only 1 completed innings but no ball-by-ball data and a first
+  // innings total, treat it as complete (finished match).
+  // Otherwise, it's live/upcoming.
+  const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
+  if (completedInnings.length >= 2) return 'complete';
+  if (completedInnings.length === 1) {
+    // Single completed innings — if there's no ball-by-ball data, it's complete
+    const hasBalls = smResponse.balls && smResponse.balls.length > 0;
+    if (!hasBalls) return 'complete';
+  }
+  return 'live';
+}
+
+function _computeBowlerStats(bowlerId, balls) {
+  // Derive overs/runs/wickets for a bowler from the innings' ball-by-ball data.
+  // Returns null when no ball-by-ball data exists — the UI should then show
+  // "stats unavailable" rather than a misleading 0/0.
+  if (!bowlerId || !Array.isArray(balls) || !balls.length) return null;
+  const bowled = balls.filter(b => String(b.bowler_id) === String(bowlerId));
+  if (!bowled.length) return null;
+  const legal = bowled.filter(b => b.extra_type !== 'wide' && b.extra_type !== 'noball').length;
+  const overs = Math.floor(legal / 6) + (legal % 6) / 10;
+  const runs = bowled.reduce((s, b) => s + (b.runs || 0), 0);
+  const wickets = bowled.filter(b => b.wicket).length;
+  return { overs, runs, wickets };
+}
+
 function _buildStartState(scoreboard, smResponse, battingTeam, teams, playersMap) {
   const btKey   = battingTeam === 'home' ? 'home' : 'away';
   const bt      = teams[btKey];
@@ -908,6 +930,10 @@ function _buildStartState(scoreboard, smResponse, battingTeam, teams, playersMap
         ? new Date(smResponse.starts_at).getTime()
         : Date.now();
 
+  // Derive partnership from the two batsmen's runs and balls
+  const partnershipRuns = strikerRuns + nonStrikerRuns;
+  const partnershipBalls = strikerBalls + nonStrikerBalls;
+
   return {
     runs     : scoreboard.runs || 0,
     wickets  : scoreboard.wickets || 0,
@@ -919,10 +945,11 @@ function _buildStartState(scoreboard, smResponse, battingTeam, teams, playersMap
       { name: nonStrikerName,  short: nonStrikerName.split(' ').pop().toUpperCase(),
         runs: nonStrikerRuns, balls: nonStrikerBalls, fours: 0, sixes: 0, onStrike: false, form: 5, pressure: 5 },
     ],
-    partnership: { runs: 0, balls: 0 },
+    partnership: { runs: partnershipRuns, balls: partnershipBalls },
     bowlers: {
       [`sm_bowler_${bowlerId}`]: {
-        name: bowlerName, style: 'Unknown', overs: 0, maidens: 0, runs: 0, wickets: 0,
+        name: bowlerName, style: 'Unknown',
+        ..._computeBowlerStats(bowlerId, smResponse.balls) || { overs: 0, runs: 0, wickets: 0 },
       },
     },
     toCome: bt.players
@@ -958,14 +985,37 @@ function _standardField() {
   };
 }
 
-function _buildAiDefaults() {
+function _buildAiDefaults(smResponse) {
+  // Derive a status-aware baseline. For a completed match, the win probability
+  // should reflect the final result rather than a 50/50 live guess.
+  const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
+  const isComplete = completedInnings.length >= 2 ||
+    (completedInnings.length === 1 && !(smResponse.balls && smResponse.balls.length > 0));
+
+  // Determine the away (batting) team's win probability from the result.
+  // If the batting team won, give them ~85%; if they lost, ~15%.
+  let awayProb = 50;
+  if (isComplete && completedInnings.length >= 2) {
+    const sorted = [...completedInnings].sort((a, b) =>
+      new Date(a.updated_at) - new Date(b.updated_at));
+    const firstInnings = sorted[0];
+    const secondInnings = sorted[sorted.length - 1];
+    // The batting team is the one that batted second (or first, depending on battingTeam).
+    // We don't know the exact batting team here, so use a heuristic:
+    // If the second innings total exceeds the first innings total, the second-batting team won.
+    const secondWon = secondInnings.total > firstInnings.total;
+    // The battingTeam is determined later; for now, assume away team is batting
+    awayProb = secondWon ? 85 : 15;
+  }
+
   return {
-    current     : { away: 50 },
-    baseline    : { away: 50, over: 1 },
+    current     : { away: awayProb },
+    baseline    : { away: awayProb, over: 1 },
     projected   : { from: 250, to: 300 },
     newBallOver : 80,
     lastWicket  : { text: '', over: '0.0' },
     rr10        : 0,
+    isComplete,
   };
 }
 
@@ -1028,6 +1078,26 @@ function _mapFormat(stage, league) {
   if (s.includes('odi') || s.includes('one day')) return 'ODI';
   if (s.includes('test') || s.includes('first class')) return 'Test Match';
   return 'Match';
+}
+
+function _buildVenue(smResponse, mockScoreboard) {
+  // Populate venue data from Sportmonks response, with fallbacks for missing fields.
+  // Some fields (weather, temp, wind, boundary) may be absent in real match data.
+  const v = smResponse.venue || {};
+  const weather = v.weather || '';
+  const temp = v.temp || '';
+  const wind = v.wind || '';
+  const boundary = v.boundary || '';
+  return {
+    name: v.name || 'Unknown Venue',
+    city: v.city || '',
+    pitch: mockScoreboard.pitch_type || 'Unknown',
+    weather: weather,
+    temp: temp,
+    wind: wind,
+    boundary: boundary,
+    floodlights: v.floodlights || false,
+  };
 }
 
 function _buildTheme(smResponse) {
