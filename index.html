@@ -2313,26 +2313,25 @@ const teamTotal = (teamKey) => {
   // teamKey could be "home", "away", or a numeric key string
   const key = String(teamKey);
   let total = 0;
-  // firstInnings has a 'team' field and 'total'
-  const first = MD.innings.firstInnings;
-  if (first && String(first.team) === key) {
-    total += Number(first.total) || 0;
-  } else {
-    // Fall back to per-team first innings totals added by the adapter
-    const homeKey = String(MD.teams?.home?.key);
-    const awayKey = String(MD.teams?.away?.key);
-    if (key === homeKey && MD.innings.firstInningsHome != null) {
-      total += Number(MD.innings.firstInningsHome) || 0;
-    } else if (key === awayKey && MD.innings.firstInningsAway != null) {
-      total += Number(MD.innings.firstInningsAway) || 0;
-    }
-  }
-  // secondInnings has home/away numbers keyed by team keys (or we can compare by MD.teams)
-  const second = MD.innings.secondInnings || { home: 0, away: 0 };
-  // Determine which side of secondInnings belongs to this team
-  // secondInnings home/away correspond to MD.teams.home.key and MD.teams.away.key
   const homeKey = String(MD.teams?.home?.key);
   const awayKey = String(MD.teams?.away?.key);
+
+  // Prefer per-team first innings totals (set by adapter for multi-innings matches)
+  // because firstInnings.team/total only represents the team that batted first
+  if (key === homeKey && MD.innings.firstInningsHome != null) {
+    total += Number(MD.innings.firstInningsHome) || 0;
+  } else if (key === awayKey && MD.innings.firstInningsAway != null) {
+    total += Number(MD.innings.firstInningsAway) || 0;
+  } else {
+    // Fallback for single-innings matches: use firstInnings if it matches this team
+    const first = MD.innings.firstInnings;
+    if (first && String(first.team) === key) {
+      total += Number(first.total) || 0;
+    }
+  }
+
+  // secondInnings has home/away numbers keyed by team keys
+  const second = MD.innings.secondInnings || { home: 0, away: 0 };
   if (key === homeKey) {
     total += Number(second.home) || 0;
   } else if (key === awayKey) {
@@ -2526,13 +2525,13 @@ function updateScore(){
     <div class="team-row bat">
       <div class="team-id"><span class="flag">${bt.flag}</span>
         <div><div class="team-name">${bt.name}</div><div class="team-sub">${battingSub}</div></div></div>
-      <div class="team-score" id="mainScore">${s.runs}<small>/${s.wickets}</small></div>
+      <div class="team-score" id="mainScore">${hasSecondInnings ? btTotal : `${s.runs}<small>/${s.wickets}</small>`}</div>
     </div>
     <div class="vs-rule"><i></i><b>VS</b><i></i></div>
     <div class="team-row done">
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
-      <div class="team-score">${otTotal}</div>
+      <div class="team-score">${hasSecondInnings ? otTotal : first.total}</div>
     </div>`;
 
   if (hasSecondInnings) {
@@ -2588,7 +2587,7 @@ function updateScore(){
     return `<div class="bchip ${played ? chipClass(chip) : 'future'}">${played ? chip : '·'}</div>`;
   }).join('');
 
-  $('hudScore').textContent = `${bt.short} ${s.runs}/${s.wickets}  ·  ${ot.short} ${otTotal}`;
+  $('hudScore').textContent = `${bt.short} ${hasSecondInnings ? btTotal : `${s.runs}/${s.wickets}`}  ·  ${ot.short} ${hasSecondInnings ? otTotal : first.total}`;
   $('hudSub').textContent = `${MD.venue.name.toUpperCase()} · ${MD.stage.toUpperCase()} · OVER ${s.over}.${s.ball}`;
 }
 function chipClass(c){
@@ -2669,9 +2668,9 @@ function updateWinProbability(){
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
     // Determine result based on which team chased successfully
     const resultText = btTotal > otTotal
-      ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`
+      ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`
       : otTotal > btTotal
-        ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
+        ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
         : 'Match drawn';
     stamp.textContent = resultText;
   } else {
@@ -3037,14 +3036,17 @@ function openWhy(){
   if (complete){
     // Retrospective explainability for completed matches
     const first = MD.innings.firstInnings;
-    const margin = s.runs - first.total;
+    const hasSecond = MD.innings.secondInnings && (Number(MD.innings.secondInnings.home) > 0 || Number(MD.innings.secondInnings.away) > 0);
+    const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
+    const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
+    const margin = hasSecond ? btTotal - otTotal : s.runs - first.total;
     const winner = margin > 0 ? bt.name : ot.name;
     const loser = margin > 0 ? ot.name : bt.name;
     lede = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}. The win probability settled at ${Math.round(to)}% for ${ot.short} as the final result became clear.`;
     drivers = [
       ['🏁', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}.`, 'terminal'],
-      ['📊', 'Final score', `${bt.name} ${s.runs}/${s.wickets} vs ${ot.name} ${first.total}.`, 'major'],
-      ['🛡️', 'First-innings platform', `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
+      ['📊', 'Final score', `${bt.name} ${hasSecond ? btTotal : `${s.runs}/${s.wickets}`} vs ${ot.name} ${hasSecond ? otTotal : first.total}.`, 'major'],
+      ['🛡️', hasSecond ? 'Match total' : 'First-innings platform', hasSecond ? `${ot.name} totalled ${otTotal} across all innings.` : `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
       ['⏱️', 'Match status', `Match completed — no live probability change to explain.`, '—']
     ];
   } else if (d.dismissed){
