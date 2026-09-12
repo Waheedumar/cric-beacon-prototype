@@ -2368,6 +2368,10 @@ function toast(msg, ms = 2600){
 function bump(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 
 /* ---------------- loadMatch: the single entry point ---------------- */
+function syncMatchSelect(key){
+  sel.value = key;
+}
+
 function loadMatch(key){
   const def = MOCK_MATCHES[key];
   if (!def) return;
@@ -2379,6 +2383,9 @@ function loadMatch(key){
   playedIdx = idx;
   selOver = FEED[idx].over;
   plSel = 0;
+
+  // Sync the match-select dropdown to the currently loaded match
+  syncMatchSelect(key);
 
   if (!booted){
     initEngine(MD);
@@ -2399,6 +2406,9 @@ function loadMatch(key){
 function loadRealMatchDoc(doc){
   // Set the match document as the current match state
   MD = doc;
+
+  // Sync the match-select dropdown to the currently loaded match
+  syncMatchSelect(doc.id);
 
   // Infer status for cached real matches that lack a status field
   if (!MD.status && MD.innings.firstInnings?.total && (!MD.overs || MD.overs.length === 0)) {
@@ -2534,9 +2544,13 @@ function updateScore(){
       <div class="team-score">${hasSecondInnings ? otTotal : first.total}</div>
     </div>`;
 
-  if (hasSecondInnings) {
+  // Remove any previously rendered full-scorecard panel before re-rendering
+  const existingScorecard = $('fullScorecard');
+  if (existingScorecard) existingScorecard.remove();
+
+if (hasSecondInnings) {
     const scorecardHtml = `
-      <div style="margin-top:12px;padding:8px 10px;border-radius:var(--r-sm);background:rgba(255,255,255,.03);border:1px solid var(--color-border)">
+      <div style="margin-top:12px;padding:8px 10px;border-radius:var(--r-sm);background:rgba(255,255,255,.03);border:1px solid var(--color-border)" id="fullScorecard">
         <div style="font-size:10px;letter-spacing:.1em;color:var(--color-muted);font-weight:700;margin-bottom:6px">FULL SCORECARD</div>
         <div style="display:flex;gap:24px;margin-bottom:8px">
           <div style="flex:1">
