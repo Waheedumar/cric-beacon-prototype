@@ -2306,6 +2306,41 @@ const num = n => n.toLocaleString('en-US');
 const teamOf = k => MD.teams[k];
 const batTeam = () => MD.teams[MD.battingTeam];
 const bowlTeam = () => MD.battingTeam === 'home' ? MD.teams.away : MD.teams.home;
+
+// Helper: compute total runs scored by a team across all innings
+// teamKey is the team's key string (e.g. "home" or "away", or the actual key like "89")
+const teamTotal = (teamKey) => {
+  // teamKey could be "home", "away", or a numeric key string
+  const key = String(teamKey);
+  let total = 0;
+  // firstInnings has a 'team' field and 'total'
+  const first = MD.innings.firstInnings;
+  if (first && String(first.team) === key) {
+    total += Number(first.total) || 0;
+  } else {
+    // Fall back to per-team first innings totals added by the adapter
+    const homeKey = String(MD.teams?.home?.key);
+    const awayKey = String(MD.teams?.away?.key);
+    if (key === homeKey && MD.innings.firstInningsHome != null) {
+      total += Number(MD.innings.firstInningsHome) || 0;
+    } else if (key === awayKey && MD.innings.firstInningsAway != null) {
+      total += Number(MD.innings.firstInningsAway) || 0;
+    }
+  }
+  // secondInnings has home/away numbers keyed by team keys (or we can compare by MD.teams)
+  const second = MD.innings.secondInnings || { home: 0, away: 0 };
+  // Determine which side of secondInnings belongs to this team
+  // secondInnings home/away correspond to MD.teams.home.key and MD.teams.away.key
+  const homeKey = String(MD.teams?.home?.key);
+  const awayKey = String(MD.teams?.away?.key);
+  if (key === homeKey) {
+    total += Number(second.home) || 0;
+  } else if (key === awayKey) {
+    total += Number(second.away) || 0;
+  }
+  // could add thirdInnings etc here if needed
+  return total;
+};
 const cur = () => FEED[idx];
 const st = () => FEED[idx].state;
 
@@ -2467,9 +2502,25 @@ function updateScore(){
     `<span>${MD.format.toUpperCase()}</span><span>·</span><span>${scoreStage}</span>` +
     `<span>·</span><span>OVER ${s.over}.${s.ball}</span>`;
 
-  const trail = first.total - s.runs;
+  // Compute total runs for each team across all innings
+  const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
+  const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
+
+  // Build a simple scorecard showing both innings when available
+  const second = MD.innings.secondInnings || { home: 0, away: 0 };
+  const hasSecondInnings = Number(second.home) > 0 || Number(second.away) > 0;
   const battingSub = complete ? `FINAL · ${s.over}.${s.ball} OV` : `BATTING · ${s.over}.${s.ball} OV`;
-  const bowlingSub = complete ? `FINAL · 1ST INNINGS` : `ALL OUT · 1ST INNINGS`;
+  const bowlingSub = complete ? (hasSecondInnings ? 'FINAL · ALL INNINGS' : 'FINAL · 1ST INNINGS') : 'ALL OUT · 1ST INNINGS';
+
+  const homeKey = String(MD.teams?.home?.key);
+  const awayKey = String(MD.teams?.away?.key);
+  // First innings totals per team (use per-team fields if available, else fall back to firstInnings.team match)
+  const firstInnHome = MD.innings.firstInningsHome != null
+    ? MD.innings.firstInningsHome
+    : (String(MD.teams.home.key) === MD.innings.firstInnings?.team ? (first?.total || 0) : 0);
+  const firstInnAway = MD.innings.firstInningsAway != null
+    ? MD.innings.firstInningsAway
+    : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.total || 0) : 0);
 
   $('teamRows').innerHTML = `
     <div class="team-row bat">
@@ -2481,11 +2532,35 @@ function updateScore(){
     <div class="team-row done">
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
-      <div class="team-score">${first.total}</div>
+      <div class="team-score">${otTotal}</div>
     </div>`;
 
+  if (hasSecondInnings) {
+    const scorecardHtml = `
+      <div style="margin-top:12px;padding:8px 10px;border-radius:var(--r-sm);background:rgba(255,255,255,.03);border:1px solid var(--color-border)">
+        <div style="font-size:10px;letter-spacing:.1em;color:var(--color-muted);font-weight:700;margin-bottom:6px">FULL SCORECARD</div>
+        <div style="display:flex;gap:24px;margin-bottom:8px">
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--color-muted)">${MD.teams.home?.name}</div>
+            <div style="font-weight:600;margin-top:2px">${firstInnHome}${Number(second.home) > 0 ? ` & ${second.home}` : ''}</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--color-muted)">${MD.teams.away?.name}</div>
+            <div style="font-weight:600;margin-top:2px">${firstInnAway}${Number(second.away) > 0 ? ` & ${second.away}` : ''}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--color-border)">
+          <div style="font-size:11px;font-weight:700">RESULT: ${bt.name} ${btTotal > otTotal ? 'won by' : otTotal > btTotal ? 'lost by' : 'tied'} ${Math.abs(btTotal - otTotal)} run${Math.abs(btTotal - otTotal) === 1 ? '' : 's'}</div>
+        </div>
+      </div>`;
+    $('scoreMeta').insertAdjacentHTML('afterend', scorecardHtml);
+  }
+
+  const trail = complete
+    ? btTotal - otTotal
+    : first.total - s.runs;
   $('trailLine').textContent = complete
-    ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} ${trail > 0 ? 'trail by' : 'lead by'} ${Math.abs(trail)} run${Math.abs(trail) === 1 ? '' : 's'}`
+    ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} ${trail > 0 ? 'won by' : trail < 0 ? 'lost by' : 'tied'} ${Math.abs(trail)} run${Math.abs(trail) === 1 ? '' : 's'}`
     : `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} trail by ${trail} run${trail === 1 ? '' : 's'}`;
 
   $('pshipV').innerHTML = MD.overs && MD.overs.length > 0 ? `${s.partnership.runs} <small>(${s.partnership.balls})</small>` : `${s.partnership.runs} <small>(${s.partnership.balls})</small> · Stats unavailable`;
@@ -2513,7 +2588,7 @@ function updateScore(){
     return `<div class="bchip ${played ? chipClass(chip) : 'future'}">${played ? chip : '·'}</div>`;
   }).join('');
 
-  $('hudScore').textContent = `${bt.short} ${s.runs}/${s.wickets}  ·  ${ot.short} ${first.total}`;
+  $('hudScore').textContent = `${bt.short} ${s.runs}/${s.wickets}  ·  ${ot.short} ${otTotal}`;
   $('hudSub').textContent = `${MD.venue.name.toUpperCase()} · ${MD.stage.toUpperCase()} · OVER ${s.over}.${s.ball}`;
 }
 function chipClass(c){
@@ -2589,12 +2664,14 @@ function updateWinProbability(){
     $('barEng').style.width = '0%';
     const stamp = $('probStamp');
     const bt = batTeam(), ot = bowlTeam();
-    const first = MD.innings.firstInnings;
-    const trail = first.total - st().runs;
-    const resultText = trail > 0
-      ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${trail} run${trail === 1 ? '' : 's'}`
-      : trail < 0
-        ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} won by ${Math.abs(trail)} run${Math.abs(trail) === 1 ? '' : 's'}`
+    // Use teamTotal to get the full innings totals
+    const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
+    const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
+    // Determine result based on which team chased successfully
+    const resultText = btTotal > otTotal
+      ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`
+      : otTotal > btTotal
+        ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
         : 'Match drawn';
     stamp.textContent = resultText;
   } else {
@@ -2616,10 +2693,9 @@ function updateAIInsight(){
   let text;
 
   if (complete){
-    // Retrospective insight for completed matches
-    const first = MD.innings.firstInnings;
-    const btTotal = st().runs;
-    const otTotal = first.total;
+    // Retrospective insight for completed matches — use full innings totals
+    const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
+    const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
     const margin = btTotal - otTotal;
     const winner = margin > 0 ? bt.name : ot.name;
     const loser = margin > 0 ? ot.name : bt.name;
@@ -2637,7 +2713,9 @@ function updateAIInsight(){
 
   const why = [];
   if (complete){
-    why.push(`Match completed — final score: ${batTeam().name} ${st().runs}/${st().wickets} vs ${bowlTeam().name} ${MD.innings.firstInnings.total}`);
+    const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
+    const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
+    why.push(`Match completed — final score: ${batTeam().name} ${btTotal}/${st().wickets} vs ${bowlTeam().name} ${otTotal}`);
   } else {
     if (d.dismissed) why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is now exposed at ${s.runs}/${s.wickets}`);
     else why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is under pressure at ${s.runs}/${s.wickets}`);

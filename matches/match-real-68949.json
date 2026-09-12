@@ -484,6 +484,12 @@
     "firstInnings": {
       "team": "89",
       "total": 157
+    },
+    "firstInningsHome": 157,
+    "firstInningsAway": 363,
+    "secondInnings": {
+      "home": 145,
+      "away": 316
     }
   },
   "field": {

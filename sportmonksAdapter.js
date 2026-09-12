@@ -454,17 +454,41 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
     inning_number: 1
   };
 
-  // Calculate first innings runs (first completed innings)
-  const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
-  if (completedInnings.length >= 2) {
-    // Sort by updated_at to get chronological order
-    const sortedInnings = [...completedInnings].sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at));
-    mockScoreboard.first_innings_runs = sortedInnings[0].total;
-    mockScoreboard.inning_number = 2; // Second innings in progress or completed
-  } else if (completedInnings.length === 1) {
-    mockScoreboard.first_innings_runs = completedInnings[0].total;
-    mockScoreboard.inning_number = 1;
-  }
+  // Collect ALL completed innings from scoreboards, sorted chronologically
+  const completedInnings = (smResponse.scoreboards || [])
+    .filter(sb => sb.type === 'total')
+    .sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at));
+
+  // Group innings by team (home/away) using team_id
+  const homeInnings = [];
+  const awayInnings = [];
+  completedInnings.forEach(sb => {
+    if (sb.team_id === home.id) {
+      homeInnings.push(sb.total);
+    } else if (sb.team_id === away.id) {
+      awayInnings.push(sb.total);
+    }
+  });
+
+  // Determine which team batted first (from the earliest completed innings)
+  const firstBattingTeamId = completedInnings.length > 0 ? completedInnings[0].team_id : null;
+  const firstBattingIsHome = firstBattingTeamId === home.id;
+
+  // First innings total = first innings of the team that batted first
+  const firstInningsTotal = firstBattingIsHome
+    ? (homeInnings[0] || 0)
+    : (awayInnings[0] || 0);
+
+  // Second innings totals for each team (their 2nd innings if they have one)
+  const homeSecondInnings = homeInnings.length > 1 ? homeInnings[1] : 0;
+  const awaySecondInnings = awayInnings.length > 1 ? awayInnings[1] : 0;
+
+  mockScoreboard.first_innings_runs = firstInningsTotal;
+  mockScoreboard.inning_number = completedInnings.length > 0 ? 2 : 1;
+  mockScoreboard.secondInnings = {
+    home: homeSecondInnings,
+    away: awaySecondInnings
+  };
 
   // ---- Live scoreboard → overs --------------------------------------
   // Ball-by-ball data may not be available in this endpoint; use empty array
@@ -508,6 +532,11 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
   const start = _buildStartState(mockScoreboard, smResponse, battingTeam, teams, playersMap);
 
   // ---- Build match document ----------------------------------------
+  // Build first innings record: the team that batted first overall
+  const firstInningsTeam = firstBattingIsHome ? home.key : away.key;
+  // Also store per-team first innings totals for accurate win-margin calculation
+  const firstInningsHome = homeInnings[0] || 0;
+  const firstInningsAway = awayInnings[0] || 0;
   const matchDoc = {
     id    : `sm_${id}`,
     label : matchName || `${away.name} v ${home.name}`,
@@ -520,7 +549,14 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
     battingTeam,
     innings: {
       current : _buildInningsLabel(mockScoreboard, battingTeam, teams),
-      firstInnings: _buildFirstInnings(mockScoreboard, battingTeam, teams),
+      firstInnings: {
+        team: firstInningsTeam,
+        total: firstInningsTotal,
+      },
+      // Per-team first innings totals (for accurate total calculation)
+      firstInningsHome,
+      firstInningsAway,
+      secondInnings: mockScoreboard.secondInnings || { home: 0, away: 0 },
     },
     field         : _standardField(),
     perOverRuns   : { home: [], away: [] },
