@@ -480,10 +480,10 @@
   },
   "battingTeam": "away",
   "innings": {
-    "current": "SOMERSET 2nd innings",
+    "current": "",
     "firstInnings": {
       "team": "89",
-      "total": 363
+      "total": 157
     }
   },
   "field": {
@@ -619,30 +619,30 @@
   },
   "momentumHistory": [],
   "start": {
-    "runs": 166,
-    "wickets": 3,
-    "over": 51,
-    "ball": 1,
+    "runs": 316,
+    "wickets": 5,
+    "over": 50,
+    "ball": 0,
     "batsmen": [
       {
-        "name": "Nathan Gilchrist",
-        "short": "GILCHRIST",
-        "runs": 9,
-        "balls": 27,
-        "fours": 0,
+        "name": "Joshua Thomas",
+        "short": "THOMAS",
+        "runs": 55,
+        "balls": 83,
+        "fours": 8,
         "sixes": 0,
-        "onStrike": true,
+        "onStrike": false,
         "form": 5,
         "pressure": 5
       },
       {
-        "name": "Josh Hull",
-        "short": "HULL",
-        "runs": 0,
-        "balls": 24,
-        "fours": 0,
+        "name": "Tom Lammonby",
+        "short": "LAMMONBY",
+        "runs": 69,
+        "balls": 121,
+        "fours": 7,
         "sixes": 0,
-        "onStrike": false,
+        "onStrike": true,
         "form": 5,
         "pressure": 5
       }
@@ -655,10 +655,10 @@
       "sm_bowler_132": {
         "name": "Jake Ball",
         "style": "Unknown",
-        "overs": 0,
-        "maidens": 0,
-        "runs": 0,
-        "wickets": 0
+        "overs": 15,
+        "maidens": 5,
+        "runs": 45,
+        "wickets": 2
       }
     },
     "toCome": [
@@ -677,7 +677,7 @@
       "Henry Nicholls",
       "Tom Abell"
     ],
-    "timestamp": 1788977000000
+    "timestamp": 1789227252296
   },
   "overs": [],
   "status": "complete"
