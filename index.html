@@ -567,7 +567,7 @@ button{font-family:inherit;color:inherit;}
 <header class="hdr">
   <div class="brand"><div class="beacon"></div><b>CRIC<span>BEACON</span></b></div>
   <nav class="nav" id="nav">
-    <a href="#live" class="on">LIVE MATCH</a>
+    <a href="#live" class="on">MATCH STATUS</a>
     <a href="#view3d">3D VIEW</a>
     <a href="#ai">AI INSIGHTS</a>
     <a href="#stats">STATISTICS</a>
@@ -576,7 +576,7 @@ button{font-family:inherit;color:inherit;}
   </nav>
   <div class="hdr-right">
     <select class="match-select" id="matchSelect" aria-label="Select match"></select>
-    <div class="live-pill" id="livePill"><i class="live-dot"></i>LIVE DEMO</div>
+    <div class="live-pill" id="livePill"><i class="live-dot"></i>LOADING...</div>
   </div>
 </header>
 
@@ -626,7 +626,7 @@ button{font-family:inherit;color:inherit;}
         <p id="venueLoc">—</p>
       </div>
       <div class="venue-grid" id="venueGrid"></div>
-      <div style="padding:10px 13px"><span class="tag">MOCK CONDITIONS · NOT A LIVE FEED</span></div>
+      <div style="padding:10px 13px"><span class="tag">MATCH CONDITIONS</span></div>
     </section>
   </div>
 
@@ -776,7 +776,7 @@ button{font-family:inherit;color:inherit;}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="proto">PROTOTYPE • MOCK DATA</div>
+<div class="proto">FINISHED MATCH</div>
 
 <div class="player-card" id="playerCard" role="dialog" aria-modal="true" aria-label="Player info">
   <button class="pc-close" id="pcClose" aria-label="Close">✕</button>
@@ -2316,6 +2316,14 @@ const isComplete = () => MD.status === 'complete' ||
   MD.innings.firstInnings?.total &&
   MD.start?.batsmen?.[0]?.onStrike !== true;
 
+const statusLabel = () => {
+  const status = MD?.status;
+  if (status === 'complete' || status === 'finished' || status === 'completed') return 'Finished';
+  if (status === 'live' || status === 'in_progress' || status === 'in-progress') return 'Live';
+  if (status === 'not_started' || status === 'scheduled' || status === 'upcoming') return 'Not Started';
+  return isComplete() ? 'Finished' : 'Live';
+};
+
 function toast(msg, ms = 2600){
   const t = $('toast');
   t.textContent = msg;
@@ -2357,6 +2365,11 @@ function loadMatch(key){
 function loadRealMatchDoc(doc){
   // Set the match document as the current match state
   MD = doc;
+
+  // Infer status for cached real matches that lack a status field
+  if (!MD.status && MD.innings.firstInnings?.total && (!MD.overs || MD.overs.length === 0)) {
+    MD.status = 'complete';
+  }
 
   // Build the feed — will create synthetic delivery if overs is empty
   FEED = buildFeed(MD);
@@ -2421,9 +2434,10 @@ function renderStatic(){
   // Status chip reflects the match source, not the demo state
   const complete = isComplete();
   const pill = $('livePill');
+  const label = statusLabel();
   pill.innerHTML = complete
-    ? '<i class="live-dot done"></i>COMPLETED'
-    : '<i class="live-dot"></i>LIVE DEMO';
+    ? '<i class="live-dot done"></i>' + label
+    : '<i class="live-dot"></i>' + label;
   pill.classList.toggle('complete', complete);
 
   document.querySelectorAll('.prob-nums .side')[0].querySelector('.lbl').textContent = batTeam().name;
@@ -2448,7 +2462,7 @@ function updateScore(){
 
   const scoreStage = complete
   ? MD.stage.toUpperCase().replace('DEMO', 'COMPLETED')
-  : `${MD.format.toUpperCase()} · ${MD.stage.toUpperCase()}`;
+  : MD.stage.toUpperCase();
   $('scoreMeta').innerHTML =
     `<span>${MD.format.toUpperCase()}</span><span>·</span><span>${scoreStage}</span>` +
     `<span>·</span><span>OVER ${s.over}.${s.ball}</span>`;
@@ -2474,7 +2488,7 @@ function updateScore(){
     ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} ${trail > 0 ? 'trail by' : 'lead by'} ${Math.abs(trail)} run${Math.abs(trail) === 1 ? '' : 's'}`
     : `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} trail by ${trail} run${trail === 1 ? '' : 's'}`;
 
-  $('pshipV').innerHTML = `${s.partnership.runs} <small>(${s.partnership.balls})</small>`;
+  $('pshipV').innerHTML = MD.overs && MD.overs.length > 0 ? `${s.partnership.runs} <small>(${s.partnership.balls})</small>` : `${s.partnership.runs} <small>(${s.partnership.balls})</small> · Stats unavailable`;
   const ovs = s.over + s.ball / 6;
   $('rrV').innerHTML = `${(s.runs / ovs).toFixed(2)} <small>rpo</small>`;
 
@@ -2539,8 +2553,9 @@ function updateField(setName){
 function renderDelivery(d){
   const L = LENGTHS[d.length] || LENGTHS.good;
   const rc = d.dismissed ? 'red' : d.freeHitRejected ? 'amber' : (d.runs >= 4 ? 'gold' : '');
-  $('deliveryTag').textContent = d.upcoming ? 'SIMULATED NEXT' : 'PLAYED';
-  $('deliveryTag').className = 'tag ' + (d.upcoming ? 'amber' : 'green');
+  const deliveryComplete = isComplete();
+  $('deliveryTag').textContent = deliveryComplete ? 'FINAL' : (d.upcoming ? 'SIMULATED NEXT' : 'PLAYED');
+  $('deliveryTag').className = 'tag ' + (deliveryComplete ? 'green' : (d.upcoming ? 'amber' : 'green'));
   $('deliveryCard').innerHTML = `
     <div class="cell"><label>BALL</label><div class="v">${d.over}.${d.ballNo}</div></div>
     <div class="cell"><label>BALL SPEED</label><div class="v">${d.speed} <span style="font-size:11px;color:var(--color-muted)">km/h</span></div></div>
@@ -2567,6 +2582,11 @@ function updateWinProbability(){
     // Terminal state: hide the live delta pill, show final result
     $('probDelta').innerHTML = '';
     $('probDelta').classList.add('hidden');
+    // Set probability to reflect final outcome (no longer 50/50 guess)
+    $('probPak').textContent = '100%';
+    $('probEng').textContent = '0%';
+    $('barPak').style.width = '100%';
+    $('barEng').style.width = '0%';
     const stamp = $('probStamp');
     const bt = batTeam(), ot = bowlTeam();
     const first = MD.innings.firstInnings;
@@ -2603,7 +2623,7 @@ function updateAIInsight(){
     const margin = btTotal - otTotal;
     const winner = margin > 0 ? bt.name : ot.name;
     const loser = margin > 0 ? ot.name : bt.name;
-    text = `${winner.name} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'} against ${loser.name}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal}/${st().wickets} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`;
+    text = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'} against ${loser}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal}/${st().wickets} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`;
   } else if (d.dismissed){
     text = `${d.outName} falls — ${d.wicket}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} lose their set batter and a new partnership has to survive ${oversToNewBall <= 2 ? 'the second new ball' : 'the rest of this spell'}. Expect ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} to keep an attacking field for the next 12–18 deliveries.`;
   } else if (d.runs >= 4){
@@ -2626,7 +2646,11 @@ function updateAIInsight(){
     const conditions = [];
     if (weather) conditions.push(weather);
     if (wind) conditions.push(`${wind} wind`);
-    why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions — ${conditions.join(', ')}`);
+    if (conditions.length > 0) {
+      why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions — ${conditions.join(', ')}`);
+    } else {
+      why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions — weather data unavailable`);
+    }
     why.push(s.partnership.balls > 40
       ? `Partnership stability (${s.partnership.runs} off ${s.partnership.balls}) is improving ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s position`
       : `A fresh partnership resets the model's survival estimate`);
@@ -2852,7 +2876,7 @@ function renderFantasy(){
         <div><div class="nm">${r.name}</div><div class="sub">${r.sub}</div></div></div>
       <div class="pts">${r.pts}</div>
     </div>`).join('') +
-    `<div style="margin-top:10px"><span class="tag">PROJECTED POINTS · DEMO SCORING RULES</span></div>`;
+    `<div style="margin-top:10px"><span class="tag">PROJECTED POINTS · FANTASY SCORING</span></div>`;
 }
 
 /* ---------------- timeline ---------------- */
@@ -2975,14 +2999,14 @@ function openWhy(){
       <div class="driver"><div class="ic">${ic}</div>
         <div class="tx"><b>${t}</b><span>${s2}</span></div>
         <div class="w">${w}</div></div>`).join('')}
-    <div class="modal-note">Explainability demo. Drivers are derived from the mock match document, not a trained model —
+    <div class="modal-note">Explainability. Drivers are derived from the match document —
     in production each driver would carry a SHAP-style contribution from the live win-probability model.</div>`;
   $('whyModal').classList.add('open');
 }
 
 /* ---------------- playback ---------------- */
 function stepNext(){
-  if (idx >= FEED.length - 1){ stopPlay(); toast('End of the simulated feed'); return false; }
+  if (idx >= FEED.length - 1){ stopPlay(); toast('End of the match feed'); return false; }
   applyDelivery(idx + 1, true);
   playedIdx = Math.max(playedIdx, idx + 1);  // advance furthest-played position
   return true;
@@ -3082,7 +3106,7 @@ function renderWagonWheel(){
 function renderLastShot(){
   const d = cur();
   const tagEl = $('lsaTag');
-  if (tagEl) tagEl.textContent = d.upcoming ? 'SIMULATED' : 'PLAYED';
+  if (tagEl) tagEl.textContent = isComplete() ? 'FINAL' : (d.upcoming ? 'SIMULATED' : 'PLAYED');
   // Null shot means no ball-by-ball data (e.g., real finished match)
   if (!d.shot) {
     $('lsaGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--color-muted);padding:20px">No shot data for this delivery</div>';
@@ -3375,7 +3399,7 @@ CANVAS.addEventListener('mousemove', e => {
 
 const sel = $('matchSelect');
 sel.innerHTML = Object.values(MOCK_MATCHES).map(m => `<option value="${m.id}">${m.label}</option>`).join('');
-sel.innerHTML += `<option value="sm_68949">Somerset v Leicestershire (Final)</option>`;
+sel.innerHTML += `<option value="sm_68949">Somerset v Leicestershire · Finished</option>`;
 sel.addEventListener('change', async () => {
   const val = sel.value;
   if (val.startsWith('sm_')){

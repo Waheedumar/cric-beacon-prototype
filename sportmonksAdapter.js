@@ -836,6 +836,15 @@ function _groupBallsIntoOvers(smBalls, ctx) {
 }
 
 function _mapStatus(smResponse) {
+  // Check for an explicit SportMonks status field first; fall back to
+  // scoreboard/ball heuristics only when the API does not provide one.
+  if (smResponse.status) {
+    const s = String(smResponse.status).toLowerCase();
+    if (s === 'complete' || s === 'finished' || s === 'abandoned' || s === 'postponed' || s === 'cancelled') return 'complete';
+    if (s === 'live' || s === 'in_progress' || s === 'in-progress' || s === 'running') return 'live';
+    if (s === 'scheduled' || s === 'upcoming') return 'not_started';
+  }
+
   // Determine if the match is complete based on available data.
   // If there are 2+ completed scoreboard innings, the match is complete.
   // If there's only 1 completed innings but no ball-by-ball data and a first
@@ -1074,9 +1083,11 @@ function ordSuffix(n) { return ['th','st','nd','rd'][(n%100-20)%10] || ['th','st
 
 function _mapFormat(stage, league) {
   const s = `${stage || ''} ${league || ''}`.toLowerCase();
-  if (s.includes('t20'))      return 'T20';
+  if (s.includes('first class')) return 'First Class';
+  if (s.includes('county')) return 'County Championship';
+  if (s.includes('t20')) return 'T20';
   if (s.includes('odi') || s.includes('one day')) return 'ODI';
-  if (s.includes('test') || s.includes('first class')) return 'Test Match';
+  if (s.includes('test')) return 'Test Match';
   return 'Match';
 }
 

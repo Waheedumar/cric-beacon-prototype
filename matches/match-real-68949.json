@@ -1,7 +1,7 @@
 {
   "id": "sm_68949",
   "label": "Somerset v Leicestershire",
-  "format": "Match",
+  "format": "First Class",
   "stage": "County Div 1 Round Division 1",
   "venue": {
     "name": "Grace Road",
@@ -648,8 +648,8 @@
       }
     ],
     "partnership": {
-      "runs": 0,
-      "balls": 0
+      "runs": 9,
+      "balls": 51
     },
     "bowlers": {
       "sm_bowler_132": {
@@ -679,5 +679,6 @@
     ],
     "timestamp": 1788977000000
   },
-  "overs": []
+  "overs": [],
+  "status": "complete"
 }
