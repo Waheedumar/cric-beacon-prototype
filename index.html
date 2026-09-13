@@ -2345,12 +2345,13 @@ const teamTotal = (teamKey) => {
     }
   }
 
-  // secondInnings has home/away numbers keyed by team keys
-  const second = MD.innings.secondInnings || { home: 0, away: 0 };
-  if (key === homeKey) {
-    total += Number(second.home) || 0;
-  } else if (key === awayKey) {
-    total += Number(second.away) || 0;
+  // secondInnings has home/away objects with runs/wickets keyed by team keys
+  const second = MD.innings.secondInnings;
+  const secondRuns = (s) => (s && typeof s === 'object' ? s.runs : (s || 0));
+  if (key === homeKey && second && second.home) {
+    total += Number(secondRuns(second.home)) || 0;
+  } else if (key === awayKey && second && second.away) {
+    total += Number(secondRuns(second.away)) || 0;
   }
   // could add thirdInnings etc here if needed
   return total;
@@ -2537,6 +2538,20 @@ function renderStatic(){
 }
 
 /* ---------------- score ---------------- */
+function formatInningsScore(runs, wickets, declared) {
+  // Standard cricket notation:
+  // - "X all out" when all 10 wickets fallen
+  // - "X/Y dec" when declared at Y wickets
+  // - "X/Y" for normal innings
+  if (runs == null || runs === '') return '—';
+  const r = Number(runs);
+  const w = wickets != null ? Number(wickets) : undefined;
+  if (declared) return `${r}/${w} dec`;
+  if (w != null && w >= 10) return `${r} all out`;
+  if (w != null) return `${r}/${w}`;
+  return `${r}`;
+}
+
 function updateScore(){
   const s = st(), d = cur();
   const bt = batTeam(), ot = bowlTeam();
@@ -2556,7 +2571,8 @@ function updateScore(){
 
   // Build a simple scorecard showing both innings when available
   const second = MD.innings.secondInnings || { home: 0, away: 0 };
-  const hasSecondInnings = Number(second.home) > 0 || Number(second.away) > 0;
+  const secondRuns = s => (s && typeof s === 'object' ? s.runs : s);
+  const hasSecondInnings = Number(secondRuns(second.home)) > 0 || Number(secondRuns(second.away)) > 0;
   const battingSub = complete
     ? hasSecondInnings
       ? 'FINAL'
@@ -2573,19 +2589,42 @@ function updateScore(){
   const firstInnAway = MD.innings.firstInningsAway != null
     ? MD.innings.firstInningsAway
     : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.total || 0) : 0);
+  // First innings wickets per team (use per-team fields if available, else fall back to firstInnings.wickets)
+  const firstInnHomeWk = MD.innings.firstInningsHomeWickets != null
+    ? MD.innings.firstInningsHomeWickets
+    : (String(MD.teams.home.key) === MD.innings.firstInnings?.team ? (first?.wickets || 0) : 0);
+  const firstInnAwayWk = MD.innings.firstInningsAwayWickets != null
+    ? MD.innings.firstInningsAwayWickets
+    : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.wickets || 0) : 0);
+  // Second innings wickets per team (use per-team fields if available, else fall back to firstInnings.wickets)
+  const secondInnHomeWk = MD.innings.secondInningsHomeWickets != null
+    ? MD.innings.secondInningsHomeWickets
+    : 0;
+  const secondInnAwayWk = MD.innings.secondInningsAwayWickets != null
+    ? MD.innings.secondInningsAwayWickets
+    : 0;
+  // Second innings declared flags per team
+  const secondInnHomeDec = MD.innings.secondInningsHomeDeclared || false;
+  const secondInnAwayDec = MD.innings.secondInningsAwayDeclared || false;
 
   // Render each team's own innings in the main scoreboard
   const firstInnBat = bt.key === MD.teams.home.key ? firstInnHome : firstInnAway;
-  const secondInnBat = bt.key === MD.teams.home.key ? second.home : second.away;
+  const firstInnBatWk = bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
+  const secondInnBat = bt.key === MD.teams.home.key ? secondRuns(second.home) : secondRuns(second.away);
+  const secondInnBatWk = bt.key === MD.teams.home.key ? secondInnHomeWk : secondInnAwayWk;
+  const secondInnBatDec = bt.key === MD.teams.home.key ? secondInnHomeDec : secondInnAwayDec;
   const firstInnBowl = ot.key === MD.teams.home.key ? firstInnHome : firstInnAway;
-  const secondInnBowl = ot.key === MD.teams.home.key ? second.home : second.away;
+  const firstInnBowlWk = ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
+  const secondInnBowl = ot.key === MD.teams.home.key ? secondRuns(second.home) : secondRuns(second.away);
+  const secondInnBowlWk = ot.key === MD.teams.home.key ? secondInnHomeWk : secondInnAwayWk;
+  const secondInnBowlDec = ot.key === MD.teams.home.key ? secondInnHomeDec : secondInnAwayDec;
 
   $('teamRows').innerHTML = `
     <div class="team-row bat">
       <div class="team-id"><span class="flag">${bt.flag}</span>
         <div><div class="team-name">${bt.name}</div><div class="team-sub">${battingSub}</div></div></div>
       <div class="team-score" id="mainScore">${hasSecondInnings
-        ? `${firstInnBat} & ${secondInnBat}`
+        ? `${formatInningsScore(firstInnBat, firstInnBatWk)} & ${formatInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)}`
         : `${s.runs}<small>/${s.wickets}</small>`}</div>
     </div>
     <div class="vs-rule"><i></i><b>VS</b><i></i></div>
@@ -2593,8 +2632,8 @@ function updateScore(){
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
       <div class="team-score">${hasSecondInnings
-        ? `${firstInnBowl} & ${secondInnBowl}`
-        : `${first.total}`}</div>`;
+        ? `${formatInningsScore(firstInnBowl, firstInnBowlWk)} & ${formatInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
+        : `${formatInningsScore(first.total, first.wickets)}`}</div>`;
 
   // Remove any previously rendered full-scorecard panel before re-rendering
   const existingScorecard = $('fullScorecard');
@@ -2607,11 +2646,17 @@ if (hasSecondInnings) {
         <div style="display:flex;gap:24px;margin-bottom:8px">
           <div style="flex:1">
             <div style="font-size:9px;color:var(--color-muted)">${MD.teams.home?.name}</div>
-            <div style="font-weight:600;margin-top:2px">${firstInnHome}${Number(second.home) > 0 ? ` & ${second.home}` : ''}</div>
+            <div style="font-weight:600;margin-top:2px">
+              ${formatInningsScore(firstInnHome, firstInnHomeWk)}
+              ${Number(secondRuns(second.home)) > 0 ? ` & ${formatInningsScore(secondRuns(second.home), secondWkts(second.home), secondDeclared(second.home))}` : ''}
+            </div>
           </div>
           <div style="flex:1">
             <div style="font-size:9px;color:var(--color-muted)">${MD.teams.away?.name}</div>
-            <div style="font-weight:600;margin-top:2px">${firstInnAway}${Number(second.away) > 0 ? ` & ${second.away}` : ''}</div>
+            <div style="font-weight:600;margin-top:2px">
+              ${formatInningsScore(firstInnAway, firstInnAwayWk)}
+              ${Number(secondRuns(second.away)) > 0 ? ` & ${formatInningsScore(secondRuns(second.away), secondWkts(second.away), secondDeclared(second.away))}` : ''}
+            </div>
           </div>
         </div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--color-border)">
@@ -3106,7 +3151,9 @@ function openWhy(){
   if (complete){
     // Retrospective explainability for completed matches
     const first = MD.innings.firstInnings;
-    const hasSecond = MD.innings.secondInnings && (Number(MD.innings.secondInnings.home) > 0 || Number(MD.innings.secondInnings.away) > 0);
+    const second = MD.innings.secondInnings;
+    const secondRuns = (s) => (s && typeof s === 'object' ? s.runs : (s || 0));
+    const hasSecond = second && (Number(secondRuns(second.home)) > 0 || Number(secondRuns(second.away)) > 0);
     const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
     const margin = hasSecond ? btTotal - otTotal : s.runs - first.total;

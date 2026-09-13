@@ -490,7 +490,12 @@
     "secondInnings": {
       "home": 145,
       "away": 316
-    }
+    },
+    "firstInningsHomeWickets": 10,
+    "firstInningsAwayWickets": 10,
+    "secondInningsHomeWickets": 10,
+    "secondInningsAwayWickets": 5,
+    "secondInningsAwayDeclared": true
   },
   "field": {
     "standard": [
