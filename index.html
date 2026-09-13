@@ -107,6 +107,10 @@ button{font-family:inherit;color:inherit;}
 }
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--color-accent);animation:blink 1.6s infinite;}
 @keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--color-accent-glow)}50%{opacity:.35;box-shadow:0 0 0 6px transparent}}
+.match-title{
+  font-family:'JetBrains Mono';font-size:12px;font-weight:700;letter-spacing:.02em;
+  color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;
+}
 
 /* ---------------- Layout ---------------- */
 .app{
@@ -576,6 +580,7 @@ button{font-family:inherit;color:inherit;}
   </nav>
   <div class="hdr-right">
     <select class="match-select" id="matchSelect" aria-label="Select match"></select>
+    <div class="match-title" id="matchTitle">—</div>
     <div class="live-pill" id="livePill"><i class="live-dot"></i>LOADING...</div>
   </div>
 </header>
@@ -2499,6 +2504,13 @@ function renderStatic(){
     protoLabel.textContent = 'Live';
   } else {
     protoLabel.textContent = 'Not Started';
+  }
+
+  // Update the main header match title to reflect the currently loaded match
+  // label and status — runs on every match switch (mock or real).
+  const matchTitleEl = $('matchTitle');
+  if (matchTitleEl) {
+    matchTitleEl.textContent = `${MD.label} · ${statusLabel()}`;
   }
 
   document.querySelectorAll('.prob-nums .side')[0].querySelector('.lbl').textContent = batTeam().name;
