@@ -776,7 +776,7 @@ button{font-family:inherit;color:inherit;}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="proto">FINISHED MATCH</div>
+<div class="proto" id="protoLabel">PROTOTYPE • MOCK DATA</div>
 
 <div class="player-card" id="playerCard" role="dialog" aria-modal="true" aria-label="Player info">
   <button class="pc-close" id="pcClose" aria-label="Close">✕</button>
@@ -2410,6 +2410,13 @@ function loadRealMatchDoc(doc){
   // Sync the match-select dropdown to the currently loaded match
   syncMatchSelect(doc.id);
 
+  // Update the real-match dropdown option text to reflect actual match label and status
+  const sel = $('matchSelect');
+  const realOpt = sel.querySelector('option[value="sm_68949"]');
+  if (realOpt) {
+    realOpt.textContent = `${doc.label} · ${statusLabel()}`;
+  }
+
   // Infer status for cached real matches that lack a status field
   if (!MD.status && MD.innings.firstInnings?.total && (!MD.overs || MD.overs.length === 0)) {
     MD.status = 'complete';
@@ -2483,6 +2490,16 @@ function renderStatic(){
     ? '<i class="live-dot done"></i>' + label
     : '<i class="live-dot"></i>' + label;
   pill.classList.toggle('complete', complete);
+
+  // Update proto label to reflect match state
+  const protoLabel = $('protoLabel');
+  if (complete) {
+    protoLabel.textContent = 'Finished';
+  } else if (statusLabel() === 'Live') {
+    protoLabel.textContent = 'Live';
+  } else {
+    protoLabel.textContent = 'Not Started';
+  }
 
   document.querySelectorAll('.prob-nums .side')[0].querySelector('.lbl').textContent = batTeam().name;
   document.querySelectorAll('.prob-nums .side')[1].querySelector('.lbl').textContent = bowlTeam().name;
