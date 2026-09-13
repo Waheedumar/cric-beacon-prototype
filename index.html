@@ -2574,12 +2574,18 @@ function updateScore(){
     ? MD.innings.firstInningsAway
     : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.total || 0) : 0);
 
+  // Render each team's own innings in the main scoreboard
+  const firstInnBat = bt.key === MD.teams.home.key ? firstInnHome : firstInnAway;
+  const secondInnBat = bt.key === MD.teams.home.key ? second.home : second.away;
+  const firstInnBowl = ot.key === MD.teams.home.key ? firstInnHome : firstInnAway;
+  const secondInnBowl = ot.key === MD.teams.home.key ? second.home : second.away;
+
   $('teamRows').innerHTML = `
     <div class="team-row bat">
       <div class="team-id"><span class="flag">${bt.flag}</span>
         <div><div class="team-name">${bt.name}</div><div class="team-sub">${battingSub}</div></div></div>
       <div class="team-score" id="mainScore">${hasSecondInnings
-        ? `${firstInnHome} & ${second.home}`
+        ? `${firstInnBat} & ${secondInnBat}`
         : `${s.runs}<small>/${s.wickets}</small>`}</div>
     </div>
     <div class="vs-rule"><i></i><b>VS</b><i></i></div>
@@ -2587,7 +2593,7 @@ function updateScore(){
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
       <div class="team-score">${hasSecondInnings
-        ? `${firstInnAway} & ${second.away}`
+        ? `${firstInnBowl} & ${secondInnBowl}`
         : `${first.total}`}</div>`;
 
   // Remove any previously rendered full-scorecard panel before re-rendering
