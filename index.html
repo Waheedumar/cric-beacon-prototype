@@ -2557,7 +2557,11 @@ function updateScore(){
   // Build a simple scorecard showing both innings when available
   const second = MD.innings.secondInnings || { home: 0, away: 0 };
   const hasSecondInnings = Number(second.home) > 0 || Number(second.away) > 0;
-  const battingSub = complete ? `FINAL · ${s.over}.${s.ball} OV` : `BATTING · ${s.over}.${s.ball} OV`;
+  const battingSub = complete
+    ? hasSecondInnings
+      ? 'FINAL'
+      : `FINAL · ${s.over}.${s.ball} OV`
+    : `BATTING · ${s.over}.${s.ball} OV`;
   const bowlingSub = complete ? (hasSecondInnings ? 'FINAL · ALL INNINGS' : 'FINAL · 1ST INNINGS') : 'ALL OUT · 1ST INNINGS';
 
   const homeKey = String(MD.teams?.home?.key);
@@ -2574,14 +2578,17 @@ function updateScore(){
     <div class="team-row bat">
       <div class="team-id"><span class="flag">${bt.flag}</span>
         <div><div class="team-name">${bt.name}</div><div class="team-sub">${battingSub}</div></div></div>
-      <div class="team-score" id="mainScore">${hasSecondInnings ? btTotal : `${s.runs}<small>/${s.wickets}</small>`}</div>
+      <div class="team-score" id="mainScore">${hasSecondInnings
+        ? `${firstInnHome} & ${second.home}`
+        : `${s.runs}<small>/${s.wickets}</small>`}</div>
     </div>
     <div class="vs-rule"><i></i><b>VS</b><i></i></div>
     <div class="team-row done">
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
-      <div class="team-score">${hasSecondInnings ? otTotal : first.total}</div>
-    </div>`;
+      <div class="team-score">${hasSecondInnings
+        ? `${firstInnAway} & ${second.away}`
+        : `${first.total}`}</div>`;
 
   // Remove any previously rendered full-scorecard panel before re-rendering
   const existingScorecard = $('fullScorecard');
