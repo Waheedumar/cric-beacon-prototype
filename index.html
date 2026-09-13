@@ -585,6 +585,16 @@ button{font-family:inherit;color:inherit;}
   </div>
 </header>
 
+<!-- ============ LIVE MATCH TEST (temporary, unstyled) ============ -->
+<section id="liveTest" class="panel">
+  <div class="panel-h"><h3>Live Match Test</h3></div>
+  <div class="panel-b">
+    <button id="fetchLiveBtn" class="btn">Fetch Live Matches</button>
+    <ul id="liveList"></ul>
+    <p id="noLiveMsg" style="display:none;margin-top:8px;color:var(--color-muted);">No live matches currently available.</p>
+  </div>
+</section>
+
 <main class="app">
   <!-- ============ LEFT ============ -->
   <div class="col left">
@@ -3556,6 +3566,95 @@ const spy = new IntersectionObserver(es => {
 ['live', 'view3d', 'ai', 'stats', 'players', 'fantasy'].forEach(id => {
   const el = $(id); if (el) spy.observe(el);
 });
+
+/* ==================================================================
+   2. LIVE MATCH TEST – temporary UI (adds a section below the header)
+   ------------------------------------------------------------------
+   Clicking "Fetch Live Matches" prompts for a SportMonks API token,
+   then calls listLiveMatches(), displays each match as a clickable
+   list item (team name via the defensive fallback name || code || UNKNOWN),
+   and clicking a list item loads the match via loadRealMatchDoc() and
+   starts pollLiveMatch().
+   ------------------------------------------------------------------
+   This section is hidden until the user clicks the button, and the
+   token is only ever collected via a prompt() in the browser – it is
+   never written into the page source.
+   ================================================================== */
+
+;(async function(){
+  const liveTest = $('#liveTest');
+  if (!liveTest) return;
+
+  const fetchBtn = $('#fetchLiveBtn');
+  const liveList = $('#liveList');
+  const noLiveMsg = $('#noLiveMsg');
+
+  // Helper: defensive team‑name fallback used by the adapter
+  function teamName(team){
+    return team && (team.name || team.code || 'UNKNOWN');
+  }
+  function ucase(t){ return (t||'').toUpperCase(); }
+
+  fetchBtn.onclick = async () => {
+    const token = prompt('Enter your SportMonks API token (or cancel):');
+    if (!token) return;
+
+    try{
+      const resp = await fetch(
+        `https://cricket.sportmonks.com/api/v2.0/livescores?include=localteam,visitorteam,venue&api_token=${token}`
+      );
+      if (!resp.ok){
+        alert('Live‑matches request failed: ' + resp.status);
+        return;
+      }
+      const data = await resp.json();
+      const matches = (data.data || data) || [];
+
+      // clear previous
+      liveList.innerHTML = '';
+      noLiveMsg.style.display = 'none';
+
+      if (matches.length === 0){
+        noLiveMsg.style.display = 'block';
+        return;
+      }
+
+      matches.forEach(m => {
+        const li = document.createElement('li');
+        const home = ucase(teamName(m.localteam));
+        const away = ucase(teamName(m.visitorteam));
+        li.textContent = `${home} v ${away}`;
+        li.dataset.id = String(m.id);
+        li.onclick = async () => {
+          // fetch the normalised match doc via getMatch then loadRealMatchDoc
+          const detailResp = await fetch(
+            `https://cricket.sportmonks.com/api/v2.0/livescores/${m.id}?include=localteam,visitorteam,venue&api_token=${token}`
+          );
+          if (!detailResp.ok){
+            alert('Failed to fetch match details');
+            return;
+          }
+          const d = await detailResp.json();
+          const doc = (d.data || d) || {};
+          // Provide a minimal label/status for loadRealMatchDoc
+          doc.label = `${ucase(teamName(doc.localteam))} v ${ucase(teamName(doc.visitorteam))}`;
+          doc.status = doc.status || 'unknown';
+          loadRealMatchDoc(doc);
+          // start polling the same match
+          if (window.SportMonksAdapter){
+            const adapter = new window.SportMonksAdapter({ token });
+            adapter.pollLiveMatch({ matchId: String(m.id), intervalMs: 5000 });
+          } else {
+            alert('SportMonksAdapter not available in this page');
+          }
+        };
+        liveList.appendChild(li);
+      });
+    }catch(err){
+      alert('Error: ' + err.message);
+    }
+  };
+})();
 
 window.addEventListener('resize', () => { renderMomentum(); renderSpark(); });
 
