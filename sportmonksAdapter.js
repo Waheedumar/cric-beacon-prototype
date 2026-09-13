@@ -370,7 +370,7 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
   const teams = {
     home: {
       key   : String(home.id),
-      name  : home.name.toUpperCase(),
+      name  : (home.name || home.code || 'UNKNOWN').toUpperCase(),
       short : home.code || home.name.slice(0, 3).toUpperCase(),
       flag  : _countryToFlag(home.country_id),
       kit   : _teamKitColor(home.id),
@@ -379,7 +379,7 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
     },
     away: {
       key   : String(away.id),
-      name  : away.name.toUpperCase(),
+      name  : (away.name || away.code || 'UNKNOWN').toUpperCase(),
       short : away.code || away.name.slice(0, 3).toUpperCase(),
       flag  : _countryToFlag(away.country_id),
       kit   : _teamKitColor(away.id),
