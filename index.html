@@ -2753,8 +2753,14 @@ function updateScore(){
   const otLines = hasSecondInnings
     ? formatInningsLinesPlain(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
     : `${first.total}`;
-  // MATCH CONDITIONS line: show only venue/competition/over info (scores are in main panel)
-  $('hudScore').textContent = `${MD.venue.name.toUpperCase()} · ${MD.stage.toUpperCase()} · OVER ${s.over}.${s.ball}`;
+  // MATCH CONDITIONS line: compact score line shared by single and multi-innings.
+  // Declared innings use "d" (cricket shorthand) instead of "dec" in this line.
+  const hudInningsScore = (runs, wickets, declared) =>
+    formatInningsScore(runs, wickets, declared).replace(' dec', 'd');
+  const hudLine = hasSecondInnings
+    ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
+    : `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${first.total}`;
+  $('hudScore').textContent = hudLine;
   $('hudSub').textContent = '';
 }
 function chipClass(c){
