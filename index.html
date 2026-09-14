@@ -2586,22 +2586,40 @@ function renderStatic(){
 }
 
 /* ---------------- score ---------------- */
-function formatInningsScore(runs, wickets, declared) {
-  // Standard cricket notation:
-  // - "X all out" when all 10 wickets fallen
-  // - "X/Y dec" when declared at Y wickets
-  // - "X/Y" for normal innings
+function formatInningsScore(runs, wickets, declared, oversNum) {
+  // Standard cricket notation with optional overs count:
+  // - "X all out (93 overs)" when all 10 wickets fallen — NO wicket count, just runs and overs
+  // - "X/Y (93 overs)" when not all out, not declared
+  // - "X/Y dec (93 overs)" when declared at Y wickets
+  // - "X (93 overs)" when no wickets info
   if (runs == null || runs === '') return '—';
   const r = Number(runs);
   const w = wickets != null ? Number(wickets) : undefined;
-  if (declared) return `${r}/${w} dec`;
-  if (w != null && w >= 10) return `${r} all out`;
-  if (w != null) return `${r}/${w}`;
-  return `${r}`;
+  // Build overs string when overs number is provided
+  const oversStr = oversNum !== undefined ? ` (${oversNum} overs)` : '';
+
+  if (declared) {
+    // Declared: "340/6 dec (93 overs)"
+    if (w != null) return `${r}/${w} dec${oversStr}`;
+    return `${r} dec${oversStr}`;
+  }
+
+  if (w != null && w >= 10) {
+    // All out: "340 (93 overs)" — NO wicket count shown, just runs and overs
+    return `${r}${oversStr}`;
+  }
+
+  if (w != null) {
+    // Not all out, not declared: "340/6 (93 overs)"
+    return `${r}/${w}${oversStr}`;
+  }
+
+  // No wickets info: "340 (93 overs)"
+  return `${r}${oversStr}`;
 }
 
-function formatInningsLines(first, firstWkts, second, secondWkts, secondDeclared) {
-  return `<div class="innings-line">${formatInningsScore(first, firstWkts)} &amp;</div><div class="innings-line">${formatInningsScore(second, secondWkts, secondDeclared)}</div>`;
+function formatInningsLines(first, firstWkts, firstOvers, second, secondWkts, secondOvers, secondDeclared) {
+  return `<div class="innings-line">${formatInningsScore(first, firstWkts, false, firstOvers)} &amp;</div><div class="innings-line">${formatInningsScore(second, secondWkts, secondDeclared, secondOvers)}</div>`;
 }
 
 function updateScore(){

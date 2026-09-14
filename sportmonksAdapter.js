@@ -492,6 +492,19 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
   const homeSecondInningsWickets = homeInningsWickets.length > 1 ? homeInningsWickets[1] : 0;
   const awaySecondInningsWickets = awayInningsWickets.length > 1 ? awayInningsWickets[1] : 0;
 
+  // Overs per innings — SportMonks scoreboards expose an `overs` field on each
+  // total-type scoreboard entry. Capture them per team so the UI can render
+  // "340/6 (93 overs)" notation consistently.
+  const homeInningsOvers = [];
+  const awayInningsOvers = [];
+  completedInnings.forEach(sb => {
+    if (sb.team_id === home.id) {
+      homeInningsOvers.push(sb.overs != null ? Number(sb.overs) : 0);
+    } else if (sb.team_id === away.id) {
+      awayInningsOvers.push(sb.overs != null ? Number(sb.overs) : 0);
+    }
+  });
+
   mockScoreboard.first_inning_runs = firstInningsTotal;
   mockScoreboard.first_inning_wickets = firstInningsWickets;
   mockScoreboard.inning_number = completedInnings.length > 0 ? 2 : 1;
@@ -547,10 +560,17 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
   // Build first innings record: the team that batted first overall
   const firstInningsTeam = firstBattingIsHome ? home.key : away.key;
   // Also store per-team first innings totals for accurate win-margin calculation
+  // Per‑team first‑innings totals (for accurate total calculation)
   const firstInningsHome = homeInningsRuns[0] || 0;
   const firstInningsAway = awayInningsRuns[0] || 0;
   const firstInningsHomeWickets = homeInningsWickets[0] || 0;
   const firstInningsAwayWickets = awayInningsWickets[0] || 0;
+  // Per‑team first‑innings overs (from SportMonks scoreboard `overs` field)
+  const firstInningsHomeOvers = homeInningsOvers[0] || 0;
+  const firstInningsAwayOvers = awayInningsOvers[0] || 0;
+  // Per‑team second‑innings overs (from SportMonks scoreboard `overs` field)
+  const secondInningsHomeOvers = homeInningsOvers.length > 1 ? homeInningsOvers[1] : 0;
+  const secondInningsAwayOvers = awayInningsOvers.length > 1 ? awayInningsOvers[1] : 0;
   const matchDoc = {
     id    : `sm_${id}`,
     label : matchName || `${away.name} v ${home.name}`,
@@ -573,9 +593,13 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
       firstInningsAway,
       firstInningsHomeWickets,
       firstInningsAwayWickets,
+      firstInningsHomeOvers,
+      firstInningsAwayOvers,
       secondInnings: mockScoreboard.secondInnings || { home: 0, away: 0 },
       secondInningsHomeWickets: mockScoreboard.second_inning_home_wickets || 0,
       secondInningsAwayWickets: mockScoreboard.second_inning_away_wickets || 0,
+      secondInningsHomeOvers,
+      secondInningsAwayOvers,
     },
     field         : _standardField(),
     perOverRuns   : { home: [], away: [] },

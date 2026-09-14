@@ -493,8 +493,12 @@
     },
     "firstInningsHomeWickets": 10,
     "firstInningsAwayWickets": 10,
+    "firstInningsHomeOvers": 49,
+    "firstInningsAwayOvers": 50,
     "secondInningsHomeWickets": 10,
     "secondInningsAwayWickets": 5,
+    "secondInningsHomeOvers": 35,
+    "secondInningsAwayOvers": 50,
     "secondInningsAwayDeclared": true
   },
   "field": {
