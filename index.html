@@ -147,10 +147,14 @@ button{font-family:inherit;color:inherit;}
 .flag{font-size:19px;line-height:1;filter:saturate(1.05);}
 .team-name{font-family:'Plus Jakarta Sans';font-weight:700;font-size:13px;letter-spacing:.05em;}
 .team-sub{font-size:10px;color:var(--color-muted);letter-spacing:.07em;}
-.team-score{font-family:'JetBrains Mono';font-weight:700;font-size:clamp(20px,4vw,22px);letter-spacing:-.02em;word-break:break-word;overflow-wrap:break-word;}
-.team-score small{font-size:14px;color:var(--color-muted);font-weight:400;}
+.team-score{font-family:'JetBrains Mono';font-weight:700;font-size:16px;line-height:1.25;letter-spacing:-.02em;max-width:48%;min-width:0;overflow-wrap:break-word;word-break:break-word;white-space:normal;text-align:right;flex:0 1 48%;}
+.team-score.multi-innings{font-size:14px;max-width:44%;}
+.team-score small{font-size:11px;color:var(--color-muted);font-weight:400;}
 .team-row.bat .team-score{color:var(--color-text);}
-.team-row.done .team-score{color:#9FB0AD;font-size:22px;}
+.team-row.done .team-score{color:#9FB0AD;font-size:14px;}
+.team-score .innings-line{display:block;white-space:normal;overflow-wrap:break-word;word-break:break-word;line-height:1.25;}
+.team-score.multi-innings .innings-line:first-child{margin-bottom:1px;}
+.team-score.multi-innings .innings-line:last-child{margin-top:1px;}
 .flash{animation:flash .7s var(--ease);}
 @keyframes flash{0%{color:var(--color-accent-2);transform:translateY(-3px)}100%{color:inherit;transform:none}}
 .vs-rule{display:flex;align-items:center;gap:8px;margin:2px 0;}
@@ -2596,6 +2600,10 @@ function formatInningsScore(runs, wickets, declared) {
   return `${r}`;
 }
 
+function formatInningsLines(first, firstWkts, second, secondWkts, secondDeclared) {
+  return `<div class="innings-line">${formatInningsScore(first, firstWkts)} &amp;</div><div class="innings-line">${formatInningsScore(second, secondWkts, secondDeclared)}</div>`;
+}
+
 function updateScore(){
   const s = st(), d = cur();
   const bt = batTeam(), ot = bowlTeam();
@@ -2669,16 +2677,16 @@ function updateScore(){
     <div class="team-row bat">
       <div class="team-id"><span class="flag">${bt.flag}</span>
         <div><div class="team-name">${bt.name}</div><div class="team-sub">${battingSub}</div></div></div>
-      <div class="team-score" id="mainScore">${hasSecondInnings
-        ? `${formatInningsScore(firstInnBat, firstInnBatWk)} & ${formatInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)}`
+      <div class="team-score ${hasSecondInnings ? 'multi-innings' : ''}" id="mainScore">${hasSecondInnings
+        ? formatInningsLines(firstInnBat, firstInnBatWk, secondInnBat, secondInnBatWk, secondInnBatDec)
         : `${s.runs}<small>/${s.wickets}</small>`}</div>
     </div>
     <div class="vs-rule"><i></i><b>VS</b><i></i></div>
     <div class="team-row done">
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
-      <div class="team-score">${hasSecondInnings
-        ? `${formatInningsScore(firstInnBowl, firstInnBowlWk)} & ${formatInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
+      <div class="team-score ${hasSecondInnings ? 'multi-innings' : ''}">${hasSecondInnings
+        ? formatInningsLines(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
         : `${formatInningsScore(first.total, first.wickets)}`}</div>`;
 
   // Remove any previously rendered full-scorecard panel before re-rendering
