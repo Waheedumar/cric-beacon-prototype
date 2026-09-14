@@ -2689,37 +2689,7 @@ function updateScore(){
         ? formatInningsLines(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
         : `${formatInningsScore(first.total, first.wickets)}`}</div>`;
 
-  // Remove any previously rendered full-scorecard panel before re-rendering
-  const existingScorecard = $('fullScorecard');
-  if (existingScorecard) existingScorecard.remove();
-
-if (hasSecondInnings) {
-    const scorecardHtml = `
-      <div style="margin-top:12px;padding:8px 10px;border-radius:var(--r-sm);background:rgba(255,255,255,.03);border:1px solid var(--color-border)" id="fullScorecard">
-        <div style="font-size:10px;letter-spacing:.1em;color:var(--color-muted);font-weight:700;margin-bottom:6px">FULL SCORECARD</div>
-        <div style="display:flex;gap:24px;margin-bottom:8px">
-          <div style="flex:1">
-            <div style="font-size:9px;color:var(--color-muted)">${MD.teams.home?.name}</div>
-            <div style="font-weight:600;margin-top:2px">
-              ${formatInningsScore(firstInnHome, firstInnHomeWk)}
-              ${Number(secondRuns(second.home)) > 0 ? ` & ${formatInningsScore(secondRuns(second.home), secondInnHomeWk, secondInnHomeDec)}` : ''}
-            </div>
-          </div>
-          <div style="flex:1">
-            <div style="font-size:9px;color:var(--color-muted)">${MD.teams.away?.name}</div>
-            <div style="font-weight:600;margin-top:2px">
-              ${formatInningsScore(firstInnAway, firstInnAwayWk)}
-              ${Number(secondRuns(second.away)) > 0 ? ` & ${formatInningsScore(secondRuns(second.away), secondInnAwayWk, secondInnAwayDec)}` : ''}
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--color-border)">
-          <div style="font-size:11px;font-weight:700">RESULT: ${btTotal > otTotal ? bt.name : otTotal > btTotal ? ot.name : 'Match tied'} ${btTotal > otTotal ? `won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}` : otTotal > btTotal ? `won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}` : ''}</div>
-        </div>
-      </div>`;
-    $('scoreMeta').insertAdjacentHTML('afterend', scorecardHtml);
-  }
-
+  
   const trail = complete
     ? btTotal - otTotal
     : first.total - s.runs;
