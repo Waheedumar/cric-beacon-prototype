@@ -584,7 +584,6 @@ button{font-family:inherit;color:inherit;}
   </nav>
   <div class="hdr-right">
     <select class="match-select" id="matchSelect" aria-label="Select match"></select>
-    <div class="match-title" id="matchTitle">—</div>
     <div class="live-pill" id="livePill"><i class="live-dot"></i>LOADING...</div>
   </div>
 </header>
@@ -2483,9 +2482,17 @@ function loadRealMatchDoc(doc){
     // Update the real-match dropdown option text to reflect actual match label and status
     // (Only update on success so the dropdown stays consistent on failure)
     const sel = $('matchSelect');
-    const realOpt = sel.querySelector('option[value="sm_68949"]');
+    // Try to find the option inside the Live Data optgroup, or fall back to root level
+    const realOpt = sel.querySelector('optgroup[label="Live Data"] option[value="sm_68949"]')
+      || sel.querySelector('option[value="sm_68949"]');
     if (realOpt) {
       realOpt.textContent = `${doc.label} · ${statusLabel()}`;
+    } else {
+      // If not found in optgroup, add it to the root (outside optgroups)
+      const newOpt = document.createElement('option');
+      newOpt.value = 'sm_68949';
+      newOpt.textContent = `${doc.label} · ${statusLabel()}`;
+      sel.appendChild(newOpt);
     }
   } catch (err) {
     // Rollback all globals
@@ -2563,13 +2570,6 @@ function renderStatic(){
     protoLabel.textContent = 'Live';
   } else {
     protoLabel.textContent = 'Not Started';
-  }
-
-  // Update the main header match title to reflect the currently loaded match
-  // label and status — runs on every match switch (mock or real).
-  const matchTitleEl = $('matchTitle');
-  if (matchTitleEl) {
-    matchTitleEl.textContent = `${MD.label} · ${statusLabel()}`;
   }
 
   document.querySelectorAll('.prob-nums .side')[0].querySelector('.lbl').textContent = batTeam().name;
@@ -3619,8 +3619,18 @@ CANVAS.addEventListener('mousemove', e => {
 });
 
 const sel = $('matchSelect');
-sel.innerHTML = Object.values(MOCK_MATCHES).map(m => `<option value="${m.id}">${m.label}</option>`).join('');
-sel.innerHTML += `<option value="sm_68949">Somerset v Leicestershire · Finished</option>`;
+
+// Build dropdown with two optgroup sections
+let options = `
+  <optgroup label="Sample Matches (Match Archive)">
+    ${Object.values(MOCK_MATCHES).map(m => `<option value="${m.id}">${m.label}</option>`).join('')}
+  </optgroup>
+  <optgroup label="Live Data">
+    <option value="sm_68949">Somerset v Leicestershire · Finished</option>
+  </optgroup>
+`;
+sel.innerHTML = options;
+
 sel.addEventListener('change', async () => {
   const val = sel.value;
   if (val.startsWith('sm_')){
