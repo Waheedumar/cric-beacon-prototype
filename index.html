@@ -2420,55 +2420,99 @@ function loadMatch(key){
 
 /* ---------------- loadRealMatchDoc: load normalized adapter output ---------------- */
 function loadRealMatchDoc(doc){
-  // Set the match document as the current match state
-  MD = doc;
+  // Snapshot current global state for rollback on error
+  const previous = {
+    MD,
+    FEED,
+    idx,
+    playedIdx,
+    selOver,
+    plSel,
+    booted,
+    matchSelectValue: $('matchSelect').value
+  };
 
-  // Sync the match-select dropdown to the currently loaded match
-  syncMatchSelect(doc.id);
+  try {
+    // Set the match document as the current match state
+    MD = doc;
 
-  // Update the real-match dropdown option text to reflect actual match label and status
-  const sel = $('matchSelect');
-  const realOpt = sel.querySelector('option[value="sm_68949"]');
-  if (realOpt) {
-    realOpt.textContent = `${doc.label} · ${statusLabel()}`;
+    // Sync the match-select dropdown to the currently loaded match
+    syncMatchSelect(doc.id);
+
+    // Infer status for cached real matches that lack a status field
+    if (!MD.status && MD.innings.firstInnings?.total && (!MD.overs || MD.overs.length === 0)) {
+      MD.status = 'complete';
+    }
+
+    // Build the feed — will create synthetic delivery if overs is empty
+    FEED = buildFeed(MD);
+
+    // Set initial delivery index to the last played delivery (or last in feed)
+    idx = Math.max(0, ((FEED || []).findIndex(d => !d.upcoming)) - 1);
+    if (idx < 0) idx = (FEED || []).length - 1;
+    playedIdx = idx;
+    selOver = FEED[idx].over;
+    plSel = 0;
+
+    // Initialize 3D engine if not already running
+    if (!booted){
+      initEngine(MD);
+      booted = true;
+      setTimeout(() => $('loader').classList.add('gone'), 420);
+    } else {
+      applyTheme(MD.theme);
+      buildPlayers(MD);
+      clearTrajectory();
+      setCamera('broadcast');
+      setActiveCam('broadcast');
+    }
+
+    // Render static UI elements (venue, stage, teams, etc.)
+    renderStatic();
+
+    // Apply the current delivery state — use the last non-upcoming delivery
+    // or fall back to the last delivery in the feed
+    const lastPlayedIdx = (FEED || []).findIndex(d => !d.upcoming);
+    const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : (FEED || []).length - 1;
+    applyDelivery(targetIdx, false);
+
+    // Update the real-match dropdown option text to reflect actual match label and status
+    // (Only update on success so the dropdown stays consistent on failure)
+    const sel = $('matchSelect');
+    const realOpt = sel.querySelector('option[value="sm_68949"]');
+    if (realOpt) {
+      realOpt.textContent = `${doc.label} · ${statusLabel()}`;
+    }
+  } catch (err) {
+    // Rollback all globals
+    MD = previous.MD;
+    FEED = previous.FEED;
+    idx = previous.idx;
+    playedIdx = previous.playedIdx;
+    selOver = previous.selOver;
+    plSel = previous.plSel;
+    booted = previous.booted;
+    $('matchSelect').value = previous.matchSelectValue;
+    syncMatchSelect(previous.matchSelectValue);
+
+    // Restore UI to previous match state
+    if (!booted){
+      initEngine(MD);
+      booted = true;
+      setTimeout(() => $('loader').classList.add('gone'), 420);
+    } else {
+      applyTheme(MD.theme);
+      buildPlayers(MD);
+      clearTrajectory();
+      setCamera('broadcast');
+      setActiveCam('broadcast');
+    }
+    renderStatic();
+    applyDelivery(previous.idx, false);
+
+    // Re-throw so the caller can show a toast
+    throw err;
   }
-
-  // Infer status for cached real matches that lack a status field
-  if (!MD.status && MD.innings.firstInnings?.total && (!MD.overs || MD.overs.length === 0)) {
-    MD.status = 'complete';
-  }
-
-  // Build the feed — will create synthetic delivery if overs is empty
-  FEED = buildFeed(MD);
-
-  // Set initial delivery index to the last played delivery (or last in feed)
-  idx = Math.max(0, ((FEED || []).findIndex(d => !d.upcoming)) - 1);
-  if (idx < 0) idx = (FEED || []).length - 1;
-  playedIdx = idx;
-  selOver = FEED[idx].over;
-  plSel = 0;
-
-  // Initialize 3D engine if not already running
-  if (!booted){
-    initEngine(MD);
-    booted = true;
-    setTimeout(() => $('loader').classList.add('gone'), 420);
-  } else {
-    applyTheme(MD.theme);
-    buildPlayers(MD);
-    clearTrajectory();
-    setCamera('broadcast');
-    setActiveCam('broadcast');
-  }
-
-  // Render static UI elements (venue, stage, teams, etc.)
-  renderStatic();
-
-  // Apply the current delivery state — use the last non-upcoming delivery
-  // or fall back to the last delivery in the feed
-  const lastPlayedIdx = (FEED || []).findIndex(d => !d.upcoming);
-  const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : (FEED || []).length - 1;
-  applyDelivery(targetIdx, false);
 }
 
 function applyTheme(t){
@@ -2572,6 +2616,8 @@ function updateScore(){
   // Build a simple scorecard showing both innings when available
   const second = MD.innings.secondInnings || { home: 0, away: 0 };
   const secondRuns = s => (s && typeof s === 'object' ? s.runs : s);
+  const secondWkts = s => (s && typeof s === 'object' ? (s.wickets || 0) : 0);
+  const secondDeclared = s => (s && typeof s === 'object' ? (s.declared || false) : false);
   const hasSecondInnings = Number(secondRuns(second.home)) > 0 || Number(secondRuns(second.away)) > 0;
   const battingSub = complete
     ? hasSecondInnings
@@ -2648,14 +2694,14 @@ if (hasSecondInnings) {
             <div style="font-size:9px;color:var(--color-muted)">${MD.teams.home?.name}</div>
             <div style="font-weight:600;margin-top:2px">
               ${formatInningsScore(firstInnHome, firstInnHomeWk)}
-              ${Number(secondRuns(second.home)) > 0 ? ` & ${formatInningsScore(secondRuns(second.home), secondWkts(second.home), secondDeclared(second.home))}` : ''}
+              ${Number(secondRuns(second.home)) > 0 ? ` & ${formatInningsScore(secondRuns(second.home), secondInnHomeWk, secondInnHomeDec)}` : ''}
             </div>
           </div>
           <div style="flex:1">
             <div style="font-size:9px;color:var(--color-muted)">${MD.teams.away?.name}</div>
             <div style="font-weight:600;margin-top:2px">
               ${formatInningsScore(firstInnAway, firstInnAwayWk)}
-              ${Number(secondRuns(second.away)) > 0 ? ` & ${formatInningsScore(secondRuns(second.away), secondWkts(second.away), secondDeclared(second.away))}` : ''}
+              ${Number(secondRuns(second.away)) > 0 ? ` & ${formatInningsScore(secondRuns(second.away), secondInnAwayWk, secondInnAwayDec)}` : ''}
             </div>
           </div>
         </div>
