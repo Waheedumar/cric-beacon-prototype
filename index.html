@@ -2621,6 +2621,10 @@ function formatInningsScore(runs, wickets, declared, oversNum) {
 function formatInningsLines(first, firstWkts, firstOvers, second, secondWkts, secondOvers, secondDeclared) {
   return `<div class="innings-line">${formatInningsScore(first, firstWkts, false, firstOvers)} &amp;</div><div class="innings-line">${formatInningsScore(second, secondWkts, secondDeclared, secondOvers)}</div>`;
 }
+// Plain-text variant for single-line HUD usage (no <div> wrapper)
+function formatInningsLinesPlain(first, firstWkts, firstOvers, second, secondWkts, secondOvers, secondDeclared) {
+  return `${formatInningsScore(first, firstWkts, false, firstOvers)} & ${formatInningsScore(second, secondWkts, secondDeclared, secondOvers)}`;
+}
 
 function updateScore(){
   const s = st(), d = cur();
@@ -2679,16 +2683,35 @@ function updateScore(){
   const secondInnHomeDec = MD.innings.secondInningsHomeDeclared || false;
   const secondInnAwayDec = MD.innings.secondInningsAwayDeclared || false;
 
+  // First innings overs per team (from match document)
+  const firstInnHomeOvr = MD.innings.firstInningsHomeOvers != null
+    ? MD.innings.firstInningsHomeOvers
+    : 0;
+  const firstInnAwayOvr = MD.innings.firstInningsAwayOvers != null
+    ? MD.innings.firstInningsAwayOvers
+    : 0;
+  // Second innings overs per team (from match document)
+  const secondInnHomeOvr = MD.innings.secondInningsHomeOvers != null
+    ? MD.innings.secondInningsHomeOvers
+    : 0;
+  const secondInnAwayOvr = MD.innings.secondInningsAwayOvers != null
+    ? MD.innings.secondInningsAwayOvers
+    : 0;
+
   // Render each team's own innings in the main scoreboard
   const firstInnBat = bt.key === MD.teams.home.key ? firstInnHome : firstInnAway;
   const firstInnBatWk = bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
+  const firstInnBatOvr = bt.key === MD.teams.home.key ? firstInnHomeOvr : firstInnAwayOvr;
   const secondInnBat = bt.key === MD.teams.home.key ? secondRuns(second.home) : secondRuns(second.away);
   const secondInnBatWk = bt.key === MD.teams.home.key ? secondInnHomeWk : secondInnAwayWk;
+  const secondInnBatOvr = bt.key === MD.teams.home.key ? secondInnHomeOvr : secondInnAwayOvr;
   const secondInnBatDec = bt.key === MD.teams.home.key ? secondInnHomeDec : secondInnAwayDec;
   const firstInnBowl = ot.key === MD.teams.home.key ? firstInnHome : firstInnAway;
   const firstInnBowlWk = ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
+  const firstInnBowlOvr = ot.key === MD.teams.home.key ? firstInnHomeOvr : firstInnAwayOvr;
   const secondInnBowl = ot.key === MD.teams.home.key ? secondRuns(second.home) : secondRuns(second.away);
   const secondInnBowlWk = ot.key === MD.teams.home.key ? secondInnHomeWk : secondInnAwayWk;
+  const secondInnBowlOvr = ot.key === MD.teams.home.key ? secondInnHomeOvr : secondInnAwayOvr;
   const secondInnBowlDec = ot.key === MD.teams.home.key ? secondInnHomeDec : secondInnAwayDec;
 
   $('teamRows').innerHTML = `
@@ -2696,7 +2719,7 @@ function updateScore(){
       <div class="team-id"><span class="flag">${bt.flag}</span>
         <div><div class="team-name">${bt.name}</div><div class="team-sub">${battingSub}</div></div></div>
       <div class="team-score ${hasSecondInnings ? 'multi-innings' : ''}" id="mainScore">${hasSecondInnings
-        ? formatInningsLines(firstInnBat, firstInnBatWk, secondInnBat, secondInnBatWk, secondInnBatDec)
+        ? formatInningsLines(firstInnBat, firstInnBatWk, firstInnBatOvr, secondInnBat, secondInnBatWk, secondInnBatOvr, secondInnBatDec)
         : `${s.runs}<small>/${s.wickets}</small>`}</div>
     </div>
     <div class="vs-rule"><i></i><b>VS</b><i></i></div>
@@ -2704,7 +2727,7 @@ function updateScore(){
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
       <div class="team-score ${hasSecondInnings ? 'multi-innings' : ''}">${hasSecondInnings
-        ? formatInningsLines(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
+        ? formatInningsLines(firstInnBowl, firstInnBowlWk, firstInnBowlOvr, secondInnBowl, secondInnBowlWk, secondInnBowlOvr, secondInnBowlDec)
         : `${formatInningsScore(first.total, first.wickets)}`}</div>`;
 
   
@@ -2744,7 +2767,14 @@ function updateScore(){
     return `<div class="bchip ${played ? chipClass(chip) : 'future'}">${played ? chip : '·'}</div>`;
   }).join('');
 
-  $('hudScore').textContent = `${bt.short} ${hasSecondInnings ? btTotal : `${s.runs}/${s.wickets}`}  ·  ${ot.short} ${hasSecondInnings ? otTotal : first.total}`;
+  // Build plain-text innings lines for the HUD (single line, no <div> wrapper)
+  const btLines = hasSecondInnings
+    ? formatInningsLinesPlain(firstInnBat, firstInnBatWk, firstInnBatOvr, secondInnBat, secondInnBatWk, secondInnBatOvr, secondInnBatDec)
+    : `${s.runs}/${s.wickets}`;
+  const otLines = hasSecondInnings
+    ? formatInningsLinesPlain(firstInnBowl, firstInnBowlWk, firstInnBowlOvr, secondInnBowl, secondInnBowlWk, secondInnBowlOvr, secondInnBowlDec)
+    : `${first.total}`;
+  $('hudScore').textContent = `${bt.short} ${btLines}  ·  ${ot.short} ${otLines}`;
   $('hudSub').textContent = `${MD.venue.name.toUpperCase()} · ${MD.stage.toUpperCase()} · OVER ${s.over}.${s.ball}`;
 }
 function chipClass(c){
