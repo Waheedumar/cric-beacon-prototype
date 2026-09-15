@@ -2136,7 +2136,7 @@ function animateBall(d, showPath = true, animate = true){
 
   if (showPath){
     trajA.userData.drawProgress = 0;
-    trajB.userData.drawProgress = 0;
+    if (trajB) trajB.userData.drawProgress = 0;
   }
 }
 
