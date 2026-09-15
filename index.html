@@ -2307,7 +2307,9 @@ function loop(){
   if (anim.on){
     anim.t += dt / anim.durs[anim.phase];
     const c = anim.curves[anim.phase];
-    c.getPointAt(Math.min(1, anim.t), ball.position);
+    // Guard against invalid anim.t (NaN or out of range) to prevent undefined curve access
+    const u = isNaN(anim.t) ? 0 : Math.min(1, Math.max(0, anim.t));
+    c.getPointAt(u, ball.position);
     if (anim.t >= 1){
       if (anim.phase < anim.curves.length - 1){ anim.phase++; anim.t = 0; }
       else { anim.on = false; }
