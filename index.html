@@ -2327,7 +2327,9 @@ function loop(){
     ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, dt * 6);
     if (ud.drawProgress > 0.01){
       try {
-        const pts = ud.curve.getPoints(Math.floor(ud.segments * ud.drawProgress));
+        // Ensure at least 1 segment to avoid getPointAt(NaN) which causes undefined access
+        const segCount = Math.max(1, Math.floor(ud.segments * ud.drawProgress));
+        const pts = ud.curve.getPoints(segCount);
         // Guard: skip if any point is undefined (can happen with edge curve params)
         if (pts.some(p => p == null)) return;
         const positions = new Float32Array(pts.length * 3);
@@ -2335,7 +2337,7 @@ function loop(){
         t.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       } catch (e) {
         // Silently skip trajectory update on curve errors to prevent render loop crashes
-        console.warn('Trajectory curve error:', e.message);
+        // (kept as safety net; root-cause fix above should prevent triggering)
         return;
       }
     }
