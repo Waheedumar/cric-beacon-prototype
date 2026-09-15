@@ -2090,6 +2090,7 @@ const anim = { on:false, phase:0, t:0, dur:1, curves:[] };
 const trajAnim = { on:false, t:0, dur:1, curves:[] };
 
 function animateBall(d, showPath = true, animate = true){
+  if (!d){ clearTrajectory(); return; }
   clearTrajectory();
   const { delivery, shot, bounce } = buildTrajectory(d);
 
@@ -2326,6 +2327,8 @@ function loop(){
     ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, dt * 6);
     if (ud.drawProgress > 0.01){
       const pts = ud.curve.getPoints(Math.floor(ud.segments * ud.drawProgress));
+      // Guard: skip if any point is undefined (can happen with edge curve params)
+      if (pts.some(p => p == null)) return;
       const positions = new Float32Array(pts.length * 3);
       pts.forEach((p, i) => { positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z; });
       t.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
