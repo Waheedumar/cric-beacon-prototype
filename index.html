@@ -2326,12 +2326,18 @@ function loop(){
     const targetProgress = trajAnim.on ? Math.min(1, trajAnim.t + 0.08) : 1;
     ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, dt * 6);
     if (ud.drawProgress > 0.01){
-      const pts = ud.curve.getPoints(Math.floor(ud.segments * ud.drawProgress));
-      // Guard: skip if any point is undefined (can happen with edge curve params)
-      if (pts.some(p => p == null)) return;
-      const positions = new Float32Array(pts.length * 3);
-      pts.forEach((p, i) => { positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z; });
-      t.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      try {
+        const pts = ud.curve.getPoints(Math.floor(ud.segments * ud.drawProgress));
+        // Guard: skip if any point is undefined (can happen with edge curve params)
+        if (pts.some(p => p == null)) return;
+        const positions = new Float32Array(pts.length * 3);
+        pts.forEach((p, i) => { positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z; });
+        t.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      } catch (e) {
+        // Silently skip trajectory update on curve errors to prevent render loop crashes
+        console.warn('Trajectory curve error:', e.message);
+        return;
+      }
     }
   });
 
