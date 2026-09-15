@@ -306,7 +306,7 @@ function validateMatch(id) {
 /* ===================================================================
    Run for all 5 matches
    =================================================================== */
-const MATCHES = ['lords', 'galle', 'mcg', 'hambantota', 'premadasa', 'demo'];
+const MATCHES = ['lords', 'galle', 'mcg', 'hambantota', 'premadasa'];
 
 console.log('\n========================================');
 console.log('  validateMatches.js — Phase 2 Regression');

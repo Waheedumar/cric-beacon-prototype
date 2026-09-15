@@ -2087,8 +2087,9 @@ function clearTrajectory(){
 }
 
 const anim = { on:false, phase:0, t:0, dur:1, curves:[] };
+const trajAnim = { on:false, t:0, dur:1, curves:[] };
 
-function animateBall(d, showPath = true){
+function animateBall(d, showPath = true, animate = true){
   clearTrajectory();
   const { delivery, shot, bounce } = buildTrajectory(d);
 
@@ -2096,17 +2097,20 @@ function animateBall(d, showPath = true){
   const cShot = shot ? new THREE.CatmullRomCurve3(shot) : null;
 
   if (showPath){
-    trajA = new THREE.Mesh(
-      new THREE.TubeGeometry(cDel, 54, 0.055, 5, false),
-      new THREE.MeshBasicMaterial({ color:0x19E07A, transparent:true, opacity:.82 })
+    // Create Line objects for progressive drawing of trajectory
+    trajA = new THREE.Line(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({ color:0x19E07A, transparent:true, opacity:.82, linewidth: 3 })
     );
     ballGroup.add(trajA);
+    trajA.userData = { curve: cDel, drawProgress: 0, segments: 50 };
     if (cShot){
-      trajB = new THREE.Mesh(
-        new THREE.TubeGeometry(cShot, 46, 0.05, 5, false),
-        new THREE.MeshBasicMaterial({ color: d.dismissed ? 0xEF4444 : 0xF0B429, transparent:true, opacity:.72 })
+      trajB = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineBasicMaterial({ color: d.dismissed ? 0xEF4444 : 0xF0B429, transparent:true, opacity:.72, linewidth: 3 })
       );
       ballGroup.add(trajB);
+      trajB.userData = { curve: cShot, drawProgress: 0, segments: 40 };
     }
   }
 
@@ -2120,7 +2124,19 @@ function animateBall(d, showPath = true){
   const flight = Math.max(0.62, 1.55 - (d.speed - 120) / 95);
   anim.curves = cShot ? [cDel, cShot] : [cDel];
   anim.durs   = cShot ? [flight, 1.35] : [flight];
-  anim.phase = 0; anim.t = 0; anim.on = true;
+  anim.phase = 0; anim.t = 0; anim.on = animate;
+
+  // trajectory animation — draw the line progressively
+  trajAnim.curves = cShot ? [cDel, cShot] : [cDel];
+  trajAnim.durs   = cShot ? [flight, 1.35] : [flight];
+  trajAnim.on     = animate || true;  // always animate trajectory drawing; ball animation controlled by anim.on
+  trajAnim.t      = 0;
+  trajAnim.dur    = flight;
+
+  if (showPath){
+    trajA.userData.drawProgress = 0;
+    trajB.userData.drawProgress = 0;
+  }
 }
 
 /* ---------- camera rig ---------- */
@@ -2140,12 +2156,13 @@ function setCamera(key, instant){
     controls.update();
     return;
   }
+  // Disable damping during tween so our manual lerp isn't fought by OrbitControls
+  controls.enableDamping = false;
   camTween.fp.copy(camera.position);
   camTween.tp.set(...p.pos);
   camTween.ft.copy(controls.target);
   camTween.tt.set(...p.tgt);
   camTween.t = 0; camTween.on = true;
-  controls.enabled = false;
 }
 const easeInOut = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
 
@@ -2269,7 +2286,11 @@ function loop(){
     const e = easeInOut(Math.min(1, camTween.t));
     camera.position.lerpVectors(camTween.fp, camTween.tp, e);
     controls.target.lerpVectors(camTween.ft, camTween.tt, e);
-    if (camTween.t >= 1){ camTween.on = false; controls.enabled = true; }
+    if (camTween.t >= 1){
+      camTween.on = false;
+      controls.enabled = true;
+      controls.enableDamping = true;
+    }
   }
 
   // fielder repositioning
@@ -2291,6 +2312,26 @@ function loop(){
       else { anim.on = false; }
     }
   }
+
+  // trajectory drawing animation — draw the line progressively
+  if (trajAnim.on){
+    trajAnim.t += dt / trajAnim.dur;
+    if (trajAnim.t >= 1) trajAnim.on = false;
+  }
+  [trajA, trajB].forEach(t => {
+    if (!t || !t.userData.curve) return;
+    const ud = t.userData;
+    // Draw trajectory at same rate as ball animation (slightly ahead so it's always visible)
+    const targetProgress = trajAnim.on ? Math.min(1, trajAnim.t + 0.08) : 1;
+    ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, dt * 6);
+    if (ud.drawProgress > 0.01){
+      const pts = ud.curve.getPoints(Math.floor(ud.segments * ud.drawProgress));
+      const positions = new Float32Array(pts.length * 3);
+      pts.forEach((p, i) => { positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z; });
+      t.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    }
+  });
+
   if (bounceMark.visible){
     const s = bounceMark.scale.x;
     bounceMark.scale.setScalar(s + (1 - s) * Math.min(1, dt * 5));
@@ -3523,11 +3564,13 @@ document.querySelectorAll('.cbtn').forEach(b => b.addEventListener('click', () =
   setActiveCam(b.dataset.cam);
 }));
 $('btnTraj').addEventListener('click', () => {
-  animateBall(cur(), true);
+  // Show Ball Trajectory: show the animated path without animating the ball flight
+  animateBall(cur(), true, false);  // animate=false: trajectory shown but ball doesn't fly
   $('ballReadout').classList.add('show');
 });
 $('btnReplay').addEventListener('click', () => {
-  animateBall(cur(), true);
+  // Replay: show the trajectory AND animate the ball flying along it
+  animateBall(cur(), true, true);   // animate=true: full replay with ball flight
   $('ballReadout').classList.add('show');
 });
 $('btnNext').addEventListener('click', () => { stopPlay(); stepNext(); });
