@@ -3434,11 +3434,11 @@ function renderLastShot(){
   const shot = d.shot;
   // grid
   const st = shot ? (shot.type || 'Unknown') : 'Unknown';
-  const sd = shot ? (shot.distance !== undefined ? shot.distance : 'N/A') : 'N/A';
+  const sdist = shot ? (shot.distance !== undefined ? shot.distance : 'N/A') : 'N/A';
   const ss = shot ? (shot.direction || 'N/A') : 'N/A';
   $('lsaGrid').innerHTML = `
     <div class="cell"><label>SHOT TYPE</label><div class="v">${st}</div></div>
-    <div class="cell"><label>DISTANCE</label><div class="v">${sd} m</div></div>
+    <div class="cell"><label>DISTANCE</label><div class="v">${sdist} m</div></div>
     <div class="cell"><label>SPEED</label><div class="v">${d.speed} km/h</div></div>
     <div class="cell"><label>DIRECTION</label><div class="v">${ss}</div></div>`;
 
