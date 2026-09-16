@@ -2261,6 +2261,7 @@ function updateLabels(){
     const el = labels[id];
     if (!el) continue;
     const f = fielders[id];
+    if (!f) continue;
     f.group.getWorldPosition(tmpV);
     tmpV.y += 2.25;
     tmpV.project(camera);
@@ -2297,6 +2298,7 @@ function loop(){
   // fielder repositioning
   for (const id in fielders){
     const f = fielders[id];
+    if (!f) continue;
     if (f.group.position.distanceToSquared(f.target) > 0.004){
       f.group.position.lerp(f.target, Math.min(1, dt * 2.4));
       f.group.lookAt(0, 0, STUMP_Z);
@@ -2307,6 +2309,8 @@ function loop(){
   if (anim.on){
     anim.t += dt / anim.durs[anim.phase];
     const c = anim.curves[anim.phase];
+    // Guard against invalid anim.t or stale curve phase to prevent undefined curve access
+    if (!c) { anim.on = false; return; }
     // Guard against invalid anim.t (NaN or out of range) to prevent undefined curve access
     const u = isNaN(anim.t) ? 0 : Math.min(1, Math.max(0, anim.t));
     c.getPointAt(u, ball.position);
@@ -2847,7 +2851,7 @@ function setLabel(k, name, sub){
 }
 function updateField(setName){
   const set = MD.field[setName] || MD.field.standard;
-  set.forEach(f => { if (fielders[f.id]) fielders[f.id].target.set(f.x, 0, f.z); });
+  set.forEach(f => { const fd = fielders[f.id]; if (fd) fd.target.set(f.x, 0, f.z); });
 }
 
 /* ---------------- delivery card + HUD readout ---------------- */
@@ -3219,8 +3223,10 @@ function renderTimeline(){
 
 /* ---------------- the one function that drives everything ---------------- */
 function applyDelivery(i, animate){
+  if (!FEED || !FEED.length) return;
   idx = Math.max(0, Math.min(FEED.length - 1, i));
   const d = cur();
+  if (!d) return;
   selOver = d.over;
 
   updateScore();
@@ -3252,6 +3258,7 @@ function applyDelivery(i, animate){
 /* ---------------- explainable AI modal ---------------- */
 function openWhy(){
   const d = cur();
+  if (!d || !d.winProb || !d.winProbPrev) return;
   const from = d.winProbPrev.away, to = d.winProb.away;
   const ot = bowlTeam(), bt = batTeam();
   const otN = ot.name.charAt(0) + ot.name.slice(1).toLowerCase();
