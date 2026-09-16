@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" href="data:," />
 <title>Cric Beacon — 3D + AI Cricket Intelligence (Prototype)</title>
 <meta name="description" content="Cric Beacon prototype — data-driven 3D cricket ground, ball tracking and explainable AI match intelligence. Demo build with mock data." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2119,7 +2120,7 @@ function animateBall(d, showPath = true, animate = true){
   bounceMark.visible = true;
   bounceMark.scale.setScalar(0.4);
   ball.visible = true;
-  ball.position.copy(delivery[0]);
+  ball.position.copy(Array.isArray(delivery) && delivery.length ? delivery[0] : {x:0,y:0,z:0});
 
   // faster deliveries travel the pitch quicker — 140 km/h ≈ 0.52 s of flight
   const flight = Math.max(0.62, 1.55 - (d.speed - 120) / 95);
@@ -2685,7 +2686,7 @@ function formatInningsLinesPlain(first, firstWkts, second, secondWkts, secondDec
 function updateScore(){
   const s = st(), d = cur();
   const bt = batTeam(), ot = bowlTeam();
-  const first = MD.innings.firstInnings;
+  const first = MD.innings.firstInnings || {};
   const complete = isComplete();
 
   const scoreStage = complete
@@ -3432,11 +3433,14 @@ function renderLastShot(){
   }
   const shot = d.shot;
   // grid
+  const st = shot ? (shot.type || 'Unknown') : 'Unknown';
+  const sd = shot ? (shot.distance !== undefined ? shot.distance : 'N/A') : 'N/A';
+  const ss = shot ? (shot.direction || 'N/A') : 'N/A';
   $('lsaGrid').innerHTML = `
-    <div class="cell"><label>SHOT TYPE</label><div class="v">${shot.type}</div></div>
-    <div class="cell"><label>DISTANCE</label><div class="v">${shot.distance} m</div></div>
+    <div class="cell"><label>SHOT TYPE</label><div class="v">${st}</div></div>
+    <div class="cell"><label>DISTANCE</label><div class="v">${sd} m</div></div>
     <div class="cell"><label>SPEED</label><div class="v">${d.speed} km/h</div></div>
-    <div class="cell"><label>DIRECTION</label><div class="v">${shot.direction}</div></div>`;
+    <div class="cell"><label>DIRECTION</label><div class="v">${ss}</div></div>`;
 
   // mini replay - simple trajectory SVG
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
