@@ -126,6 +126,9 @@ button{font-family:inherit;color:inherit;}
   border:1px solid var(--color-border);border-radius:var(--r-lg);
   box-shadow:var(--shadow);overflow:hidden;
 }
+.delivery-panel{
+  max-width:440px;
+}
 .panel-h{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
   padding:8px 10px;border-bottom:1px solid var(--color-border);
@@ -687,7 +690,7 @@ button{font-family:inherit;color:inherit;}
       <div class="loading" id="loader"><div><div class="spin"></div><p>BUILDING 3D GROUND…</p></div></div>
     </section>
 
-    <section class="panel">
+    <section class="panel delivery-panel">
       <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">—</span></div>
       <div class="delivery-card" id="deliveryCard"></div>
       <div class="commentary" id="commentary"></div>
