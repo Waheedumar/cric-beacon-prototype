@@ -2104,6 +2104,7 @@ function animateBall(d, showPath = true, animate = true){
       new THREE.BufferGeometry(),
       new THREE.LineBasicMaterial({ color:0x19E07A, transparent:true, opacity:.82, linewidth: 3 })
     );
+    trajA.frustumCulled = false;
     ballGroup.add(trajA);
     trajA.userData = { curve: cDel, drawProgress: 0, segments: 50 };
     if (cShot){
@@ -2111,6 +2112,7 @@ function animateBall(d, showPath = true, animate = true){
         new THREE.BufferGeometry(),
         new THREE.LineBasicMaterial({ color: d.dismissed ? 0xEF4444 : 0xF0B429, transparent:true, opacity:.72, linewidth: 3 })
       );
+      trajB.frustumCulled = false;
       ballGroup.add(trajB);
       trajB.userData = { curve: cShot, drawProgress: 0, segments: 40 };
     }
