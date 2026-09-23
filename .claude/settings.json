@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./.claude/worktrees/**)",
+      "Read(./.vercel/**)",
+      "Read(./.env.local)",
+      "Read(./package-lock.json)",
+      "Read(./data/**)"
+    ]
+  }
+}
