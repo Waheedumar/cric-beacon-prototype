@@ -1,0 +1,204 @@
+{
+  "id": "mcg",
+  "label": "AUS v NZ · MCG",
+  "format": "Test Match",
+  "stage": "Day 2 — Session 3",
+  "venue": {
+    "name": "Melbourne Cricket Ground",
+    "city": "Melbourne, Australia",
+    "pitch": "Hard, true bounce",
+    "weather": "Clear, floodlit",
+    "temp": "21°C",
+    "wind": "18 km/h",
+    "boundary": "71 m × 78 m",
+    "floodlights": true
+  },
+  "theme": {
+    "grassA": 2788613,
+    "grassB": 2257340,
+    "outfield": 2050870,
+    "pitch": 12542167,
+    "skyTop": 67601,
+    "skyBot": 721414,
+    "stand": 1122324,
+    "seat": 1878316,
+    "night": true
+  },
+  "teams": {
+    "home": {
+      "key": "aus",
+      "name": "AUSTRALIA",
+      "short": "AUS",
+      "flag": "🇦🇺",
+      "kit": 1007165,
+      "cap": 14652474,
+      "players": [
+        {
+          "id": "a1",
+          "name": "Usman Khawaja",
+          "role": "Opener",
+          "pos": { "x": 0.62, "z": 10.61 },
+          "stats": { "runs": 42, "balls": 88, "fours": 5, "sixes": 0, "sr": 47.7 }
+        },
+        {
+          "id": "a2",
+          "name": "Steve Smith",
+          "role": "Top-order",
+          "pos": { "x": -0.62, "z": 9.44 },
+          "stats": { "runs": 113, "balls": 198, "fours": 12, "sixes": 0, "sr": 57.1 }
+        },
+        {
+          "id": "a3",
+          "name": "Marnus Labuschagne",
+          "role": "Batsman",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "runs": 38, "balls": 74, "fours": 4, "sixes": 0, "sr": 51.4 }
+        },
+        {
+          "id": "a4",
+          "name": "Travis Head",
+          "role": "Batsman",
+          "pos": { "x": 0.0, "z": 14.6 },
+          "stats": { "runs": 61, "balls": 79, "fours": 7, "sixes": 1, "sr": 77.2 }
+        },
+        {
+          "id": "a5",
+          "name": "Alex Carey",
+          "role": "WK-Batsman",
+          "pos": { "x": 18.0, "z": 8.0 },
+          "stats": { "runs": 33, "balls": 44, "fours": 4, "sixes": 0, "sr": 75.0 }
+        }
+      ]
+    },
+    "away": {
+      "key": "nz",
+      "name": "NEW ZEALAND",
+      "short": "NZ",
+      "flag": "🇳🇿",
+      "kit": 1189904,
+      "cap": 4484672,
+      "players": [
+        {
+          "id": "n1",
+          "name": "Matt Henry",
+          "role": "Fast Bowler",
+          "pos": { "x": 0.35, "z": -12.26 },
+          "stats": { "overs": 29, "maidens": 7, "runs": 91, "wickets": 3, "econ": 3.14 }
+        },
+        {
+          "id": "n2",
+          "name": "Mitchell Santner",
+          "role": "Spin All-rounder",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "overs": 33, "maidens": 9, "runs": 96, "wickets": 2, "econ": 2.91 }
+        },
+        {
+          "id": "n3",
+          "name": "Tim Southee",
+          "role": "Fast Bowler",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "overs": 18, "maidens": 3, "runs": 62, "wickets": 1, "econ": 3.44 }
+        }
+      ]
+    }
+  },
+  "battingTeam": "home",
+  "innings": {
+    "current": "Australia 1st innings",
+    "firstInnings": { "team": "nz", "total": 289 }
+  },
+  "field": {
+    "standard": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 14.6 },
+      { "id": "sl1", "name": "Slip",       "x": -2.3,  "z": 14.0 },
+      { "id": "gly", "name": "Gully",      "x": -5.6,  "z": 12.6 },
+      { "id": "pnt", "name": "Point",       "x": -24.0, "z":  7.0 },
+      { "id": "cov", "name": "Cover",       "x": -27.0, "z": -6.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -13.0, "z": -22.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":  11.5, "z": -23.0 },
+      { "id": "mwk", "name": "Midwicket",  "x":  26.0, "z": -5.0 },
+      { "id": "sql", "name": "Square leg", "x":  24.0, "z": 10.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  26.0, "z": 54.0 },
+      { "id": "thm", "name": "Third man",  "x": -28.0, "z": 52.0 }
+    ],
+    "attacking": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 13.4 },
+      { "id": "sl1", "name": "Slip",       "x": -2.1,  "z": 12.9 },
+      { "id": "gly", "name": "2nd Slip",   "x": -3.9,  "z": 12.7 },
+      { "id": "pnt", "name": "Gully",      "x": -6.2,  "z": 12.0 },
+      { "id": "cov", "name": "Cover",       "x": -21.0, "z": -4.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -11.0, "z": -18.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":   9.5, "z": -19.0 },
+      { "id": "mwk", "name": "Short leg",  "x":   3.4, "z": 12.2 },
+      { "id": "sql", "name": "Square leg", "x":  20.0, "z":  8.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  22.0, "z": 46.0 },
+      { "id": "thm", "name": "Third man",  "x": -25.0, "z": 46.0 }
+    ]
+  },
+  "perOverRuns": {
+    "home": [3, 2, 4, 1, 3, 5, 2, 1, 4, 3, 5, 2, 1, 3, 4, 2, 5, 3, 1, 4, 2, 3, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1, 3, 4, 2, 5, 1],
+    "away": [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+  },
+  "ai": {
+    "current": { "away": 20 },
+    "baseline": { "away": 26, "over": 113 },
+    "projected": { "from": 455, "to": 471 },
+    "newBallOver": 120,
+    "rr10": 3.85,
+    "lastWicket": { "text": "Travis Head c Blundell b Henry 61", "over": "104.5" }
+  },
+  "momentumHistory": [
+    { "over": 113, "away": 26, "rr": 3.6, "w": 0, "p": 38 },
+    { "over": 114, "away": 25, "rr": 3.7, "w": 0, "p": 36 },
+    { "over": 115, "away": 24, "rr": 3.8, "w": 0, "p": 34 },
+    { "over": 116, "away": 23, "rr": 3.9, "w": 0, "p": 32 },
+    { "over": 117, "away": 22, "rr": 4.0, "w": 0, "p": 30 },
+    { "over": 118, "away": 21, "rr": 4.1, "w": 0, "p": 28 }
+  ],
+  "start": {
+    "runs": 399,
+    "wickets": 7,
+    "over": 118,
+    "ball": 6,
+    "batsmen": [
+      { "name": "Steve Smith", "short": "SMITH", "runs": 113, "balls": 198, "fours": 12, "sixes": 0, "onStrike": true,  "form": 9, "pressure": 4 },
+      { "name": "Alex Carey",  "short": "CAREY", "runs": 32,  "balls": 44,  "fours": 4,  "sixes": 0, "onStrike": false, "form": 6, "pressure": 6 }
+    ],
+    "partnership": { "runs": 58, "balls": 79 },
+    "bowlers": {
+      "henry":   { "name": "Matt Henry",      "style": "Right-arm fast-medium", "overs": 29, "maidens": 7, "runs": 91, "wickets": 3 },
+      "santner": { "name": "Mitchell Santner", "style": "Left-arm orthodox",    "overs": 33, "maidens": 9, "runs": 96, "wickets": 2 }
+    },
+    "toCome": ["Pat Cummins", "Mitchell Starc", "Nathan Lyon"]
+  },
+  "overs": [
+    {
+      "over": 119,
+      "bowler": "henry",
+      "balls": [
+        [1, null, 138, "good",   "off",     "cover",     "Steered to cover for a single under lights."],
+        [0, null, 141, "good",   "fourth",  null,         "Left alone, shaping away."],
+        [4, null, 136, "full",   "middle",  "straight",  "FOUR — driven straight back past the bowler."],
+        [0, null, 143, "short",  "body",    null,         "Short and quick, evaded at the last moment."],
+        [2, null, 139, "good",   "leg",     "midwicket", "Clipped off the toes for two."],
+        [1, null, 140, "good",   "middle",  "mid-on",    "Pushed to mid-on to retain strike."]
+      ],
+      "momentum": { "away": 19, "rr": 4.2, "w": 0, "p": 26 }
+    },
+    {
+      "over": 120,
+      "bowler": "santner",
+      "upcoming": true,
+      "balls": [
+        [0, null,  89, "good",   "off",     null,         "Defended off the back foot."],
+        [1, null,  87, "full",   "middle",  "long-on",   "Driven to long-on for one."],
+        [0, "Alex Carey c Latham b Santner 33", 85, "good", "off", "slip",
+         "WICKET — drawn forward, edged to slip. Santner strikes with the old ball."],
+        [0, null,  88, "good",   "middle",  null,         "The new man defends the hat-trick ball."],
+        [1, null,  90, "good",   "leg",     "square-leg","Worked away for one."],
+        [4, null,  86, "short",  "leg",     "square-leg","FOUR — rocked back and swept powerfully."]
+      ],
+      "momentum": { "away": 33, "rr": 4.1, "w": 1, "p": 48 }
+    }
+  ]
+}

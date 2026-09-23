@@ -1,0 +1,23 @@
+{
+  "name": "cric-beacon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sportmonksAdapter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Waheedumar/cric-beacon-prototype.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Waheedumar/cric-beacon-prototype/issues"
+  },
+  "homepage": "https://github.com/Waheedumar/cric-beacon-prototype#readme",
+  "dependencies": {
+    "three": "^0.160.0"
+  }
+}

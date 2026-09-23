@@ -1,0 +1,232 @@
+{
+  "id": "hambantota",
+  "label": "NZ v BD · Hambantota",
+  "format": "Test Match",
+  "stage": "Day 3 — Session 2",
+  "venue": {
+    "name": "Hambantota International Stadium",
+    "city": "Hambantota, Sri Lanka",
+    "pitch": "Dry, spinning track",
+    "weather": "Hot, humid",
+    "temp": "32",
+    "wind": "SW 12 km/h",
+    "boundary": 70,
+    "floodlights": true
+  },
+  "theme": {
+    "grassA": "#1B4D2A",
+    "grassB": "#2D6B3E",
+    "outfield": "#1A5C2E",
+    "pitch": "#C8A87A",
+    "skyTop": "#1E3A5F",
+    "skyBot": "#2E5A8A",
+    "stand": "#2A2A2A",
+    "seat": "#1A1A1A",
+    "night": true
+  },
+  "teams": {
+    "home": {
+      "key": "nz",
+      "name": "New Zealand",
+      "short": "NZ",
+      "flag": "🇳🇿",
+      "kit": "#000000",
+      "cap": "#FFFFFF",
+      "players": [
+        {
+          "id": "h1",
+          "name": "Finn Anderson",
+          "role": "Opener",
+          "pos": { "x": 0.62, "z": 10.61 },
+          "stats": { "runs": 23, "balls": 56, "fours": 2, "sixes": 0, "sr": 41.1 }
+        },
+        {
+          "id": "h2",
+          "name": "Kane Williamson",
+          "role": "Top-order",
+          "pos": { "x": -0.62, "z": 9.44 },
+          "stats": { "runs": 45, "balls": 128, "fours": 5, "sixes": 1, "sr": 35.2 }
+        },
+        {
+          "id": "h3",
+          "name": "Rachin Ravindra",
+          "role": "Batsman",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "runs": 12, "balls": 34, "fours": 1, "sixes": 0, "sr": 35.3 }
+        },
+        {
+          "id": "h4",
+          "name": "Devon Conway",
+          "role": "Batsman",
+          "pos": { "x": 0.0, "z": 14.6 },
+          "stats": { "runs": 38, "balls": 67, "fours": 4, "sixes": 2, "sr": 56.7 }
+        },
+        {
+          "id": "h5",
+          "name": "Tom Latham",
+          "role": "WK-Batsman",
+          "pos": { "x": 18.0, "z": 8.0 },
+          "stats": { "runs": 18, "balls": 41, "fours": 2, "sixes": 0, "sr": 43.9 }
+        }
+      ]
+    },
+    "away": {
+      "key": "bd",
+      "name": "Bangladesh",
+      "short": "BD",
+      "flag": "🇧🇩",
+      "kit": "#006A4E",
+      "cap": "#F7C800",
+      "players": [
+        {
+          "id": "b1",
+          "name": "Taskin Ahmed",
+          "role": "Fast Bowler",
+          "pos": { "x": 0.35, "z": -12.26 },
+          "stats": { "overs": 12, "maidens": 3, "runs": 45, "wickets": 2, "econ": 3.75 }
+        },
+        {
+          "id": "b2",
+          "name": "Taijul Islam",
+          "role": "Spin All-rounder",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "overs": 28, "maidens": 8, "runs": 52, "wickets": 1, "econ": 2.21 }
+        },
+        {
+          "id": "b3",
+          "name": "Ebadot Hossain",
+          "role": "Fast Bowler",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "overs": 18, "maidens": 5, "runs": 62, "wickets": 1, "econ": 3.44 }
+        }
+      ]
+    }
+  },
+  "battingTeam": "home",
+  "innings": {
+    "current": "New Zealand 1st innings",
+    "firstInnings": { "team": "away", "total": 0 }
+  },
+  "field": {
+    "standard": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 14.6 },
+      { "id": "sl1", "name": "Slip",       "x": -2.3,  "z": 14.0 },
+      { "id": "gly", "name": "Gully",      "x": -5.6,  "z": 12.6 },
+      { "id": "pnt", "name": "Point",       "x": -24.0, "z":  7.0 },
+      { "id": "cov", "name": "Cover",       "x": -27.0, "z": -6.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -13.0, "z": -22.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":  11.5, "z": -23.0 },
+      { "id": "mwk", "name": "Midwicket",  "x":  26.0, "z": -5.0 },
+      { "id": "sql", "name": "Square leg", "x":  24.0, "z": 10.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  26.0, "z": 54.0 },
+      { "id": "thm", "name": "Third man",  "x": -28.0, "z": 52.0 }
+    ],
+    "attacking": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 13.4 },
+      { "id": "sl1", "name": "Slip",       "x": -2.1,  "z": 12.9 },
+      { "id": "gly", "name": "2nd Slip",   "x": -3.9,  "z": 12.7 },
+      { "id": "pnt", "name": "Gully",      "x": -6.2,  "z": 12.0 },
+      { "id": "cov", "name": "Cover",       "x": -21.0, "z": -4.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -11.0, "z": -18.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":   9.5, "z": -19.0 },
+      { "id": "mwk", "name": "Short leg",  "x":   3.4, "z": 12.2 },
+      { "id": "sql", "name": "Square leg", "x":  20.0, "z":  8.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  22.0, "z": 46.0 },
+      { "id": "thm", "name": "Third man",  "x": -25.0, "z": 46.0 }
+    ]
+  },
+  "perOverRuns": {
+    "home": [4, 2, 1, 3, 5, 2, 4, 1, 3, 6, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2, 1, 4, 3, 5, 2],
+    "away": [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+  },
+  "ai": {
+    "current": { "away": 50 },
+    "baseline": { "away": 50, "over": 1 },
+    "projected": { "from": 50, "to": 50 },
+    "newBallOver": 80,
+    "rr10": 3.5,
+    "lastWicket": { "text": "—", "over": 0 }
+  },
+  "momentumHistory": [
+    { "over": 38, "away": 22, "rr": 3.4, "w": 0, "p": 34 },
+    { "over": 39, "away": 21, "rr": 3.5, "w": 0, "p": 32 },
+    { "over": 40, "away": 20, "rr": 3.6, "w": 0, "p": 30 },
+    { "over": 41, "away": 19, "rr": 3.7, "w": 0, "p": 28 },
+    { "over": 42, "away": 18, "rr": 3.8, "w": 0, "p": 26 },
+    { "over": 43, "away": 17, "rr": 3.9, "w": 0, "p": 24 }
+  ],
+  "start": {
+    "runs": 0,
+    "wickets": 0,
+    "over": 0,
+    "ball": 0,
+    "batsmen": [
+      { "name": "Finn Anderson",   "short": "AND", "runs": 0, "balls": 0, "fours": 0, "sixes": 0, "onStrike": true,  "form": 0, "pressure": 0 },
+      { "name": "Kane Williamson","short": "WIL", "runs": 0, "balls": 0, "fours": 0, "sixes": 0, "onStrike": false, "form": 0, "pressure": 0 }
+    ],
+    "partnership": { "runs": 0, "balls": 0 },
+    "bowlers": {
+      "taskin": { "name": "Taskin Ahmed", "style": "Right-arm fast-medium", "overs": 0, "maidens": 0, "runs": 0, "wickets": 0 },
+      "taijul": { "name": "Taijul Islam", "style": "Left-arm orthodox",     "overs": 0, "maidens": 0, "runs": 0, "wickets": 0 }
+    },
+    "toCome": ["Rachin Ravindra", "Devon Conway"]
+  },
+  "overs": [
+    {
+      "over": 44,
+      "bowler": "taskin",
+      "balls": [
+        [0, null, 128, "good",   "off",     null,         "Defended solidly on the front foot. Good start from Ahmed."],
+        [1, null, 126, "good",   "middle",  "midwicket", "Worked off the hip for a single to midwicket."],
+        [4, null, 132, "full",   "off",     "cover",     "FOUR — driven crisply through extra cover. Class from Anderson."],
+        [0, null, 129, "good",   "off",     null,         "Pushed forward, bat and pad together. Leaves alone."],
+        [0, "Finn Anderson c sub (BK) b Taskin Ahmed 23", 131, "good", "fourth", "slip",
+         "WICKET — draws him forward, edge flies to slip. Ahmed strikes first ball with the older ball."],
+        [1, null, 130, "good",   "middle",  "midwicket", "Pushed to midwicket, one taken. Williamson keeps strike."]
+      ],
+      "momentum": { "away": 22, "rr": 3.5, "w": 1, "p": 32 }
+    },
+    {
+      "over": 45,
+      "bowler": "taijul",
+      "upcoming": true,
+      "balls": [
+        [0, null, 84, "good",   "off",     null,         "Turned to leg, no run. Spin from Islam from the other end."],
+        [1, null, 86, "good",   "leg",     "square-leg", "Worked to square leg for one. Comfortable rotation."],
+        [4, null, 82, "short",  "off",     "point",     "FOUR — loose on the off side, cracked through point. Loose ball from the spinner."],
+        [1, null, 85, "good",   "middle",  "midwicket", "Nudged to midwicket, quick single taken."],
+        [0, null, 87, "good",   "off",     null,         "Defended back down the pitch. Pressing forward to the left-arm spinner."],
+        [6, null, 83, "full",   "middle",  "long-on",   "SIX — flights it up, launches over long-on. Big over to end at 399."],
+        [1, null, 88, "good",   "leg",     "midwicket", "Single to midwicket to keep strike for the next over."]
+      ],
+      "momentum": { "away": 24, "rr": 3.6, "w": 0, "p": 34 }
+    },
+    {
+      "over": 46,
+      "bowler": "taskin",
+      "balls": [
+        [0, null, 127, "good",   "off",     null,         "Defended into the pitch. Ahmed operating with the older ball again."],
+        [1, null, 125, "good",   "middle",  "midwicket", "Single worked to midwicket. Easy rotation."],
+        [4, null, 131, "full",   "middle",  "mid-on",    "FOUR — full and straight, driven back past the bowler. Ravindra growing in confidence."],
+        [0, null, 130, "good",   "off",     null,         "Left alone outside off. Not offering."],
+        [0, "Kane Williamson c sub (Rahim) b Taskin Ahmed 45", 132, "good", "off", "gully",
+         "WICKET — nicks off a good length ball outside off. Gully takes a sharp catch. Bangladesh fighting back."],
+        [1, null, 128, "good",   "leg",     "midwicket", "Single to midwicket. New batsman on strike."]
+      ],
+      "momentum": { "away": 22, "rr": 3.5, "w": 1, "p": 30 }
+    },
+    {
+      "over": 47,
+      "bowler": "taijul",
+      "balls": [
+        [0, null, 83, "good",   "off",     null,         "Defended forward to the spinner. Conway settling in."],
+        [1, null, 81, "full",   "off",     "long-off",  "Driven to long-off for one. Ravindra takes strike."],
+        [0, null, 85, "good",   "middle",  null,         "Defended solidly. The pitch is starting to turn."],
+        [4, null, 79, "short",  "off",     "point",     "FOUR — cut powerfully through point. Runs starting to flow against the spin."],
+        [1, null, 84, "good",   "middle",  "midwicket", "Nudged to midwicket, quick single. Conway faces."],
+        [0, null, 86, "good",   "leg",     null,         "Left alone on the leg side. The batsmen leave those."]
+      ],
+      "momentum": { "away": 23, "rr": 3.6, "w": 0, "p": 32 }
+    }
+  ]
+}

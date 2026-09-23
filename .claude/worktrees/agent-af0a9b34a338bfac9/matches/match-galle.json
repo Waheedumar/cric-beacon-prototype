@@ -1,0 +1,203 @@
+{
+  "id": "galle",
+  "label": "IND v SA · Galle",
+  "format": "Test Match",
+  "stage": "Day 2 — Session 1",
+  "venue": {
+    "name": "Galle International Stadium",
+    "city": "Galle, Sri Lanka",
+    "pitch": "Dry, turning",
+    "weather": "Hazy sun",
+    "temp": "31°C",
+    "wind": "9 km/h",
+    "boundary": "62 m × 68 m",
+    "floodlights": false
+  },
+  "theme": {
+    "grassA": 3740479,
+    "grassB": 3095352,
+    "outfield": 2883125,
+    "pitch": 13844748,
+    "skyTop": 2762982,
+    "skyBot": 7226528,
+    "stand": 1782062,
+    "seat": 2893104,
+    "night": false
+  },
+  "teams": {
+    "home": {
+      "key": "ind",
+      "name": "INDIA",
+      "short": "IND",
+      "flag": "🇮🇳",
+      "kit": 1799608,
+      "cap": 1195142,
+      "players": [
+        {
+          "id": "i1",
+          "name": "Yashasvi Jaiswal",
+          "role": "Opener",
+          "pos": { "x": 0.62, "z": 10.61 },
+          "stats": { "runs": 74, "balls": 122, "fours": 9, "sixes": 2, "sr": 60.7 }
+        },
+        {
+          "id": "i2",
+          "name": "Rohit Sharma",
+          "role": "Opener",
+          "pos": { "x": -0.62, "z": 9.44 },
+          "stats": { "runs": 31, "balls": 67, "fours": 4, "sixes": 0, "sr": 46.3 }
+        },
+        {
+          "id": "i3",
+          "name": "Virat Kohli",
+          "role": "Batsman",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "runs": 22, "balls": 41, "fours": 2, "sixes": 0, "sr": 53.7 }
+        },
+        {
+          "id": "i4",
+          "name": "Rishabh Pant",
+          "role": "WK-Batsman",
+          "pos": { "x": 0.0, "z": 14.6 },
+          "stats": { "runs": 43, "balls": 47, "fours": 5, "sixes": 1, "sr": 91.5 }
+        },
+        {
+          "id": "i5",
+          "name": "Ravindra Jadeja",
+          "role": "All-rounder",
+          "pos": { "x": 18.0, "z": 8.0 },
+          "stats": { "runs": 8, "balls": 18, "fours": 1, "sixes": 0, "sr": 44.4 }
+        }
+      ]
+    },
+    "away": {
+      "key": "sa",
+      "name": "SOUTH AFRICA",
+      "short": "SA",
+      "flag": "🇿🇦",
+      "kit": 1613662,
+      "cap": 13365543,
+      "players": [
+        {
+          "id": "s1",
+          "name": "Keshav Maharaj",
+          "role": "Spin Bowler",
+          "pos": { "x": 0.35, "z": -12.26 },
+          "stats": { "overs": 24, "maidens": 5, "runs": 82, "wickets": 2, "econ": 3.42 }
+        },
+        {
+          "id": "s2",
+          "name": "Marco Jansen",
+          "role": "Seam All-rounder",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "overs": 15, "maidens": 3, "runs": 48, "wickets": 1, "econ": 3.20 }
+        },
+        {
+          "id": "s3",
+          "name": "Kagiso Rabada",
+          "role": "Fast Bowler",
+          "pos": { "x": 0.0, "z": 0.0 },
+          "stats": { "overs": 12, "maidens": 2, "runs": 44, "wickets": 2, "econ": 3.67 }
+        }
+      ]
+    }
+  },
+  "battingTeam": "home",
+  "innings": {
+    "current": "India 1st innings",
+    "firstInnings": { "team": "sa", "total": 176 }
+  },
+  "field": {
+    "standard": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 14.6 },
+      { "id": "sl1", "name": "Slip",       "x": -2.3,  "z": 14.0 },
+      { "id": "gly", "name": "Gully",      "x": -5.6,  "z": 12.6 },
+      { "id": "pnt", "name": "Point",       "x": -24.0, "z":  7.0 },
+      { "id": "cov", "name": "Cover",       "x": -27.0, "z": -6.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -13.0, "z": -22.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":  11.5, "z": -23.0 },
+      { "id": "mwk", "name": "Midwicket",  "x":  26.0, "z": -5.0 },
+      { "id": "sql", "name": "Square leg", "x":  24.0, "z": 10.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  26.0, "z": 54.0 },
+      { "id": "thm", "name": "Third man",  "x": -28.0, "z": 52.0 }
+    ],
+    "attacking": [
+      { "id": "wk",  "name": "Keeper",     "x":  0.0,  "z": 13.4 },
+      { "id": "sl1", "name": "Slip",       "x": -2.1,  "z": 12.9 },
+      { "id": "gly", "name": "2nd Slip",   "x": -3.9,  "z": 12.7 },
+      { "id": "pnt", "name": "Gully",      "x": -6.2,  "z": 12.0 },
+      { "id": "cov", "name": "Cover",       "x": -21.0, "z": -4.0 },
+      { "id": "mdo", "name": "Mid-off",    "x": -11.0, "z": -18.0 },
+      { "id": "mdn", "name": "Mid-on",     "x":   9.5, "z": -19.0 },
+      { "id": "mwk", "name": "Short leg",  "x":   3.4, "z": 12.2 },
+      { "id": "sql", "name": "Square leg", "x":  20.0, "z":  8.0 },
+      { "id": "fnl", "name": "Fine leg",   "x":  22.0, "z": 46.0 },
+      { "id": "thm", "name": "Third man",  "x": -25.0, "z": 46.0 }
+    ]
+  },
+  "perOverRuns": {
+    "home": [4, 2, 6, 1, 3, 4, 2, 1, 3, 5, 4, 6, 2, 3, 4, 1, 2, 5, 3, 4, 2, 1, 3, 5, 4, 2, 6, 1, 3, 4, 2, 5, 3, 1, 4, 2, 3, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6],
+    "away": [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]
+  },
+  "ai": {
+    "current": { "away": 26 },
+    "baseline": { "away": 34, "over": 56 },
+    "projected": { "from": 352, "to": 388 },
+    "newBallOver": 80,
+    "rr10": 4.05,
+    "lastWicket": { "text": "Yashasvi Jaiswal st de Kock b Maharaj 74", "over": "55.4" }
+  },
+  "momentumHistory": [
+    { "over": 56, "away": 34, "rr": 3.4, "w": 1, "p": 48 },
+    { "over": 57, "away": 32, "rr": 3.6, "w": 0, "p": 44 },
+    { "over": 58, "away": 31, "rr": 3.8, "w": 0, "p": 41 },
+    { "over": 59, "away": 30, "rr": 3.9, "w": 0, "p": 39 },
+    { "over": 60, "away": 29, "rr": 4.0, "w": 0, "p": 36 },
+    { "over": 61, "away": 28, "rr": 4.1, "w": 0, "p": 34 }
+  ],
+  "start": {
+    "runs": 294,
+    "wickets": 4,
+    "over": 61,
+    "ball": 6,
+    "batsmen": [
+      { "name": "Shubman Gill",   "short": "GILL", "runs": 88, "balls": 131, "fours": 9, "sixes": 1, "onStrike": true,  "form": 9, "pressure": 3 },
+      { "name": "Rishabh Pant",   "short": "PANT",  "runs": 43, "balls": 47,  "fours": 5, "sixes": 1, "onStrike": false, "form": 8, "pressure": 4 }
+    ],
+    "partnership": { "runs": 71, "balls": 82 },
+    "bowlers": {
+      "maharaj": { "name": "Keshav Maharaj", "style": "Left-arm orthodox",       "overs": 24, "maidens": 5, "runs": 82, "wickets": 2 },
+      "jansen":  { "name": "Marco Jansen",   "style": "Left-arm fast-medium",    "overs": 15, "maidens": 3, "runs": 48, "wickets": 1 }
+    },
+    "toCome": ["Ravindra Jadeja", "KL Rahul", "R Ashwin"]
+  },
+  "overs": [
+    {
+      "over": 62,
+      "bowler": "maharaj",
+      "balls": [
+        [1, null,  88, "good",   "off",     "cover",     "Pushed to cover off the front foot for one."],
+        [0, null,  86, "good",   "middle",  null,         "Defended, big turn from the rough."],
+        [4, null,  84, "short",  "leg",     "square-leg","FOUR — dropped short and swept fine to the rope."],
+        [2, null,  89, "full",   "middle",  "long-on",   "Driven inside-out down the ground for two."],
+        [0, null,  87, "good",   "off",     null,         "Beaten in the flight, no shot offered."],
+        [1, null,  90, "good",   "leg",     "midwicket", "Worked to midwicket for a single."]
+      ],
+      "momentum": { "away": 27, "rr": 4.1, "w": 0, "p": 33 }
+    },
+    {
+      "over": 63,
+      "bowler": "jansen",
+      "upcoming": true,
+      "balls": [
+        [0, null, 137, "good",   "fourth",  null,        "Left on length outside off."],
+        [6, null, 133, "full",   "leg",     "midwicket", "SIX — picked the length early and cleared midwicket."],
+        [1, null, 140, "good",   "middle",  "mid-on",    "Punched to mid-on for one."],
+        [0, null, 142, "bouncer", "body",    null,        "Bouncer, swayed out of the way."],
+        [4, null, 138, "full",   "off",     "cover",     "FOUR — driven crisply through extra cover."],
+        [1, null, 139, "good",   "middle",  "square-leg","Tucked away for a single to finish."]
+      ],
+      "momentum": { "away": 24, "rr": 4.3, "w": 0, "p": 29 }
+    }
+  ]
+}

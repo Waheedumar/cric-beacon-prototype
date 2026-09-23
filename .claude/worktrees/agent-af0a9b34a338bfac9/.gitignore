@@ -12,4 +12,3 @@ secret_scan.ps1
 .env*.local
 .env*.secret
 VITE_SPORTMONKS*
-node_modules/
