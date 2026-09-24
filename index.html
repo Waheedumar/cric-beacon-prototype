@@ -2113,6 +2113,19 @@ function resetAnimState(){
   trajAnim.on = false; trajAnim.t = 0; trajAnim.dur = 1; trajAnim.curves = []; trajAnim.durs = [];
 }
 
+// Color the trajectory line by delivery outcome. Returns null to keep the
+// existing material color (used for dots and extras).
+function trajColorFor(d){
+  if (d.dismissed) return 0xEB5757;                                   // wicket -> red
+  if (d.extraType === 'wide'   || d.extraType === 'noball' ||
+      d.extraType === 'bye'    || d.extraType === 'legbye') return null; // extras -> keep color
+  const r = Number(d.runs);
+  if (r === 6) return 0x9B51E0;                                      // six -> purple
+  if (r === 4) return 0x2F80ED;                                      // four -> blue
+  if (r >= 1 && r <= 3) return 0xFFFFFF;                             // 1-3 -> white
+  return null;                                                       // dot -> keep color
+}
+
 function animateBall(d, showPath = true, animate = true){
   if (!d){ clearTrajectory(); return; }
   // Guarantee a clean slate BEFORE rebuilding: this ensures every Replay click
@@ -2126,18 +2139,20 @@ function animateBall(d, showPath = true, animate = true){
   const cShot = shot ? new THREE.CatmullRomCurve3(shot) : null;
 
   if (showPath){
+    const colA = trajColorFor(d);
     // Create Line objects for progressive drawing of trajectory
     trajA = new THREE.Line(
       new THREE.BufferGeometry(),
-      new THREE.LineBasicMaterial({ color:0x19E07A, transparent:true, opacity:.82, linewidth: 3 })
+      new THREE.LineBasicMaterial({ color: colA === null ? 0x19E07A : colA, transparent:true, opacity:.82, linewidth: 3 })
     );
     trajA.frustumCulled = false;
     ballGroup.add(trajA);
     trajA.userData = { curve: cDel, drawProgress: 0, segments: 50 };
     if (cShot){
+      const colB = trajColorFor(d);
       trajB = new THREE.Line(
         new THREE.BufferGeometry(),
-        new THREE.LineBasicMaterial({ color: d.dismissed ? 0xEF4444 : 0xF0B429, transparent:true, opacity:.72, linewidth: 3 })
+        new THREE.LineBasicMaterial({ color: colB === null ? (d.dismissed ? 0xEF4444 : 0xF0B429) : colB, transparent:true, opacity:.72, linewidth: 3 })
       );
       trajB.frustumCulled = false;
       ballGroup.add(trajB);
