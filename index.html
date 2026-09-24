@@ -2326,7 +2326,9 @@ document.addEventListener('visibilitychange', () => { paused = document.hidden; 
 function loop(){
   if (paused) return;
   requestAnimationFrame(loop);
-  const dt = Math.min(clock.getDelta(), 0.05);
+  const rawDt = clock.getDelta();
+  const dt = Math.min(rawDt, 0.05);
+  const trajDt = Math.min(rawDt, 0.25);
 
   // camera preset tween
   if (camTween.on){
@@ -2368,7 +2370,7 @@ function loop(){
 
   // trajectory drawing animation — draw the line progressively
   if (trajAnim.on){
-    trajAnim.t += dt / TRAJ_PHASE_DUR;
+    trajAnim.t += trajDt / TRAJ_PHASE_DUR;
     if (trajAnim.t >= 1){
       if (trajAnim.phase < trajAnim.curves.length - 1){
         trajAnim.phase++;
@@ -2391,7 +2393,7 @@ function loop(){
     } else {
       targetProgress = 0;
     }
-    ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, dt * 6);
+    ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, trajDt * 6);
     if (ud.drawProgress > 0.01){
       try {
         // Ensure at least 1 segment to avoid getPointAt(NaN) which causes undefined access
