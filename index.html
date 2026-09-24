@@ -2103,13 +2103,14 @@ function clearTrajectory(){
 const anim = { on:false, phase:0, t:0, dur:1, curves:[] };
 const trajAnim = { on:false, t:0, dur:1, curves:[] };
 const TRAJ_PHASE_DUR = 0.7;
+const REPLAY_SLOWMO = 2.0;
 
 // Explicit full reset of every animation state variable.
 // Called before every trajectory/replay build so that consecutive clicks always
 // start from the origin (ball at release point, drawProgress = 0, phase = 0),
 // regardless of what the previous animation left behind.
 function resetAnimState(){
-  anim.on = false; anim.phase = 0; anim.t = 0; anim.curves = []; anim.durs = [];
+  anim.on = false; anim.phase = 0; anim.t = 0; anim.curves = []; anim.durs = []; anim.slowMo = false;
   trajAnim.on = false; trajAnim.t = 0; trajAnim.dur = 1; trajAnim.curves = []; trajAnim.durs = [];
 }
 
@@ -2126,7 +2127,7 @@ function trajColorFor(d){
   return null;                                                       // dot -> keep color
 }
 
-function animateBall(d, showPath = true, animate = true){
+function animateBall(d, showPath = true, animate = true, slowMo = false){
   if (!d){ clearTrajectory(); return; }
   // Guarantee a clean slate BEFORE rebuilding: this ensures every Replay click
   // resets the ball to the origin and the trajectory drawProgress to 0, then
@@ -2168,9 +2169,10 @@ function animateBall(d, showPath = true, animate = true){
 
   // faster deliveries travel the pitch quicker — 140 km/h ≈ 0.52 s of flight
   const flight = Math.max(0.62, 1.55 - (d.speed - 120) / 95);
+  const base = cShot ? [flight, 1.35] : [flight];
   anim.curves = cShot ? [cDel, cShot] : [cDel];
-  anim.durs   = cShot ? [flight, 1.35] : [flight];
-  anim.phase = 0; anim.t = 0; anim.on = animate;
+  anim.durs   = slowMo ? base.map(x => x * REPLAY_SLOWMO) : base;
+  anim.phase = 0; anim.t = 0; anim.on = animate; anim.slowMo = slowMo;
 
   // trajectory animation — draw the line progressively
   trajAnim.curves = cShot ? [cDel, cShot] : [cDel];
@@ -2355,7 +2357,9 @@ function loop(){
 
   // ball flight
   if (anim.on){
-    anim.t += dt / anim.durs[anim.phase];
+    const ballDur = anim.durs[anim.phase];
+    const ballDt  = anim.slowMo ? trajDt : dt;
+    anim.t += ballDt / ballDur;
     const c = anim.curves[anim.phase];
     // Guard against invalid anim.t or stale curve phase to prevent undefined curve access
     if (!c) { anim.on = false; return; }
@@ -2370,35 +2374,58 @@ function loop(){
 
   // trajectory drawing animation — draw the line progressively
   if (trajAnim.on){
-    trajAnim.t += trajDt / TRAJ_PHASE_DUR;
-    if (trajAnim.t >= 1){
-      if (trajAnim.phase < trajAnim.curves.length - 1){
-        trajAnim.phase++;
-        trajAnim.t = 0;
-      } else {
-        trajAnim.on = false;
+    if (anim.slowMo){
+      // Replay: trajectory line locked to the ball — same phase/progress,
+      // so line and ball reach the bounce and the shot at the same moment.
+      trajAnim.phase = anim.phase;
+      trajAnim.t = anim.t;
+      if (!anim.on) trajAnim.on = false;
+    } else {
+      trajAnim.t += trajDt / TRAJ_PHASE_DUR;
+      if (trajAnim.t >= 1){
+        if (trajAnim.phase < trajAnim.curves.length - 1){
+          trajAnim.phase++;
+          trajAnim.t = 0;
+        } else {
+          trajAnim.on = false;
+        }
       }
     }
   }
   [trajA, trajB].forEach((t, i) => {
     if (!t || !t.userData.curve) return;
     const ud = t.userData;
-    // Each phase draws its own line; lines for completed phases stay fully drawn,
-    // lines for future phases stay hidden until their phase begins.
-    let targetProgress;
-    if (trajAnim.on && trajAnim.phase === i){
-      targetProgress = Math.min(1, trajAnim.t + 0.08);
-    } else if (!trajAnim.on || trajAnim.phase > i){
-      targetProgress = 1;
+
+    if (anim.slowMo) {
+      // Replay: line tip exactly at the ball — no lead, no easing.
+      if (trajAnim.on && i === anim.phase) {
+        ud.drawProgress = Math.min(1, Math.max(0, anim.t));
+      } else if (!trajAnim.on || i < anim.phase) {
+        ud.drawProgress = 1;
+      } else {
+        ud.drawProgress = 0;
+      }
     } else {
-      targetProgress = 0;
+      // Normal playback / "Show Ball Trajectory" — unchanged.
+      let targetProgress;
+      if (trajAnim.on && trajAnim.phase === i){
+        targetProgress = Math.min(1, trajAnim.t + 0.08);
+      } else if (!trajAnim.on || trajAnim.phase > i){
+        targetProgress = 1;
+      } else {
+        targetProgress = 0;
+      }
+      ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, trajDt * 6);
     }
-    ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, trajDt * 6);
+
     if (ud.drawProgress > 0.01){
       try {
         // Ensure at least 1 segment to avoid getPointAt(NaN) which causes undefined access
         const segCount = Math.max(1, Math.floor(ud.segments * ud.drawProgress));
-        const pts = ud.curve.getPoints(segCount);
+        const pts = [];
+        for (let k = 0; k <= segCount; k++){
+          pts.push(ud.curve.getPointAt((k / segCount) * ud.drawProgress));
+        }
         // Guard: skip if any point is undefined (can happen with edge curve params)
         if (pts.some(p => p == null)) return;
         const positions = new Float32Array(pts.length * 3);
@@ -3656,7 +3683,7 @@ $('btnTraj').addEventListener('click', () => {
 });
 $('btnReplay').addEventListener('click', () => {
   // Replay: show the trajectory AND animate the ball flying along it
-  animateBall(cur(), true, true);   // animate=true: full replay with ball flight
+  animateBall(cur(), true, true, true);   // slowMo=true: full slow-motion replay
   $('ballReadout').classList.add('show');
 });
 $('btnNext').addEventListener('click', () => { stopPlay(); stepNext(); });
