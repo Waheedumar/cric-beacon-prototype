@@ -2039,6 +2039,7 @@ function disposeGroup(g){
 }
 
 /* ---------- ball + trajectory ---------- */
+const ballScaleFor = () => (window.innerWidth < 768 ? 1.8 : 1);
 function buildBall(){
   ballGroup = new THREE.Group();
   ball = new THREE.Mesh(
@@ -2329,6 +2330,7 @@ function initEngine(md){
 }
 
 function fitCameraToScreen(){
+  if (ball) ball.scale.setScalar(ballScaleFor());
   const w = STAGE.clientWidth, h = STAGE.clientHeight;
   if (!w || !h) return;
   const aspect = w / h;
