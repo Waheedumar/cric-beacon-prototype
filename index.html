@@ -3938,12 +3938,12 @@ const spy = new IntersectionObserver(es => {
    ================================================================== */
 
 ;(async function(){
-  const liveTest = $('#liveTest');
+  const liveTest = $('liveTest');
   if (!liveTest) return;
 
-  const fetchBtn = $('#fetchLiveBtn');
-  const liveList = $('#liveList');
-  const noLiveMsg = $('#noLiveMsg');
+  const fetchBtn = $('fetchLiveBtn');
+  const liveList = $('liveList');
+  const noLiveMsg = $('noLiveMsg');
 
   // Helper: defensive team‑name fallback used by the adapter
   function teamName(team){
@@ -3952,12 +3952,12 @@ const spy = new IntersectionObserver(es => {
   function ucase(t){ return (t||'').toUpperCase(); }
 
   fetchBtn.onclick = async () => {
-    const token = prompt('Enter your SportMonks API token (or cancel):');
-    if (!token) return;
+    const token = ''; // token is kept server-side in /api/live
+    
 
     try{
       const resp = await fetch(
-        `https://cricket.sportmonks.com/api/v2.0/livescores?include=localteam,visitorteam,venue&api_token=${token}`
+        `/api/live`
       );
       if (!resp.ok){
         alert('Live‑matches request failed: ' + resp.status);
@@ -3984,7 +3984,7 @@ const spy = new IntersectionObserver(es => {
         li.onclick = async () => {
           // fetch the normalised match doc via getMatch then loadRealMatchDoc
           const detailResp = await fetch(
-            `https://cricket.sportmonks.com/api/v2.0/livescores/${m.id}?include=localteam,visitorteam,venue&api_token=${token}`
+            `/api/live?id=${m.id}`
           );
           if (!detailResp.ok){
             alert('Failed to fetch match details');
