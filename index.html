@@ -835,7 +835,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
-const trajLinePx = () => (window.innerWidth < 768 ? 6 : 3);
+const trajLinePx = () => (window.innerWidth < 768 ? 3.5 : 2);
 
 /* ==================================================================
    1. DATA LAYER  —  THE API SEAM
@@ -2086,13 +2086,45 @@ function buildTrajectory(d){
   let shot = null;
   if (d.dir && SHOT_DIRS[d.dir]){
     const dir = SHOT_DIRS[d.dir];
-    const reach = d.runs >= 4 ? 1.0 : d.dismissed ? 0.24 : 0.42 + d.runs * 0.10;
-    const end = new THREE.Vector3(dir.x * GR.rx * reach, d.runs === 6 ? 0.4 : 0.14, dir.z * GR.rz * reach);
-    // a dismissal ends at the catcher, not at the rope
-    if (d.dismissed) end.set(dir.x * 18, 0.95, 12 + dir.z * 8);
-    const height = d.runs === 6 ? 13 : d.runs === 4 ? 2.4 : d.dismissed ? 1.9 : 3.2;
-    const mid = new THREE.Vector3((meet.x + end.x) / 2, height, (meet.z + end.z) / 2);
-    shot = quad(meet, mid, end, 26);
+
+    // SHOT_DIRS vectors are not unit-length, so dir * GR.semiAxis lands
+    // short of the rope. Normalise first, then compute the ellipse distance
+    // for the shot direction.
+    const dm = Math.hypot(dir.x, dir.z) || 1;
+    const ux = dir.x / dm, uz = dir.z / dm;
+    const ropeDist = 1 / Math.sqrt((ux / GR.rx) ** 2 + (uz / GR.rz) ** 2);
+
+    if (d.runs === 6){
+      // Six: high arc, peak ~15-20 m, lands ~7.5% beyond the rope,
+      // never touches the ground inside the field.
+      const H = 17;                                   // desired actual peak
+      const y0 = L.rise;                              // meet height from delivery length
+      const y2 = 0.4;                                 // landing height beyond rope
+      const y1 = H + Math.sqrt(Math.max(0, (H - y0) * (H - y2))); // control point y
+      const beyond = 1.075;                           // 7.5% beyond the rope
+      const end = new THREE.Vector3(ux * ropeDist * beyond, 0.5, uz * ropeDist * beyond);
+      const mid = new THREE.Vector3((meet.x + end.x) / 2, y1, (meet.z + end.z) / 2);
+      shot = quad(meet, mid, end, 26);
+    } else if (d.runs === 4){
+      // Four: low drive, ends exactly ON the boundary rope in its direction,
+      // apex runs low along the ground (may bounce).
+      const H = 2.0;                                  // desired actual peak
+      const y0 = L.rise;                              // meet height from delivery length
+      const y2 = 0.14;                                // on-rope landing height
+      const y1 = H + Math.sqrt(Math.max(0, (H - y0) * (H - y2))); // control point y
+      const end = new THREE.Vector3(ux * ropeDist, 0.1, uz * ropeDist); // exactly on rope
+      const mid = new THREE.Vector3((meet.x + end.x) / 2, y1, (meet.z + end.z) / 2);
+      shot = quad(meet, mid, end, 26);
+    } else {
+      // 1-3 runs, dot, wicket, extras — completely unchanged.
+      const reach = d.dismissed ? 0.24 : 0.42 + d.runs * 0.10;
+      const end = new THREE.Vector3(dir.x * GR.rx * reach, d.runs === 6 ? 0.4 : 0.14, dir.z * GR.rz * reach);
+      // a dismissal ends at the catcher, not at the rope
+      if (d.dismissed) end.set(dir.x * 18, 0.95, 12 + dir.z * 8);
+      const height = d.dismissed ? 1.9 : 3.2;
+      const mid = new THREE.Vector3((meet.x + end.x) / 2, height, (meet.z + end.z) / 2);
+      shot = quad(meet, mid, end, 26);
+    }
   }
   return { delivery, shot, bounce };
 }
