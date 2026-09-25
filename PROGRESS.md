@@ -57,3 +57,10 @@ Hypothesis: on the 2nd replay, the first frame gets a huge dt, so `trajAnim.t` j
    - Bigger ball on small screens
    - Panels must not cover the pitch on mobile
    - Check animation speed and scale on phone
+
+## Status update
+- DONE: slow-motion Replay, line grows behind ball
+- DONE: mobile - thicker line, portrait camera, readout hidden, taller stage, bigger ball
+- DONE: fours reach rope, sixes land beyond rope
+- NEXT: Step 12 - real Sportmonks matches in 3D
+- WAITING: Shiyan's answer on AI integration scope
