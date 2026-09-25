@@ -832,6 +832,10 @@ button{font-family:inherit;color:inherit;}
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+const trajLinePx = () => (window.innerWidth < 768 ? 6 : 3);
 
 /* ==================================================================
    1. DATA LAYER  —  THE API SEAM
@@ -2142,22 +2146,22 @@ function animateBall(d, showPath = true, animate = true, slowMo = false){
   if (showPath){
     const colA = trajColorFor(d);
     // Create Line objects for progressive drawing of trajectory
-    trajA = new THREE.Line(
-      new THREE.BufferGeometry(),
-      new THREE.LineBasicMaterial({ color: colA === null ? 0x19E07A : colA, transparent:true, opacity:.82, linewidth: 3 })
+    trajA = new Line2(
+      new LineGeometry(),
+      new LineMaterial({ color: colA === null ? 0x19E07A : colA, transparent:true, opacity:.82, linewidth: trajLinePx(), resolution: new THREE.Vector2(window.innerWidth, window.innerHeight) })
     );
     trajA.frustumCulled = false;
     ballGroup.add(trajA);
-    trajA.userData = { curve: cDel, drawProgress: 0, segments: 50 };
+    trajA.userData = { curve: cDel, drawProgress: 0, segments: 50, lastProgress: undefined };
     if (cShot){
       const colB = trajColorFor(d);
-      trajB = new THREE.Line(
-        new THREE.BufferGeometry(),
-        new THREE.LineBasicMaterial({ color: colB === null ? (d.dismissed ? 0xEF4444 : 0xF0B429) : colB, transparent:true, opacity:.72, linewidth: 3 })
+      trajB = new Line2(
+        new LineGeometry(),
+        new LineMaterial({ color: colB === null ? (d.dismissed ? 0xEF4444 : 0xF0B429) : colB, transparent:true, opacity:.72, linewidth: trajLinePx(), resolution: new THREE.Vector2(window.innerWidth, window.innerHeight) })
       );
       trajB.frustumCulled = false;
       ballGroup.add(trajB);
-      trajB.userData = { curve: cShot, drawProgress: 0, segments: 40 };
+      trajB.userData = { curve: cShot, drawProgress: 0, segments: 40, lastProgress: undefined };
     }
   }
 
@@ -2419,22 +2423,28 @@ function loop(){
     }
 
     if (ud.drawProgress > 0.01){
-      try {
-        // Ensure at least 1 segment to avoid getPointAt(NaN) which causes undefined access
-        const segCount = Math.max(1, Math.floor(ud.segments * ud.drawProgress));
-        const pts = [];
-        for (let k = 0; k <= segCount; k++){
-          pts.push(ud.curve.getPointAt((k / segCount) * ud.drawProgress));
+      // Only rebuild when drawProgress changed since last frame — avoids
+      // allocating/setting positions every frame for the same line.
+      if (ud.lastProgress !== ud.drawProgress){
+        ud.lastProgress = ud.drawProgress;
+        try {
+          // Ensure at least 2 points to avoid getPointAt(NaN) which causes undefined access
+          const segCount = Math.max(2, Math.floor(ud.segments * ud.drawProgress));
+          const pts = [];
+          for (let k = 0; k <= segCount; k++){
+            pts.push(ud.curve.getPointAt((k / segCount) * ud.drawProgress));
+          }
+          // Guard: skip if any point is undefined (can happen with edge curve params)
+          if (pts.some(p => p == null)) return;
+          const arr = new Float32Array(pts.length * 3);
+          pts.forEach((p, i) => { arr[i*3] = p.x; arr[i*3+1] = p.y; arr[i*3+2] = p.z; });
+          t.geometry.dispose();
+          t.geometry = new LineGeometry();
+          t.geometry.setPositions(arr);
+        } catch (e) {
+          console.warn('traj', e);
+          return;
         }
-        // Guard: skip if any point is undefined (can happen with edge curve params)
-        if (pts.some(p => p == null)) return;
-        const positions = new Float32Array(pts.length * 3);
-        pts.forEach((p, i) => { positions[i*3] = p.x; positions[i*3+1] = p.y; positions[i*3+2] = p.z; });
-        t.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      } catch (e) {
-        // Silently skip trajectory update on curve errors to prevent render loop crashes
-        // (kept as safety net; root-cause fix above should prevent triggering)
-        return;
       }
     }
   });
@@ -3944,7 +3954,18 @@ const spy = new IntersectionObserver(es => {
   };
 })();
 
-window.addEventListener('resize', () => { renderMomentum(); renderSpark(); });
+window.addEventListener('resize', () => {
+  renderMomentum();
+  renderSpark();
+  if (trajA && trajA.material) {
+    trajA.material.resolution.set(innerWidth, innerHeight);
+    trajA.material.linewidth = trajLinePx();
+  }
+  if (trajB && trajB.material) {
+    trajB.material.resolution.set(innerWidth, innerHeight);
+    trajB.material.linewidth = trajLinePx();
+  }
+});
 
 /* ---------------- boot ---------------- */
 try {
