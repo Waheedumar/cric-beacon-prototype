@@ -2140,6 +2140,7 @@ const anim = { on:false, phase:0, t:0, dur:1, curves:[] };
 const trajAnim = { on:false, t:0, dur:1, curves:[] };
 const TRAJ_PHASE_DUR = 0.7;
 const REPLAY_SLOWMO = 2.0;
+const BASE_FOV = 46;
 
 // Explicit full reset of every animation state variable.
 // Called before every trajectory/replay build so that consecutive clicks always
@@ -2258,7 +2259,7 @@ function initEngine(md){
   scene = new THREE.Scene();
   scene.fog = new THREE.Fog(new THREE.Color(md.theme.skyBot).getHex(), 210, 520);
 
-  camera = new THREE.PerspectiveCamera(46, 1, 0.5, 1600);
+  camera = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.5, 1600);
   camera.position.set(0, 46, 96);
 
   renderer = new THREE.WebGLRenderer({
@@ -2315,15 +2316,31 @@ function initEngine(md){
   const ro = new ResizeObserver(resize);
   ro.observe(STAGE);
   resize();
+  fitCameraToScreen();
   renderer.compile(scene, camera);
   requestAnimationFrame(loop);
+}
+
+function fitCameraToScreen(){
+  const w = STAGE.clientWidth, h = STAGE.clientHeight;
+  if (!w || !h) return;
+  const aspect = w / h;
+  if (aspect < 1){
+    // keep horizontal view constant on portrait: widen vertical fov
+    camera.fov = Math.min(80, 2 * Math.atan(
+      Math.tan(BASE_FOV * Math.PI / 180 / 2) / aspect
+    ) * 180 / Math.PI);
+  } else {
+    camera.fov = BASE_FOV;
+  }
+  camera.updateProjectionMatrix();
 }
 
 function resize(){
   const w = STAGE.clientWidth, h = STAGE.clientHeight;
   if (!w || !h) return;
   camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  fitCameraToScreen();
   renderer.setSize(w, h, false);
 }
 
