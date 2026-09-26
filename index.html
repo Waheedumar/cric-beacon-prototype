@@ -3995,6 +3995,7 @@ const spy = new IntersectionObserver(es => {
           // Provide a minimal label/status for loadRealMatchDoc
           doc.label = `${ucase(teamName(doc.localteam))} v ${ucase(teamName(doc.visitorteam))}`;
           doc.status = doc.status || 'unknown';
+          if (!doc.start || !doc.innings) { noLiveMsg.textContent = 'Ball-by-ball data for ' + doc.label + ' is not available in the 3D view yet.'; noLiveMsg.style.display = 'block'; return; }
           loadRealMatchDoc(doc);
           // start polling the same match
           if (window.SportMonksAdapter){
