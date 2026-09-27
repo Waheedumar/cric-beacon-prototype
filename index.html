@@ -701,6 +701,7 @@ button{font-family:inherit;color:inherit;}
     </section>
     <p class="proc-note" id="procNote3d">&#9432; Procedural visualization &mdash; trajectories are generated from match data, not real ball-tracking.</p>
     <p class="proc-note sim-note" id="simNote" style="display:none">&#9679; SIMULATED LIVE &mdash; recorded match data is replayed ball by ball through the normalized data model, as if live.</p>
+    <p class="proc-note sim-note" id="liveNote" style="display:none;color:#EF4444">&#9679; LIVE &mdash; Sportmonks data refreshed every 20 seconds through the normalized data model.</p>
 
     <section class="panel delivery-panel">
       <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">—</span></div>
@@ -3535,7 +3536,7 @@ function simDocAt(full, n){
   return d;
 }
 function startSimLive(){
-  stopSimLive(); stopPlay();
+  stopSimLive(); stopPlay(); if (typeof stopRealLive === 'function') stopRealLive();
   const src = (MD && MD.simulated && simFull) ? simFull : MD;
   if (!src || !src.overs || !src.overs.length){ toast('Simulated live needs ball-by-ball data for this match', 3200); return; }
   simFull = JSON.parse(JSON.stringify(src));
@@ -3565,6 +3566,48 @@ function setSimUi(on){
   if (b) b.addEventListener('click', () => { if (simTimer) stopSimLive(); else startSimLive(); });
   const ms = document.getElementById('matchSelect');
   if (ms) ms.addEventListener('change', stopSimLive);
+})();
+
+/* ---------------- real live polling via /api/match (M3 Sections 1-2) ---------------- */
+var REAL_LIVE_MS = 20000;
+var realTimer = null, realId = null, realSig = '';
+async function fetchLiveDoc(id){
+  const r = await fetch('/api/match?id=' + encodeURIComponent(id));
+  const j = await r.json().catch(function(){ return {}; });
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+function liveSig(doc){
+  const ov = (doc && doc.overs) || [];
+  const last = ov[ov.length - 1];
+  return ov.length + ':' + (last && last.balls ? last.balls.length : 0);
+}
+function startRealLive(id){
+  stopRealLive();
+  realId = id; realSig = liveSig(MD);
+  setRealUi(true);
+  realTimer = setInterval(async function(){
+    try {
+      const doc = await fetchLiveDoc(realId);
+      if (!doc || !doc.start) return;
+      const sig = liveSig(doc);
+      if (sig !== realSig){ realSig = sig; applyLiveUpdate(doc); }
+      if (doc.status === 'complete' || doc.status === 'finished'){ stopRealLive(); toast('Live match finished', 3000); }
+    } catch (e) { /* transient network errors: keep polling */ }
+  }, REAL_LIVE_MS);
+}
+function stopRealLive(){
+  if (realTimer){ clearInterval(realTimer); realTimer = null; }
+  realId = null;
+  setRealUi(false);
+}
+function setRealUi(on){
+  const n = document.getElementById('liveNote');
+  if (n) n.style.display = on ? 'block' : 'none';
+}
+(function(){
+  const ms = document.getElementById('matchSelect');
+  if (ms) ms.addEventListener('change', stopRealLive);
 })();
 
 /* ---------------- new feature renderers ---------------- */
@@ -4047,27 +4090,21 @@ const spy = new IntersectionObserver(es => {
         li.textContent = `${home} v ${away}`;
         li.dataset.id = String(m.id);
         li.onclick = async () => {
-          // fetch the normalised match doc via getMatch then loadRealMatchDoc
-          const detailResp = await fetch(
-            `/api/live?id=${m.id}`
-          );
-          if (!detailResp.ok){
-            alert('Failed to fetch match details');
-            return;
-          }
-          const d = await detailResp.json();
-          const doc = (d.data || d) || {};
-          // Provide a minimal label/status for loadRealMatchDoc
-          doc.label = `${ucase(teamName(doc.localteam))} v ${ucase(teamName(doc.visitorteam))}`;
-          doc.status = doc.status || 'unknown';
-          if (!doc.start || !doc.innings) { noLiveMsg.textContent = 'Ball-by-ball data for ' + doc.label + ' is not available in the 3D view yet.'; noLiveMsg.style.display = 'block'; return; }
-          loadRealMatchDoc(doc);
-          // start polling the same match
-          if (window.SportMonksAdapter){
-            const adapter = new window.SportMonksAdapter({ token });
-            adapter.pollLiveMatch({ matchId: String(m.id), intervalMs: 5000 });
-          } else {
-            alert('SportMonksAdapter not available in this page');
+          try {
+            stopSimLive(); stopRealLive();
+            noLiveMsg.style.display = 'none';
+            const doc = await fetchLiveDoc(m.id);
+            if (!doc || !doc.start || !doc.innings){
+              noLiveMsg.textContent = 'Ball-by-ball data for ' + li.textContent + ' is not available from the current data plan.';
+              noLiveMsg.style.display = 'block';
+              return;
+            }
+            if (!doc.label) doc.label = li.textContent;
+            loadRealMatchDoc(doc);
+            startRealLive(m.id);
+          } catch (e) {
+            noLiveMsg.textContent = 'Could not load ' + li.textContent + ': ' + ((e && e.message) || e);
+            noLiveMsg.style.display = 'block';
           }
         };
         liveList.appendChild(li);
