@@ -501,6 +501,7 @@ button{font-family:inherit;color:inherit;}
   .panel-h h3{font-size:9px;}
 }
 .proc-note{margin:8px 4px 0;font-size:11px;line-height:1.4;color:var(--color-muted);}
+.sim-note{color:#F59E0B;font-weight:700;letter-spacing:.04em;}
 /* ---------------- Wagon wheel + Last Shot + Carousel ---------------- */
 .tabs{display:flex;gap:6px;margin-bottom:11px;}
 .tabs button{
@@ -699,6 +700,7 @@ button{font-family:inherit;color:inherit;}
       <div class="loading" id="loader"><div><div class="spin"></div><p>BUILDING 3D GROUND…</p></div></div>
     </section>
     <p class="proc-note" id="procNote3d">&#9432; Procedural visualization &mdash; trajectories are generated from match data, not real ball-tracking.</p>
+    <p class="proc-note sim-note" id="simNote" style="display:none">&#9679; SIMULATED LIVE &mdash; recorded match data is replayed ball by ball through the normalized data model, as if live.</p>
 
     <section class="panel delivery-panel">
       <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">—</span></div>
@@ -716,6 +718,7 @@ button{font-family:inherit;color:inherit;}
           <button class="btn" id="btnPrev">◀ LAST BALL</button>
           <button class="btn btn-amber" id="btnNext">NEXT BALL ▶</button>
           <button class="btn" id="btnPlay">▶ PLAY OVER</button>
+          <button class="btn" id="btnSimLive">&#9679; SIMULATED LIVE</button>
           <button class="btn" id="btnPause">❚❚ PAUSE</button>
         </div>
       </div>
@@ -2642,6 +2645,7 @@ function loadMatch(key){
 
 /* ---------------- loadRealMatchDoc: load normalized adapter output ---------------- */
 function loadRealMatchDoc(doc){
+  if (!(doc && doc.simulated)) stopSimLive();
   // Snapshot current global state for rollback on error
   const previous = {
     MD,
@@ -3504,6 +3508,64 @@ function stopPlay(){
   const b = $('btnPlay');
   if (b) b.classList.remove('btn-primary');
 }
+
+/* ---------------- simulated-live + live update path (M3 Sections 1-2) ---------------- */
+var SIM_LIVE_MS = 8000;
+var simTimer = null, simFull = null, simPos = 0, simTotal = 0;
+function applyLiveUpdate(doc){
+  if (!doc) return;
+  MD = doc;
+  FEED = buildFeed(MD);
+  if (!FEED || !FEED.length) return;
+  playedIdx = FEED.length - 1;
+  applyDelivery(FEED.length - 1, true);
+}
+function simDocAt(full, n){
+  const d = JSON.parse(JSON.stringify(full));
+  const overs = []; let left = n;
+  for (const ov of (full.overs || [])){
+    if (left <= 0) break;
+    const o = JSON.parse(JSON.stringify(ov));
+    o.balls = (o.balls || []).slice(0, left);
+    o.upcoming = false;
+    left -= o.balls.length;
+    overs.push(o);
+  }
+  d.overs = overs; d.status = 'live'; d.simulated = true;
+  return d;
+}
+function startSimLive(){
+  stopSimLive(); stopPlay();
+  const src = (MD && MD.simulated && simFull) ? simFull : MD;
+  if (!src || !src.overs || !src.overs.length){ toast('Simulated live needs ball-by-ball data for this match', 3200); return; }
+  simFull = JSON.parse(JSON.stringify(src));
+  simTotal = simFull.overs.reduce((a, o) => a + ((o.balls || []).length), 0);
+  simPos = 1;
+  applyLiveUpdate(simDocAt(simFull, simPos));
+  setSimUi(true);
+  simTimer = setInterval(simTick, SIM_LIVE_MS);
+}
+function simTick(){
+  if (simPos >= simTotal){ stopSimLive(); toast('Simulated live: end of match data', 3000); return; }
+  simPos++;
+  applyLiveUpdate(simDocAt(simFull, simPos));
+}
+function stopSimLive(){
+  if (simTimer){ clearInterval(simTimer); simTimer = null; }
+  setSimUi(false);
+}
+function setSimUi(on){
+  const b = document.getElementById('btnSimLive');
+  if (b){ b.innerHTML = on ? '&#9632; STOP SIMULATED LIVE' : '&#9679; SIMULATED LIVE'; b.classList.toggle('btn-primary', on); }
+  const n = document.getElementById('simNote');
+  if (n) n.style.display = on ? 'block' : 'none';
+}
+(function(){
+  const b = document.getElementById('btnSimLive');
+  if (b) b.addEventListener('click', () => { if (simTimer) stopSimLive(); else startSimLive(); });
+  const ms = document.getElementById('matchSelect');
+  if (ms) ms.addEventListener('change', stopSimLive);
+})();
 
 /* ---------------- new feature renderers ---------------- */
 function renderRpo(){
