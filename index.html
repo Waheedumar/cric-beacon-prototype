@@ -500,6 +500,7 @@ button{font-family:inherit;color:inherit;}
   .panel-h{padding:7px 9px;}
   .panel-h h3{font-size:9px;}
 }
+.proc-note{margin:8px 4px 0;font-size:11px;line-height:1.4;color:var(--color-muted);}
 /* ---------------- Wagon wheel + Last Shot + Carousel ---------------- */
 .tabs{display:flex;gap:6px;margin-bottom:11px;}
 .tabs button{
@@ -697,6 +698,7 @@ button{font-family:inherit;color:inherit;}
       </div>
       <div class="loading" id="loader"><div><div class="spin"></div><p>BUILDING 3D GROUND…</p></div></div>
     </section>
+    <p class="proc-note" id="procNote3d">&#9432; Procedural visualization &mdash; trajectories are generated from match data, not real ball-tracking.</p>
 
     <section class="panel delivery-panel">
       <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">—</span></div>
@@ -779,6 +781,7 @@ button{font-family:inherit;color:inherit;}
         </div>
         <div class="ww-content" id="wwWheel"></div>
         <div class="ww-content ww-hidden" id="wwLast"></div>
+        <p class="proc-note" id="procNoteWW">&#9432; Procedural visualization &mdash; shot directions and distances are generated, not real tracking data.</p>
       </div>
     </section>
 
