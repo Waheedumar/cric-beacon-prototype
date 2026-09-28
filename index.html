@@ -502,6 +502,7 @@ button{font-family:inherit;color:inherit;}
 }
 .proc-note{margin:8px 4px 0;font-size:11px;line-height:1.4;color:var(--color-muted);}
 .sim-note{color:#F59E0B;font-weight:700;letter-spacing:.04em;}
+.otab-go{width:110px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:inherit;font-size:11px;margin-left:6px;}
 /* ---------------- Wagon wheel + Last Shot + Carousel ---------------- */
 .tabs{display:flex;gap:6px;margin-bottom:11px;}
 .tabs button{
@@ -616,6 +617,7 @@ button{font-family:inherit;color:inherit;}
   <div class="panel-h"><h3>Live Match Test</h3></div>
   <div class="panel-b">
     <button id="fetchLiveBtn" class="btn">Fetch Live Matches</button>
+<div style="display:flex;gap:6px;margin-top:8px"><input id="matchIdInput" type="text" inputmode="numeric" placeholder="Sportmonks match ID" style="flex:1;min-width:0;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:inherit"><button id="loadIdBtn" class="btn">Load match</button></div>
     <ul id="liveList"></ul>
     <p id="noLiveMsg" style="display:none;margin-top:8px;color:var(--color-muted);">No live matches currently available.</p>
   </div>
@@ -2675,7 +2677,7 @@ function loadRealMatchDoc(doc){
     FEED = buildFeed(MD);
 
     // Set initial delivery index to the last played delivery (or last in feed)
-    idx = Math.max(0, ((FEED || []).findIndex(d => !d.upcoming)) - 1);
+    idx = Math.max(0, (FEED || []).reduce((k, d, i) => (!d.upcoming ? i : k), -1));
     if (idx < 0) idx = (FEED || []).length - 1;
     playedIdx = idx;
     selOver = FEED[idx].over;
@@ -2699,7 +2701,7 @@ function loadRealMatchDoc(doc){
 
     // Apply the current delivery state — use the last non-upcoming delivery
     // or fall back to the last delivery in the feed
-    const lastPlayedIdx = (FEED || []).findIndex(d => !d.upcoming);
+    const lastPlayedIdx = (FEED || []).reduce((k, d, i) => (!d.upcoming ? i : k), -1);
     const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : (FEED || []).length - 1;
     applyDelivery(targetIdx, false);
 
@@ -2939,9 +2941,9 @@ function updateScore(){
     : first.total - s.runs;
   $('trailLine').textContent = complete
     ? btTotal > otTotal
-      ? `${bt.name} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`
+      ? (MD.resultText || `${bt.name} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`)
       : otTotal > btTotal
-        ? `${ot.name} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
+        ? (MD.resultText || `${ot.name} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`)
         : 'Match tied'
     : `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} trail by ${trail} run${trail === 1 ? '' : 's'}`;
 
@@ -3069,7 +3071,7 @@ function updateWinProbability(){
       : otTotal > btTotal
         ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
         : 'Match drawn';
-    stamp.textContent = resultText;
+    stamp.textContent = MD.resultText || resultText;
   } else {
     $('probDelta').classList.remove('hidden');
     const delta = +(away - d.winProbPrev.away).toFixed(1);
@@ -3095,7 +3097,7 @@ function updateAIInsight(){
     const margin = btTotal - otTotal;
     const winner = margin > 0 ? bt.name : ot.name;
     const loser = margin > 0 ? ot.name : bt.name;
-    text = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'} against ${loser}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`;
+    text = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'} against ${loser}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`; if (MD.resultText) text = MD.resultText + '. ' + text.slice(text.indexOf('. ') + 2);
   } else if (d.dismissed){
     text = `${d.outName} falls — ${d.wicket}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} lose their set batter and a new partnership has to survive ${oversToNewBall <= 2 ? 'the second new ball' : 'the rest of this spell'}. Expect ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} to keep an attacking field for the next 12–18 deliveries.`;
   } else if (d.runs >= 4){
@@ -3444,7 +3446,7 @@ function openWhy(){
     const margin = hasSecond ? btTotal - otTotal : s.runs - first.total;
     const winner = margin > 0 ? bt.name : ot.name;
     const loser = margin > 0 ? ot.name : bt.name;
-    lede = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}. The win probability settled at ${Math.round(to)}% for ${ot.short} as the final result became clear.`;
+    lede = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}. The win probability settled at ${Math.round(to)}% for ${ot.short} as the final result became clear.`; if (MD.resultText) lede = MD.resultText + '. ' + lede.slice(lede.indexOf('. ') + 2);
     drivers = [
       ['🏁', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}.`, 'terminal'],
       ['📊', 'Final score', `${bt.name} ${hasSecond ? btTotal : `${s.runs}/${s.wickets}`} vs ${ot.name} ${hasSecond ? otTotal : first.total}.`, 'major'],
@@ -3609,6 +3611,59 @@ function setRealUi(on){
   const ms = document.getElementById('matchSelect');
   if (ms) ms.addEventListener('change', stopRealLive);
 })();
+
+/* ---------------- load any Sportmonks match by ID (live or finished) ---------------- */
+(function(){
+  const btn = document.getElementById('loadIdBtn');
+  const inp = document.getElementById('matchIdInput');
+  const msg = document.getElementById('noLiveMsg');
+  if (!btn || !inp) return;
+  const go = async () => {
+    const id = String(inp.value || '').trim();
+    if (!/^\d+$/.test(id)){ toast('Enter a numeric Sportmonks match ID', 2600); return; }
+    try {
+      stopSimLive(); stopRealLive();
+      if (msg) msg.style.display = 'none';
+      btn.disabled = true;
+      const doc = await fetchLiveDoc(id);
+      if (!doc || !doc.start || !doc.innings){ toast('Ball-by-ball data for match ' + id + ' is not available from the current data plan', 3600); return; }
+      loadRealMatchDoc(doc);
+      if (doc.status === 'live') startRealLive(id);
+      toast('Loaded ' + (doc.label || ('match ' + id)) + ' from Sportmonks via the normalized model', 3200);
+    } catch (e) {
+      toast('Could not load match ' + id + ': ' + ((e && e.message) || e), 3600);
+    } finally { btn.disabled = false; }
+  };
+  btn.addEventListener('click', go);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+})();
+
+/* ---------------- over tabs: previous / current / next + go to over ---------------- */
+function overLabel(o){ return (MD && String(MD.id || '').indexOf('sm_') === 0) ? o.over + 1 : o.over; }
+function renderOverTabs(){
+  const box = $('overTabs');
+  if (!box || !MD || !MD.overs || !MD.overs.length) return;
+  const ovs = MD.overs;
+  let ci = ovs.findIndex(o => o.over === selOver);
+  if (ci < 0) ci = ovs.length - 1;
+  const from = Math.max(0, ci - 1), to = Math.min(ovs.length - 1, ci + 1);
+  let html = '';
+  for (let i = from; i <= to; i++){
+    const o = ovs[i];
+    html += '<button class="otab' + (o.upcoming ? ' up' : '') + (i === ci ? ' on' : '') + '" data-over="' + o.over + '">OVER ' + overLabel(o) + (o.upcoming ? ' &middot;' : '') + '</button>';
+  }
+  html += '<input class="otab-go" id="overGo" type="number" min="' + overLabel(ovs[0]) + '" max="' + overLabel(ovs[ovs.length - 1]) + '" placeholder="Go to over" title="Type an over number and press Enter">';
+  box.innerHTML = html;
+  box.querySelectorAll('.otab').forEach(b => b.addEventListener('click', () => { selOver = +b.dataset.over; renderTimeline(); }));
+  const go = $('overGo');
+  if (go) go.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const want = Number(go.value);
+    const hit = ovs.find(o => overLabel(o) === want);
+    if (hit){ selOver = hit.over; renderTimeline(); } else { toast('Over ' + go.value + ' is not in this match', 2400); }
+  });
+}
+try { var _baseRenderTimeline = renderTimeline; renderTimeline = function(){ _baseRenderTimeline(); renderOverTabs(); }; } catch (e) { console.warn('over tabs wrap', e); }
 
 /* ---------------- new feature renderers ---------------- */
 function renderRpo(){

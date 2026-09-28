@@ -66,6 +66,7 @@ const SPORTMONKS_DISMISSAL_MAP = {
 function parseSportMonksWicket(smBall, playersMap) {
   const score = smBall.score;
   if (!score || !score.name) return null;
+  if (score.is_wicket !== true && score.out !== true && !smBall.batsmanout_id) return null;
 
   const raw = score.name.trim();
   const dismissedId = smBall.batsmanout_id || null;
@@ -116,6 +117,25 @@ function parseFallbackDismissalType(name) {
    }
    =================================================================== */
 
+function _smBallFields(smBall) {
+  // Current Sportmonks API nests runs/extras inside smBall.score and sends ball: 0.1 (over.ball).
+  // Older shapes had them top-level; both are supported.
+  const sc = (smBall && typeof smBall.score === 'object' && smBall.score) || {};
+  const has = (k) => smBall[k] !== undefined && smBall[k] !== null;
+  const scName = String(sc.name || '');
+  const isWide = has('wide') ? smBall.wide : (/wide/i.test(scName) ? 1 : 0);
+  const bye = has('bye') ? smBall.bye : (Number(sc.bye) || 0);
+  const legBye = has('leg_bye') ? smBall.leg_bye : (Number(sc.leg_bye) || 0);
+  const nb = has('noball') ? smBall.noball : (Number(sc.noball) || 0);
+  const nbRuns = has('noball_runs') ? smBall.noball_runs : (Number(sc.noball_runs) || 0);
+  let runs;
+  if (has('runs')) runs = smBall.runs;
+  else { runs = (Number(sc.runs) || 0) + bye + legBye + nbRuns; if (isWide && runs === 0) runs = 1; }
+  let ballNo = smBall.ball_number;
+  if (ballNo === undefined && smBall.ball !== undefined && smBall.ball !== null) ballNo = Math.round((Number(smBall.ball) * 10) % 10) || 1;
+  return { runs, bye, leg_bye: legBye, noball: nb, noball_runs: nbRuns, wide: isWide, wide_runs: has('wide_runs') ? smBall.wide_runs : 0, batsman_score: smBall.batsman_score, ball_number: ballNo };
+}
+
 function normalizeSportMonksBall(smBall, ctx) {
   /**
    * ctx provides:
@@ -135,7 +155,7 @@ function normalizeSportMonksBall(smBall, ctx) {
     wide_runs = 0,      // extra runs from wide
     batsman_score = 0,  // runs credited to bat this ball (from batsman_score sub-object)
     ball_number = 1,    // ball within the over (1–6+)
-  } = smBall;
+  } = _smBallFields(smBall);
 
   // --- extraType & legal flag ----------------------------------------
   let extraType  = null;
@@ -882,8 +902,11 @@ class SportMonksAdapter {
 function _groupBallsIntoOvers(smBalls, ctx) {
   // Group Sportmonks balls by over_id, then emit one Cric Beacon over object.
   const byOver = {};
+  const _codes = (smBalls || []).map(b => b && b.scoreboard).filter(Boolean).sort();
+  const _cur = _codes[_codes.length - 1];
+  if (_cur) smBalls = smBalls.filter(b => b.scoreboard === _cur);
   smBalls.forEach(ball => {
-    const ovNum = ball.over_id || ball.over || ctx.currentOver;
+    const ovNum = ball.over_id || ball.over || ((ball.ball !== undefined && ball.ball !== null) ? Math.floor(Number(ball.ball)) : ctx.currentOver);
     if (!byOver[ovNum]) byOver[ovNum] = [];
     byOver[ovNum].push(ball);
   });
@@ -1432,7 +1455,82 @@ if (typeof require !== 'undefined' && require.main === module) {
   runTests();
 }
 
+function normalizeSportMonksLive(data) {
+  // Real Sportmonks fixture (live or finished) -> normalized doc for the current innings.
+  const balls = (data && data.balls) || [];
+  const playersMap = {};
+  balls.forEach(b => { [b.batsman, b.bowler, b.batsmanone, b.batsmantwo, b.batsmanout, b.catchstump].forEach(p => { if (p && p.id && p.fullname) playersMap[String(p.id)] = p.fullname; }); });
+  const doc = normalizeSportMonksMatch(data, playersMap);
+  if (!doc || !doc.start) return doc;
+  const codes = balls.map(b => b.scoreboard).filter(Boolean).sort();
+  const cur = codes[codes.length - 1];
+  const inn = cur ? balls.filter(b => b.scoreboard === cur) : balls;
+  const short = (n) => String(n || 'Unknown').split(' ').pop().toUpperCase();
+  const bat = (id, onStrike) => ({ name: playersMap[String(id)] || 'Unknown', short: short(playersMap[String(id)]), runs: 0, balls: 0, fours: 0, sixes: 0, onStrike, form: 5, pressure: 5 });
+  const s = doc.start;
+  s.runs = 0; s.wickets = 0; s.over = (doc.overs && doc.overs[0]) ? doc.overs[0].over : 0; s.ball = 1;
+  s.partnership = { runs: 0, balls: 0 };
+  const first = inn[0];
+  if (first) {
+    const striker = first.batsman_id || first.batsman_one_on_creeze_id;
+    const other = String(first.batsman_one_on_creeze_id) === String(striker) ? first.batsman_two_on_creeze_id : first.batsman_one_on_creeze_id;
+    s.batsmen = [bat(striker, true), bat(other, false)];
+    const openers = [String(striker), String(other)];
+    const order = (data.batting || []).filter(e => !cur || e.scoreboard === cur).sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    s.toCome = order.map(e => String(e.player_id)).filter(id => openers.indexOf(id) < 0).map(id => playersMap[id] || ('Player ' + id));
+  }
+  s.bowlers = s.bowlers || {};
+  (doc.overs || []).forEach(o => {
+    if (o && o.bowler && !s.bowlers[o.bowler]) {
+      const id = String(o.bowler).replace('sm_bowler_', '');
+      s.bowlers[o.bowler] = { name: playersMap[id] || ('Bowler ' + id), style: '', overs: 0, runs: 0, wickets: 0 };
+    }
+    if (o && !o.momentum) o.momentum = { away: 50, rr: 0, w: 0, p: 50 };
+  });
+  // Innings summary from the official scoreboards (S1, S2)
+  const tot = (data.scoreboards || []).filter(x => x.type === 'total').sort((a, b) => String(a.scoreboard).localeCompare(String(b.scoreboard)));
+  const homeId = String(data.localteam_id);
+  const I = doc.innings = doc.innings || {};
+  const side = (x) => String(x.team_id) === homeId ? 'Home' : 'Away';
+  // Innings per TEAM: a team's 1st scoreboard = its 1st innings; its 2nd (Tests only) = its 2nd innings.
+  I.secondInnings = { home: 0, away: 0 };
+  I.secondInningsHomeWickets = 0; I.secondInningsAwayWickets = 0; I.secondInningsHomeOvers = 0; I.secondInningsAwayOvers = 0;
+  const seen = {};
+  tot.forEach(x => {
+    const sd = side(x);
+    seen[sd] = (seen[sd] || 0) + 1;
+    if (seen[sd] === 1) { I['firstInnings' + sd] = x.total; I['firstInnings' + sd + 'Wickets'] = x.wickets; I['firstInnings' + sd + 'Overs'] = x.overs; }
+    else if (seen[sd] === 2) { I.secondInnings[sd.toLowerCase()] = x.total; I['secondInnings' + sd + 'Wickets'] = x.wickets; I['secondInnings' + sd + 'Overs'] = x.overs; }
+  });
+  if (tot[0]) I.firstInnings = { total: tot[0].total, wickets: tot[0].wickets };
+
+  // Procedural estimates (Section 4): Sportmonks has no speed/length/line/direction per ball.
+  const styleById = {};
+  balls.forEach(b => { if (b.bowler && b.bowler.id) styleById[String(b.bowler.id)] = String(b.bowler.bowlingstyle || ''); });
+  Object.keys(s.bowlers).forEach(key => { const id = key.replace('sm_bowler_', ''); if (!s.bowlers[key].style && styleById[id]) s.bowlers[key].style = styleById[id]; if (s.bowlers[key].maidens === undefined) s.bowlers[key].maidens = 0; });
+  const DIRS = ['midwicket', 'cover', 'mid-on', 'square-leg', 'long-on', 'fine-leg'];
+  const LENS = ['good', 'good', 'full', 'good', 'short', 'full'];
+  const LNS = ['off', 'middle', 'off', 'fourth', 'leg', 'middle'];
+  let k = 0;
+  (doc.overs || []).forEach(o => {
+    const st = styleById[String(o.bowler || '').replace('sm_bowler_', '')] || '';
+    const spin = /break|spin|orthodox|slow|googly|chinaman/i.test(st);
+    (o.balls || []).forEach(t => {
+      k++;
+      const r = ((k * 9301 + 49297) % 233280) / 233280;
+      if (t[2] == null) t[2] = spin ? Math.round(82 + r * 12) : Math.round(126 + r * 16);
+      if (t[3] == null) t[3] = LENS[k % LENS.length];
+      if (t[4] == null) t[4] = LNS[(k * 7) % LNS.length];
+      if (t[5] == null && Number(t[0]) > 0 && !t[1] && !t[7]) t[5] = DIRS[Math.floor(r * DIRS.length) % DIRS.length];
+    });
+  });
+  doc.procedural = true;
+  if (data.type) doc.format = data.type;
+  if (data.note && /won|tied|tie|no result|draw|abandon/i.test(String(data.note))) doc.resultText = String(data.note);
+  return doc;
+}
+
 // Export for browser / module use
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { SportMonksAdapter, normalizeSportMonksBall, normalizeSportMonksMatch, runTests };
+  module.exports = { SportMonksAdapter, normalizeSportMonksBall, normalizeSportMonksMatch, normalizeSportMonksLive, runTests };
 }
