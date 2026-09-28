@@ -502,6 +502,11 @@ button{font-family:inherit;color:inherit;}
 }
 .proc-note{margin:8px 4px 0;font-size:11px;line-height:1.4;color:var(--color-muted);}
 .sim-note{color:#F59E0B;font-weight:700;letter-spacing:.04em;}
+.val-card{margin:8px 4px 0;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.5;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.25);}
+.val-card.ok{border-color:rgba(25,196,106,.5);}
+.val-card.bad{border-color:rgba(235,87,87,.6);}
+.val-card b{letter-spacing:.04em;}
+.val-card ul{margin:6px 0 0 18px;padding:0;}
 .otab-go{width:110px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:inherit;font-size:11px;margin-left:6px;}
 /* ---------------- Wagon wheel + Last Shot + Carousel ---------------- */
 .tabs{display:flex;gap:6px;margin-bottom:11px;}
@@ -704,6 +709,8 @@ button{font-family:inherit;color:inherit;}
     <p class="proc-note" id="procNote3d">&#9432; Procedural visualization &mdash; trajectories are generated from match data, not real ball-tracking.</p>
     <p class="proc-note sim-note" id="simNote" style="display:none">&#9679; SIMULATED LIVE &mdash; recorded match data is replayed ball by ball through the normalized data model, as if live.</p>
     <p class="proc-note sim-note" id="liveNote" style="display:none;color:#EF4444">&#9679; LIVE &mdash; Sportmonks data refreshed every 20 seconds through the normalized data model.</p>
+    <div style="margin:8px 4px 0"><button class="btn" id="btnValidate">&#10004; RUN AI VALIDATION TEST</button></div>
+    <div id="valOut"></div>
 
     <section class="panel delivery-panel">
       <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">—</span></div>
@@ -839,6 +846,7 @@ button{font-family:inherit;color:inherit;}
   <div style="font-size:10px;color:var(--color-muted);letter-spacing:.06em;text-align:center">Stylized silhouette — no real likeness</div>
 </div>
 
+<script src="lib/aiValidator.js"></script>
 <script type="importmap">
 { "imports": {
   "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
@@ -3664,6 +3672,54 @@ function renderOverTabs(){
   });
 }
 try { var _baseRenderTimeline = renderTimeline; renderTimeline = function(){ _baseRenderTimeline(); renderOverTabs(); }; } catch (e) { console.warn('over tabs wrap', e); }
+
+/* ---------------- AI validation demo (M3 Section 6) ---------------- */
+function escH(x){ return String(x == null ? '' : x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function collectFacts(){
+  const I = MD.innings || {};
+  const H = MD.teams.home, A = MD.teams.away;
+  const d = (typeof cur === 'function') ? cur() : null;
+  const curW = d ? (d.wickets != null ? d.wickets : (d.state && d.state.wickets != null ? d.state.wickets : null)) : null;
+  const wk = (sd, key) => (MD.battingTeam === key && curW != null) ? curW : I['firstInnings' + sd + 'Wickets'];
+  const sNow = (typeof st === 'function') ? st() : null;
+  const live = !(typeof isComplete === 'function' && isComplete());
+  const runsFor = (key, tk) => (MD.battingTeam === key && live && sNow && sNow.runs != null) ? sNow.runs : teamTotal(tk);
+  const teams = [
+    { name: H.name, short: H.short, runs: runsFor('home', H.key), wickets: wk('Home', 'home') },
+    { name: A.name, short: A.short, runs: runsFor('away', A.key), wickets: wk('Away', 'away') }
+  ];
+  const names = new Set();
+  [H, A].forEach(t => (t.players || []).forEach(p => p && p.name && names.add(p.name)));
+  const ms = MD.start || {};
+  (ms.batsmen || []).forEach(b => b && b.name && names.add(b.name));
+  Object.keys(ms.bowlers || {}).forEach(k => ms.bowlers[k] && ms.bowlers[k].name && names.add(ms.bowlers[k].name));
+  (ms.toCome || []).forEach(n => n && names.add(n));
+  (FEED || []).forEach(x => { if (x && x.strikerName) names.add(x.strikerName); });
+  return { teams, players: Array.from(names).filter(n => !/^(unknown|player \d+)$/i.test(n)), result: MD.resultText || null };
+}
+function runValidationDemo(){
+  if (!window.AIValidator){ toast('Validator not loaded', 2400); return; }
+  const f = collectFacts(); const T = f.teams;
+  const sc = (t) => t.runs + (t.wickets != null ? '/' + t.wickets : '');
+  const good = { text: T[0].name + ' ' + sc(T[0]) + ', ' + T[1].name + ' ' + sc(T[1]) + '.', claims: [ { type: 'team_score', team: T[0].name, runs: T[0].runs, wickets: T[0].wickets }, { type: 'team_score', team: T[1].name, runs: T[1].runs, wickets: T[1].wickets } ].concat(f.players[0] ? [{ type: 'player', name: f.players[0] }] : []) };
+  const bad = { text: T[1].name + ' scored ' + (Number(T[1].runs) + 32) + '/3, with Sachin Tendulkar top-scoring.', claims: [ { type: 'team_score', team: T[1].name, runs: Number(T[1].runs) + 32 }, { type: 'player', name: 'Sachin Tendulkar' } ] };
+  const g = AIValidator.validate(good, f), b = AIValidator.validate(bad, f);
+  $('valOut').innerHTML =
+    '<div class="val-card ' + (g.valid ? 'ok' : 'bad') + '"><b>' + (g.valid ? '&#10004; CORRECT INSIGHT &mdash; PASSED' : '&#10006; UNEXPECTED FAILURE') + '</b> (' + g.checked + ' checks)<br>&ldquo;' + escH(good.text) + '&rdquo;' + (g.valid ? '' : '<ul>' + g.errors.map(e => '<li>' + escH(e.reason) + '</li>').join('') + '</ul>') + '</div>' +
+    '<div class="val-card ' + (b.valid ? 'ok' : 'bad') + '"><b>' + (b.valid ? '&#9888; WRONG INSIGHT WAS NOT CAUGHT' : '&#10006; WRONG INSIGHT &mdash; REJECTED') + '</b> (' + b.checked + ' checks)<br>&ldquo;' + escH(bad.text) + '&rdquo;<ul>' + b.errors.map(e => '<li>' + escH(e.reason) + '</li>').join('') + '</ul><div style="color:var(--color-muted);margin-top:4px">Rejected insights are never displayed; the app falls back to the verified template insight.</div></div>';
+}
+(function(){ const b = document.getElementById('btnValidate'); if (b) b.addEventListener('click', runValidationDemo); })();
+
+/* ---------------- dev-only tools: visible only with ?dev=1 ---------------- */
+(function(){
+  const dev = new URLSearchParams(location.search).has('dev');
+  const vb = document.getElementById('btnValidate');
+  const vo = document.getElementById('valOut');
+  const idIn = document.getElementById('matchIdInput');
+  if (vb && vb.parentElement) vb.parentElement.style.display = dev ? '' : 'none';
+  if (vo) vo.style.display = dev ? '' : 'none';
+  if (idIn && idIn.parentElement) idIn.parentElement.style.display = dev ? 'flex' : 'none';
+})();
 
 /* ---------------- new feature renderers ---------------- */
 function renderRpo(){
