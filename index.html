@@ -502,6 +502,7 @@ button{font-family:inherit;color:inherit;}
 }
 .proc-note{margin:8px 4px 0;font-size:11px;line-height:1.4;color:var(--color-muted);}
 .sim-note{color:#F59E0B;font-weight:700;letter-spacing:.04em;}
+.ai-tag{margin-top:6px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.06em;color:#19C46A;border:1px solid rgba(25,196,106,.5);}
 .val-card{margin:8px 4px 0;padding:10px 12px;border-radius:10px;font-size:12px;line-height:1.5;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.25);}
 .val-card.ok{border-color:rgba(25,196,106,.5);}
 .val-card.bad{border-color:rgba(235,87,87,.6);}
@@ -775,6 +776,7 @@ button{font-family:inherit;color:inherit;}
         <div class="insight">
           <div class="k">AI INSIGHT</div>
           <p id="aiInsight"></p>
+<span id="aiTag" class="ai-tag" style="display:none">AI &middot; validated</span>
         </div>
         <div class="why">
           <div class="k">WHY THIS MATTERS</div>
@@ -3770,6 +3772,41 @@ function trailText(bt, trail, otRuns, s){
   if (trail < 0) return nm + ' lead by ' + pl(-trail, 'run');
   return 'Scores level';
 }
+
+/* ---------------- grounded AI insight (M3 Section 5) ---------------- */
+var AI_CACHE = {}, AI_PENDING = {}, AI_OFF = false;
+function aiSituation(){
+  const s = st(), d = cur();
+  const bw = (s.bowlers && d && s.bowlers[d.bowlerKey]) || null;
+  return { format: MD.format, stage: MD.stage, battingTeam: batTeam().name, over: s.over + '.' + s.ball,
+    runs: s.runs, wickets: s.wickets, partnership: s.partnership,
+    batters: (s.batsmen || []).map(b => ({ name: b.name, runs: b.runs, balls: b.balls, onStrike: !!b.onStrike })),
+    bowler: bw ? { name: bw.name, wickets: bw.wickets, runs: bw.runs } : null,
+    lastBall: d ? (d.text || d.result || null) : null, complete: isComplete() };
+}
+function showAITag(on){ const t = $('aiTag'); if (t) t.style.display = on ? 'inline-block' : 'none'; }
+function aiKeyNow(){ const s = st(); return (MD.id || '') + '|' + MD.battingTeam + '|' + s.over; }
+function requestAIInsight(){
+  showAITag(false);
+  if (AI_OFF || !MD || !MD.teams) return;
+  const key = aiKeyNow();
+  if (AI_CACHE[key]){ typeInto($('aiInsight'), AI_CACHE[key]); showAITag(true); return; }
+  if (AI_PENDING[key]) return;
+  AI_PENDING[key] = true;
+  fetch('/api/insight', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ facts: collectFacts(), situation: aiSituation() }) })
+    .then(r => r.json())
+    .then(j => {
+      if (j && j.ok && j.text){
+        AI_CACHE[key] = j.text;
+        if (aiKeyNow() === key){ typeInto($('aiInsight'), j.text); showAITag(true); }
+      } else if (j && j.error === 'AI key not set'){ AI_OFF = true; }
+      else if (j && j.errors){ console.warn('AI insight rejected:', j.errors); }
+    })
+    .catch(() => { AI_OFF = true; })
+    .finally(() => { delete AI_PENDING[key]; });
+}
+try { var _baseUpdateAIInsight = updateAIInsight; updateAIInsight = function(){ _baseUpdateAIInsight(); requestAIInsight(); }; } catch (e) { console.warn('AI wrap', e); }
 
 /* ---------------- new feature renderers ---------------- */
 function renderRpo(){
