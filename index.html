@@ -2942,6 +2942,28 @@ function updateScore(){
       <div class="team-score ${hasSecondInnings ? 'multi-innings' : ''}">${hasSecondInnings
         ? formatInningsLines(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
         : `${formatInningsScore(first.total, first.wickets)}`}</div>`;
+  // Limited overs (T20/ODI): innings labels + batting order (first innings on top)
+  if (isLimitedOvers()){
+    const rows = $('teamRows');
+    const batRow = rows.querySelector('.team-row.bat'), doneRow = rows.querySelector('.team-row.done'), vsRow = rows.querySelector('.vs-rule');
+    const I = MD.innings || {};
+    const otSide = ot.key === MD.teams.home.key ? 'Home' : 'Away';
+    const otOvers = I['firstInnings' + otSide + 'Overs'];
+    const chase = Number(firstInnBowl) > 0;
+    const ov = s.over + '.' + s.ball;
+    const D = ' \u00b7 ';
+    const batSub = chase
+      ? (complete ? '2ND INNINGS' + D + ov + ' OV' : 'BATTING' + D + ov + ' OV' + D + 'TARGET ' + (Number(firstInnBowl) + 1))
+      : (complete ? '1ST INNINGS' + D + ov + ' OV' : 'BATTING' + D + ov + ' OV');
+    const othSub = chase ? ('1ST INNINGS' + (otOvers ? D + otOvers + ' OV' : '')) : 'YET TO BAT';
+    if (batRow) batRow.querySelector('.team-sub').textContent = batSub;
+    if (doneRow){
+      doneRow.querySelector('.team-sub').textContent = othSub;
+      if (chase) doneRow.querySelector('.team-score').textContent = formatInningsScore(firstInnBowl, firstInnBowlWk);
+      else doneRow.querySelector('.team-score').textContent = '\u2014';
+    }
+    if (chase && batRow && doneRow && vsRow){ rows.innerHTML = ''; rows.appendChild(doneRow); rows.appendChild(vsRow); rows.appendChild(batRow); }
+  }
 
   
   const trail = complete
@@ -2953,7 +2975,7 @@ function updateScore(){
       : otTotal > btTotal
         ? (MD.resultText || `${ot.name} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`)
         : 'Match tied'
-    : `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} trail by ${trail} run${trail === 1 ? '' : 's'}`;
+    : trailText(bt, trail, firstInnBowl, s);
 
   $('pshipV').innerHTML = MD.overs && MD.overs.length > 0 ? `${s.partnership.runs} <small>(${s.partnership.balls})</small>` : `${s.partnership.runs} <small>(${s.partnership.balls})</small> · Stats unavailable`;
   const ovs = s.over + s.ball / 6;
@@ -3720,6 +3742,34 @@ function runValidationDemo(){
   if (vo) vo.style.display = dev ? '' : 'none';
   if (idIn && idIn.parentElement) idIn.parentElement.style.display = dev ? 'flex' : 'none';
 })();
+
+/* ---------------- limited-overs detection (T20 / ODI / T10 / The Hundred) ---------------- */
+function isLimitedOvers(){ return /\b(T20|T10|ODI|LIST A|ONE.?DAY|50.?OVER|20.?OVER|HUNDRED)\b/i.test(String((MD && MD.format) || '')); }
+
+/* ---------------- trail / lead / chase line ---------------- */
+function maxOversFor(){
+  const f = String(MD.format || '').toUpperCase();
+  if (/T10/.test(f)) return 10;
+  if (/T20|20.?OVER/.test(f)) return 20;
+  if (/ODI|50.?OVER|ONE.?DAY|LIST A/.test(f)) return 50;
+  return 0;
+}
+function trailText(bt, trail, otRuns, s){
+  const nm = bt.name.charAt(0) + bt.name.slice(1).toLowerCase();
+  const pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  if (isLimitedOvers()){
+    if (!(Number(otRuns) > 0)) return nm + ' batting first';
+    const need = Number(otRuns) + 1 - Number(s.runs);
+    if (need <= 0) return nm + ' have reached the target';
+    const maxOv = maxOversFor();
+    if (!maxOv) return nm + ' need ' + pl(need, 'run');
+    const left = Math.max(0, maxOv * 6 - (s.over * 6 + s.ball));
+    return nm + ' need ' + pl(need, 'run') + ' from ' + pl(left, 'ball');
+  }
+  if (trail > 0) return nm + ' trail by ' + pl(trail, 'run');
+  if (trail < 0) return nm + ' lead by ' + pl(-trail, 'run');
+  return 'Scores level';
+}
 
 /* ---------------- new feature renderers ---------------- */
 function renderRpo(){

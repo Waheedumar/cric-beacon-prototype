@@ -64,3 +64,4 @@ Hypothesis: on the 2nd replay, the first frame gets a huge dt, so `trajAnim.t` j
 - DONE: fours reach rope, sixes land beyond rope
 - NEXT: Step 12 - real Sportmonks matches in 3D
 - WAITING: Shiyan's answer on AI integration scope
+- Section 7: test multi-innings scoring. All 5 mock matches are 1st innings only; check M2 test scripts, else add one finished Test mock with 2 innings per team (& layout)
