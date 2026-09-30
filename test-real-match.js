@@ -35,6 +35,182 @@ const LINES = { off: -0.42, fourth: -0.72, middle: 0.0, leg: 0.40, body: 0.12, w
 const GR = { rx: 66, rz: 73 };
 const STUMP_Z = 10.06;
 
+/* ===================================================================
+   inferDelivery — outcome + phase → {length, line, dir}
+   Only returns keys that exist in LENGTHS, LINES, SHOT_DIRS.
+   Seeded by ball id so same ball always replays identically.
+   =================================================================== */
+
+const LENGTH_KEYS = Object.keys(LENGTHS);        // ['yorker','full','good','short','bouncer']
+const LINE_KEYS   = Object.keys(LINES);          // ['off','fourth','middle','leg','body','wide']
+const DIR_KEYS    = Object.keys(SHOT_DIRS);      // ['cover','point',...]
+
+// Seeded random: xorshift32 from ball id
+function seededRandom(id) {
+  let x = (Number(id) || 1) >>> 0;
+  x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+  return (x >>> 0) / 4294967296;
+}
+
+// Phase from over.ball string like "18.3" → over number
+function getPhase(overBall) {
+  if (!overBall) return 'middle';
+  const over = Math.floor(Number(overBall));
+  if (over <= 6) return 'powerplay';
+  if (over >= 16) return 'death';
+  return 'middle';
+}
+
+function inferDelivery(smBall, context) {
+  // Priority: use real Sportmonks fields if present
+  const realLength = smBall.ball_type ? _mapBallType(smBall.ball_type) : null;
+  const realLine   = smBall.line      ? _mapLine(smBall.line)       : null;
+  const realDir    = smBall.direction ? _mapDirection(smBall.direction) : null;
+
+  // If all three present, nothing to infer
+  if (realLength && realLine && realDir) {
+    return { length: realLength, line: realLine, dir: realDir, inferred: false };
+  }
+
+  const scoreName = (smBall.score?.name || '').trim();
+  const runs = Number(smBall.score?.runs) || 0;
+  const isWide = smBall.score?.wide === 1 || /wide/i.test(scoreName);
+  const isNoBall = smBall.score?.noball === 1 || /no.?ball/i.test(scoreName);
+  const isBye = /bye/i.test(scoreName) && !isNoBall;
+  const isWicket = smBall.batsmanout_id != null;
+  const isFour = scoreName === 'FOUR' || runs === 4;
+  const isSix = scoreName === 'SIX' || runs === 6;
+  const isDot = scoreName === 'No Run' || (runs === 0 && !isWicket && !isWide && !isNoBall && !isBye);
+
+  const phase = getPhase(smBall.ball);  // e.g. "18.3"
+  const r = seededRandom(smBall.id);
+
+  // Start with nulls — we'll fill in missing ones
+  let length = realLength;
+  let line   = realLine;
+  let dir    = realDir;
+
+  // ---- LENGTH inference ----
+  if (!length) {
+    if (isWicket && (scoreName.includes('Bowled') || scoreName.includes('LBW'))) {
+      // Bowled/LBW → full or yorker
+      length = (phase === 'death' || r < 0.35) ? 'yorker' : 'full';
+    } else if (isWicket && scoreName.includes('Stump')) {
+      // Stumping → full
+      length = 'full';
+    } else if (isWide) {
+      length = 'full';  // wides tend to be fuller
+    } else if (isSix) {
+      length = r < 0.5 ? 'full' : 'short';
+    } else if (isFour) {
+      length = r < 0.4 ? 'full' : 'good';
+    } else if (isDot) {
+      length = phase === 'death' ? 'good' : (r < 0.5 ? 'good' : 'short');
+    } else {
+      // 1/2/3 runs, leg byes, etc.
+      if (phase === 'death') {
+        length = r < 0.6 ? 'full' : 'yorker';
+      } else if (phase === 'powerplay') {
+        length = r < 0.5 ? 'good' : 'full';
+      } else {
+        length = r < 0.6 ? 'good' : 'full';
+      }
+    }
+  }
+
+  // ---- LINE inference ----
+  if (!line) {
+    if (isWide) {
+      line = 'wide';
+    } else if (isWicket) {
+      if (scoreName.includes('Bowled') || scoreName.includes('LBW')) {
+        line = r < 0.6 ? 'middle' : 'off';
+      } else if (scoreName.includes('Catch') && (scoreName.includes('behind') || r < 0.3)) {
+        line = r < 0.5 ? 'off' : 'fourth';
+      } else if (scoreName.includes('Stump')) {
+        line = 'off';
+      } else if (scoreName.includes('Run Out')) {
+        line = r < 0.5 ? 'off' : 'middle';
+      } else {
+        line = 'off';
+      }
+    } else if (isSix) {
+      line = r < 0.4 ? 'middle' : (r < 0.7 ? 'off' : 'leg');
+    } else if (isFour) {
+      line = r < 0.4 ? 'off' : (r < 0.7 ? 'middle' : 'leg');
+    } else if (isDot) {
+      line = r < 0.4 ? 'off' : (r < 0.7 ? 'middle' : 'leg');
+    } else {
+      line = r < 0.5 ? 'off' : 'middle';
+    }
+  }
+
+  // ---- DIR inference ----
+  if (!dir) {
+    if (isWicket) {
+      if (scoreName.includes('Catch')) {
+        // Caught behind → keeper/slip, elsewhere → infield/outfield
+        if (r < 0.4 || scoreName.includes('behind')) {
+          dir = r < 0.5 ? 'keeper' : 'slip';
+        } else {
+          dir = DIR_KEYS[Math.floor(r * DIR_KEYS.length)];
+        }
+      } else if (scoreName.includes('Bowled') || scoreName.includes('LBW') || scoreName.includes('Stump')) {
+        dir = null;  // no shot direction for bowled/lbw/stumped
+      } else if (scoreName.includes('Run Out')) {
+        dir = DIR_KEYS[Math.floor(r * DIR_KEYS.length)];
+      } else {
+        dir = null;
+      }
+    } else if (isSix) {
+      dir = r < 0.3 ? 'long-on' : (r < 0.55 ? 'midwicket' : (r < 0.75 ? 'long-off' : 'straight'));
+    } else if (isFour) {
+      dir = r < 0.25 ? 'cover' : (r < 0.45 ? 'midwicket' : (r < 0.65 ? 'point' : (r < 0.85 ? 'square-leg' : 'third-man')));
+    } else if (isDot) {
+      // Dot balls — often soft hands into infield or no shot
+      dir = r < 0.6 ? null : DIR_KEYS[Math.floor(r * DIR_KEYS.length)];
+    } else if (isWide || isNoBall) {
+      dir = null;
+    } else {
+      // 1/2/3 runs, leg byes
+      dir = DIR_KEYS[Math.floor(r * DIR_KEYS.length)];
+    }
+  }
+
+  return { length, line, dir, inferred: true };
+}
+
+// Mapping helpers (copied from sportmonksAdapter.js to avoid dependency)
+function _mapBallType(bt) {
+  if (!bt) return null;
+  const BALL_TYPE_MAP = {
+    '0': 'yorker', '1': 'full', '2': 'good', '3': 'short', '4': 'bouncer',
+    yorker: 'yorker', full: 'full', good: 'good', short: 'short', bouncer: 'bouncer',
+  };
+  const mapped = BALL_TYPE_MAP[String(bt).toLowerCase()];
+  return LENGTH_KEYS.includes(mapped) ? mapped : null;
+}
+
+function _mapLine(line) {
+  if (!line) return null;
+  const l = String(line).toLowerCase();
+  const map = { off:'off', fourth:'fourth', middle:'middle', leg:'leg', body:'body', wide:'wide' };
+  return LINE_KEYS.includes(map[l]) ? map[l] : null;
+}
+
+function _mapDirection(dir) {
+  if (!dir) return null;
+  const d = String(dir).toLowerCase();
+  const map = {
+    cover:'cover', point:'point', 'third man':'third-man', 'third-man':'third-man',
+    'mid-off':'mid-off', 'long off':'long-off', 'long-off':'long-off',
+    straight:'straight', 'long on':'long-on', 'long-on':'long-on',
+    'mid-on':'mid-on', midwicket:'midwicket', 'square leg':'square-leg', 'square-leg':'square-leg',
+    'fine leg':'fine-leg', 'fine-leg':'fine-leg', keeper:'keeper', slip:'slip',
+  };
+  return DIR_KEYS.includes(map[d]) ? map[d] : null;
+}
+
 function quad(p0, p1, p2, n) {
   const pts = [];
   for (let i = 0; i <= n; i++) {
@@ -169,6 +345,12 @@ async function run() {
   let unmappedCount = 0;
   const unmappedDetails = [];
 
+  // Distribution counters for length / line / dir (after adapter)
+  const lenDist = {};
+  const lineDist = {};
+  const dirDist = {};
+  const extraDist = {};
+
   let prevWasNoBall = false;
 
   for (const smBall of fixtureData.balls) {
@@ -213,6 +395,15 @@ async function run() {
       runs: tuple[0],
       dismissed: !!tuple[1]
     };
+
+    // Record distribution (after adapter)
+    const lenKey = d.length === null || d.length === undefined ? '(null)' : d.length;
+    const lineKey = d.line === null || d.line === undefined ? '(null)' : d.line;
+    const dirKey = d.dir === null || d.dir === undefined ? '(null)' : d.dir;
+    lenDist[lenKey] = (lenDist[lenKey] || 0) + 1;
+    lineDist[lineKey] = (lineDist[lineKey] || 0) + 1;
+    dirDist[dirKey] = (dirDist[dirKey] || 0) + 1;
+    if (normResult.extraType) extraDist[normResult.extraType] = (extraDist[normResult.extraType] || 0) + 1;
 
     // Test trajectory
     try {
@@ -271,7 +462,14 @@ async function run() {
     }
   }
 
-  // 7. Report
+  // 7. Distribution report
+  console.log('\n📈 DISTRIBUTION (after adapter):');
+  console.log('   Length:', Object.entries(lenDist).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join(' '));
+  console.log('   Line:  ', Object.entries(lineDist).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join(' '));
+  console.log('   Dir:   ', Object.entries(dirDist).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join(' '));
+  console.log('   Extra: ', Object.entries(extraDist).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join(' '));
+
+  // 8. Report
   console.log('\n' + '='.repeat(60));
   console.log('📊 SUMMARY');
   console.log('='.repeat(60));
