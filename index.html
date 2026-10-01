@@ -4,15 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="icon" href="data:," />
-<title>Cric Beacon â€” 3D + AI Cricket Intelligence (Prototype)</title>
-<meta name="description" content="Cric Beacon prototype â€” data-driven 3D cricket ground, ball tracking and explainable AI match intelligence. Demo build with mock data." />
+<title>Cric Beacon — 3D + AI Cricket Intelligence (Prototype)</title>
+<meta name="description" content="Cric Beacon prototype — data-driven 3D cricket ground, ball tracking and explainable AI match intelligence. Demo build with mock data." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   CRIC BEACON â€” design tokens
-   Palette: "Stadium Lights" â€” cool near-black with floodlight blue & ball orange
+   CRIC BEACON — design tokens
+   Palette: "Stadium Lights" — cool near-black with floodlight blue & ball orange
    ============================================================ */
 :root{
   --color-bg:#0A0E1A;
@@ -250,7 +250,7 @@ button{font-family:inherit;color:inherit;}
 .ball-readout div{display:flex;align-items:center;gap:4px;padding:0;}
 .ball-readout label{display:inline;font-size:6.5px;letter-spacing:.12em;color:var(--color-muted);font-weight:700;margin:0;}
 .ball-readout .v{font-family:'JetBrains Mono';font-size:11px;font-weight:700;white-space:nowrap;}
-.ball-readout > div:not(:last-child)::after{content:"Â·";color:rgba(255,255,255,.25);font-size:10px;margin-left:8px;}
+.ball-readout > div:not(:last-child)::after{content:"·";color:rgba(255,255,255,.25);font-size:10px;margin-left:8px;}
 .ball-readout .v.gold{color:var(--color-accent-2);}
 .ball-readout .v.red{color:#FCA5A5;}
 .ball-readout .v.amber{color:var(--color-warning);}
@@ -633,7 +633,7 @@ button{font-family:inherit;color:inherit;}
   <!-- ============ LEFT ============ -->
   <div class="col left">
     <section class="panel sec-anchor" id="live">
-      <div class="panel-h"><h3>Live Score</h3><span class="tag amber" id="dayTag">DAY 3 Â· S2</span></div>
+      <div class="panel-h"><h3>Live Score</h3><span class="tag amber" id="dayTag">DAY 3 · S2</span></div>
       <div class="panel-b">
         <div class="score-meta" id="scoreMeta"></div>
         <div id="teamRows"></div>
@@ -671,8 +671,8 @@ button{font-family:inherit;color:inherit;}
 
     <section class="panel">
       <div class="venue-hero">
-        <h4 id="venueName">â€”</h4>
-        <p id="venueLoc">â€”</p>
+        <h4 id="venueName">—</h4>
+        <p id="venueLoc">—</p>
       </div>
       <div class="venue-grid" id="venueGrid"></div>
       <div style="padding:10px 13px"><span class="tag">MATCH CONDITIONS</span></div>
@@ -687,8 +687,8 @@ button{font-family:inherit;color:inherit;}
       <div class="hud">
         <div class="hud-top">
           <div class="glass match-strip">
-            <div class="t" id="hudScore">â€”</div>
-            <div class="s" id="hudSub">â€”</div>
+            <div class="t" id="hudScore">—</div>
+            <div class="s" id="hudSub">—</div>
           </div>
           <div class="cam-btns">
             <button class="cbtn on" data-cam="broadcast">RESET VIEW</button>
@@ -705,7 +705,7 @@ button{font-family:inherit;color:inherit;}
           <button class="btn" id="btnReplay">REPLAY</button>
         </div>
       </div>
-      <div class="loading" id="loader"><div><div class="spin"></div><p>BUILDING 3D GROUNDâ€¦</p></div></div>
+      <div class="loading" id="loader"><div><div class="spin"></div><p>BUILDING 3D GROUND…</p></div></div>
     </section>
     <p class="proc-note" id="procNote3d">&#9432; Procedural visualization &mdash; trajectories are generated from match data, not real ball-tracking.</p>
     <p class="proc-note sim-note" id="simNote" style="display:none">&#9679; SIMULATED LIVE &mdash; recorded match data is replayed ball by ball through the normalized data model, as if live.</p>
@@ -714,7 +714,7 @@ button{font-family:inherit;color:inherit;}
     <div id="valOut"></div>
 
     <section class="panel delivery-panel">
-      <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">â€”</span></div>
+      <div class="panel-h"><h3>Delivery</h3><span class="tag green" id="deliveryTag">—</span></div>
       <div class="delivery-card" id="deliveryCard"></div>
       <div class="commentary" id="commentary"></div>
     </section>
@@ -723,20 +723,20 @@ button{font-family:inherit;color:inherit;}
       <div class="panel-h"><h3>Ball-by-Ball Timeline</h3><span class="tag">CLICK ANY BALL</span></div>
       <div class="panel-b">
         <div class="over-tabs" id="overTabs"></div>
-        <div class="timeline-row"><span class="tl-label" id="tlLabel">OVER â€”</span><div class="timeline-row" id="tlBalls"></div></div>
+        <div class="timeline-row"><span class="tl-label" id="tlLabel">OVER —</span><div class="timeline-row" id="tlBalls"></div></div>
         <p class="tl-hint">Selecting a ball re-drives the 3D scene, score panel and AI model from that delivery's record in the match JSON.</p>
         <div class="btn-row" style="margin-top:14px">
-          <button class="btn" id="btnPrev">â—€ LAST BALL</button>
-          <button class="btn btn-amber" id="btnNext">NEXT BALL â–¶</button>
-          <button class="btn" id="btnPlay">â–¶ PLAY OVER</button>
+          <button class="btn" id="btnPrev">◀ LAST BALL</button>
+          <button class="btn btn-amber" id="btnNext">NEXT BALL ▶</button>
+          <button class="btn" id="btnPlay">▶ PLAY OVER</button>
           <button class="btn" id="btnSimLive">&#9679; SIMULATED LIVE</button>
-          <button class="btn" id="btnPause">âšâš PAUSE</button>
+          <button class="btn" id="btnPause">❚❚ PAUSE</button>
         </div>
       </div>
     </section>
 
     <section class="panel">
-      <div class="panel-h"><h3>Last Shot Analysis</h3><span class="tag amber" id="lsaTag">â€”</span></div>
+      <div class="panel-h"><h3>Last Shot Analysis</h3><span class="tag amber" id="lsaTag">—</span></div>
       <div class="panel-b">
         <div class="last-shot-grid" id="lsaGrid"></div>
         <div class="mini-replay" id="lsaReplay"></div>
@@ -767,11 +767,11 @@ button{font-family:inherit;color:inherit;}
       <div class="panel-b">
         <div class="prob-wrap">
           <div class="prob-nums">
-            <div class="side"><span class="lbl">PAKISTAN</span><span class="num pak" id="probPak">â€”</span></div>
-            <div class="side r"><span class="lbl">ENGLAND</span><span class="num eng" id="probEng">â€”</span></div>
+            <div class="side"><span class="lbl">PAKISTAN</span><span class="num pak" id="probPak">—</span></div>
+            <div class="side r"><span class="lbl">ENGLAND</span><span class="num eng" id="probEng">—</span></div>
           </div>
           <div class="prob-bar"><i class="p" id="barPak"></i><i class="e" id="barEng"></i></div>
-          <div class="prob-delta"><span id="probDelta">â€”</span><span id="probStamp">â€”</span></div>
+          <div class="prob-delta"><span id="probDelta">—</span><span id="probStamp">—</span></div>
         </div>
         <div class="insight">
           <div class="k">AI INSIGHT</div>
@@ -801,12 +801,12 @@ button{font-family:inherit;color:inherit;}
     </section>
 
     <section class="panel sec-anchor" id="players">
-      <div class="panel-h"><h3>Player Intelligence</h3><span class="tag" id="plTag">â€”</span></div>
+      <div class="panel-h"><h3>Player Intelligence</h3><span class="tag" id="plTag">—</span></div>
       <div class="panel-b">
         <div class="pl-tabs" id="plTabs"></div>
         <div class="pl-hero">
-          <div><div class="nm" id="plName">â€”</div><div class="rl" id="plRole">â€”</div></div>
-          <div class="big" id="plBig">â€”</div>
+          <div><div class="nm" id="plName">—</div><div class="rl" id="plRole">—</div></div>
+          <div class="big" id="plBig">—</div>
         </div>
         <div class="pl-stats" id="plStats"></div>
         <div class="meters" id="plMeters"></div>
@@ -826,26 +826,26 @@ button{font-family:inherit;color:inherit;}
     <div class="modal-h">
       <div class="orb"></div>
       <h3>Why did win probability change?</h3>
-      <button class="x" id="whyClose" aria-label="Close">âœ•</button>
+      <button class="x" id="whyClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-b" id="whyBody"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="proto" id="protoLabel">PROTOTYPE â€¢ MOCK DATA</div>
+<div class="proto" id="protoLabel">PROTOTYPE • MOCK DATA</div>
 
 <div class="player-card" id="playerCard" role="dialog" aria-modal="true" aria-label="Player info">
-  <button class="pc-close" id="pcClose" aria-label="Close">âœ•</button>
+  <button class="pc-close" id="pcClose" aria-label="Close">✕</button>
   <div class="pc-head">
     <div class="pc-avatar" id="pcAvatar">?</div>
     <div class="pc-info">
-      <div class="nm" id="pcName">â€”</div>
-      <div class="rl" id="pcRole">â€”</div>
+      <div class="nm" id="pcName">—</div>
+      <div class="rl" id="pcRole">—</div>
     </div>
   </div>
   <div class="pc-stats" id="pcStats"></div>
-  <div style="font-size:10px;color:var(--color-muted);letter-spacing:.06em;text-align:center">Stylized silhouette â€” no real likeness</div>
+  <div style="font-size:10px;color:var(--color-muted);letter-spacing:.06em;text-align:center">Stylized silhouette — no real likeness</div>
 </div>
 
 <script src="lib/aiValidator.js"></script>
@@ -864,12 +864,12 @@ import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 const trajLinePx = () => (window.innerWidth < 768 ? 3.5 : 2);
 
 /* ==================================================================
-   1. DATA LAYER  â€”  THE API SEAM
+   1. DATA LAYER  —  THE API SEAM
    ------------------------------------------------------------------
    Everything below is MOCK DATA shaped exactly like the normalized
    match document the production pipeline would emit:
 
-       cricket API  â†’  normalizeMatch()  â†’  matchData  â†’  3D engine
+       cricket API  →  normalizeMatch()  →  matchData  →  3D engine
 
    The 3D engine + UI read ONLY from `matchData` (built by loadMatch).
    Swapping MOCK_MATCHES for `await fetch(...).then(normalizeMatch)`
@@ -893,7 +893,7 @@ const SHOT_DIRS = {
 };
 
 // z = world coordinate of the bounce mark; rise = height at the batter (metres)
-// striker's stumps sit at z = +10.06, bowler releases from z â‰ˆ -9.4
+// striker's stumps sit at z = +10.06, bowler releases from z ≈ -9.4
 const LENGTHS = {
   yorker : { z: 9.30, rise:0.30, label:'Yorker' },
   full   : { z: 7.30, rise:0.52, label:'Full' },
@@ -932,19 +932,19 @@ const FIELD_ATTACKING = [
 ];
 
 /* ---- match constants ---- */
-const STUMP_Z = 10.06;   // used inside MOCK_MATCHES â€” must be declared first
+const STUMP_Z = 10.06;   // used inside MOCK_MATCHES — must be declared first
 
 /* ---- ball tuple: [runs, wicket|null, speed, length, line, dir|null, text] ---- */
 const MOCK_MATCHES = {
    lords: {
     id:'lords',
-    label:'PAK v ENG Â· Lord\'s',
+    label:'PAK v ENG · Lord's',
     format:'Test Match',
-    stage:'Day 3 â€” Session 2',
-    venue:{ name:'Lord\'s Cricket Ground', city:'London, England', pitch:'Balanced', weather:'Cloudy', temp:'18Â°C', wind:'14 km/h', boundary:'66 m Ã— 73 m', floodlights:true },
+    stage:'Day 3 — Session 2',
+    venue:{ name:'Lord's Cricket Ground', city:'London, England', pitch:'Balanced', weather:'Cloudy', temp:'18°C', wind:'14 km/h', boundary:'66 m × 73 m', floodlights:true },
     theme:{ grassA:4811084, grassB:2592322, outfield:2239819, pitch:13012734, skyTop:664814, skyBot:1901130, stand:2191971, seat:2232120, night:false },
     teams:{
-      home:{ key:'pak', name:'PAKISTAN', short:'PAK', flag:'ðŸ‡µðŸ‡°', kit:24767070, cap:1315860,
+      home:{ key:'pak', name:'PAKISTAN', short:'PAK', flag:'🇵🇰', kit:24767070, cap:1315860,
         players:[
       { id:'p1', name:'Imam-ul-Haq', role:'Opener', pos:{x: 0.62, z: 10.61}, stats:{ runs:38,balls:62,fours:4,sixes:0,sr:61.3 } },
       { id:'p2', name:'Babar Azam', role:'Opener', pos:{x: -0.62, z: 9.44}, stats:{ runs:75,balls:127,fours:7,sixes:0,sr:59.1 } },
@@ -953,7 +953,7 @@ const MOCK_MATCHES = {
       { id:'p5', name:'Salman Ali Agha', role:'All-rounder', pos:{x: 18, z: 8}, stats:{ runs:12,balls:24,fours:1,sixes:0,sr:50 } }
       ]
       },
-      away:{ key:'eng', name:'ENGLAND', short:'ENG', flag:'ðŸ´', kit:24502782, cap:2302799,
+      away:{ key:'eng', name:'ENGLAND', short:'ENG', flag:'🏴', kit:24502782, cap:2302799,
         players:[
       { id:'e1', name:'Mark Wood', role:'Fast Bowler', pos:{x: 0.35, z: -12.26}, stats:{ overs:19,maidens:4,runs:52,wickets:3,econ:2.74 } },
       { id:'e2', name:'Gus Atkinson', role:'Seam All-rounder', pos:{x: 0, z: 0}, stats:{ overs:16,maidens:2,runs:59,wickets:2,econ:3.69 } },
@@ -962,24 +962,24 @@ const MOCK_MATCHES = {
       }
     },
     battingTeam:'undefined',
-    innings:{current:'Pakistan 2nd innings equivalent â€” demo', firstInnings:{"team":"eng","total":342,"wickets":10}, secondInnings:{"home":{"runs":287,"wickets":8,"declared":false},"away":{"runs":280,"wickets":5,"declared":true}}},
+    innings:{current:'Pakistan 2nd innings equivalent — demo', firstInnings:{"team":"eng","total":342,"wickets":10}, secondInnings:{"home":{"runs":287,"wickets":8,"declared":false},"away":{"runs":280,"wickets":5,"declared":true}}},
     field:{ standard:FIELD_STANDARD, attacking:FIELD_ATTACKING },
     perOverRuns:{"home":[3,5,2,7,1,4,6,2,3,5,4,3,2,1,0,4,5,3,2,1,3,4,2,5,1,3,4,2,0,1,3,2,4,1,3,2,5,1,2,3,4,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6],"away":[2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4]},
     ai:{"current":{"away":62},"baseline":{"away":58,"over":69},"projected":{"from":341,"to":309},"newBallOver":80,"rr10":2.41,"lastWicket":{"text":"Saud Shakeel c Smith b Wood 34","over":"58.2"}},
     momentumHistory:[{"over":69,"away":54,"rr":3.1,"w":0,"p":52},{"over":70,"away":57,"rr":2.9,"w":0,"p":56},{"over":71,"away":61,"rr":2.6,"w":0,"p":63},{"over":72,"away":64,"rr":2.3,"w":0,"p":69},{"over":73,"away":66,"rr":2.1,"w":0,"p":72},{"over":74,"away":63,"rr":2.4,"w":0,"p":66}],
     start:{"runs":260,"wickets":6,"over":74,"ball":6,"batsmen":[{"name":"Babar Azam","short":"BABAR","runs":75,"balls":127,"fours":7,"sixes":0,"onStrike":true,"form":8,"pressure":6},{"name":"Mohammad Rizwan","short":"RIZWAN","runs":30,"balls":53,"fours":2,"sixes":0,"onStrike":false,"form":7,"pressure":5}],"partnership":{"runs":52,"balls":100},"bowlers":{"wood":{"name":"Mark Wood","style":"Right-arm fast","overs":19,"maidens":4,"runs":52,"wickets":3},"atkinson":{"name":"Gus Atkinson","style":"Right-arm fast-medium","overs":16,"maidens":2,"runs":59,"wickets":2}},"toCome":["Salman Ali Agha","Aamer Jamal","Shaheen Afridi","Abrar Ahmed"]},
-    overs:[{"over":75,"bowler":"atkinson","balls":[[0,null,138,"good","off",null,"Pushed forward, dead bat. Nothing on offer."],[1,null,136,"good","middle","mid-on","Worked off the hip to mid-on, easy single."],[4,null,141,"short","leg","midwicket","FOUR â€” short and pulled hard through midwicket. Beautifully timed."],[0,null,139,"full","off",null,"Driven straight to cover, no run."],[0,null,137,"good","fourth",null,"Beaten outside off. That one held its line."],[1,null,140,"good","middle","square-leg","Tucked square for one to keep the strike rotating."]],"momentum":{"away":60,"rr":2.4,"w":0,"p":64}},{"over":76,"bowler":"wood","balls":[[1,null,148,"good","off","cover","Punched off the back foot to cover for one."],[0,null,150,"bouncer","body",null,"150 km/h bouncer â€” ducked underneath it. Serious pace."],[0,null,147,"good","fourth",null,"Defended into the pitch with soft hands."],[2,null,146,"full","middle","long-on","Driven down the ground, two runs to long-on."],[0,null,149,"good","off",null,"Left alone on length. Good judgement."],[1,null,145,"good","middle","fine-leg","Nudged fine for a single, over survived."]],"momentum":{"away":58,"rr":2.5,"w":0,"p":61}},{"over":77,"bowler":"atkinson","balls":[[0,null,138,"good","off",null,"Solid defence, right behind the line."],[1,null,137,"full","middle","mid-off","Pushed to mid-off and they scamper one."],[0,null,139,"good","fourth",null,"Played and missed â€” the ball did just enough."],[4,null,135,"full","leg","midwicket","FOUR â€” overpitched on the pads and clipped away."],[1,null,140,"good","middle","third-man","Dabbed late down to third man for one."],[0,null,141,"short","off",null,"Cut hard but straight to point. Well stopped."]],"momentum":{"away":56,"rr":2.6,"w":0,"p":58}},{"over":78,"bowler":"wood","balls":[[1,null,146,"good","middle","square-leg","Turned off the pads for a single."],[0,null,149,"bouncer","body",null,"Another bouncer, evaded well. Wood is bending his back."],[4,null,142,"good","off","cover","FOUR â€” driven on the up through extra cover. Shot of the session."],[0,null,150,"good","fourth",null,"Beaten. 150 km/h and it zipped past the outside edge."],[2,null,147,"full","middle","long-off","Driven wide of long-off, comfortable two."],[1,null,148,"good","leg","fine-leg","Glanced fine to end the over with a single."]],"momentum":{"away":59,"rr":2.4,"w":0,"p":62}},{"over":79,"bowler":"atkinson","upcoming":true,"balls":[[0,null,139,"good","off",null,"Defended solidly, nothing doing."],[1,null,137,"good","middle","mid-on","Nudged into the leg side for one."],[4,null,136,"full","leg","midwicket","FOUR â€” flicked off the pads, races to the rope."],[0,"Mohammad Rizwan c Root b Atkinson 46",141,"good","fourth","slip","WICKET â€” squared up outside off, thick edge, brilliant low catch at slip."],[0,null,138,"good","off",null,"New batter defends off the back foot. Watchful start."],[2,null,140,"full","middle","long-off","Driven to long-off for two to close the over."]],"momentum":{"away":72,"rr":2.5,"w":1,"p":81}}]
+    overs:[{"over":75,"bowler":"atkinson","balls":[[0,null,138,"good","off",null,"Pushed forward, dead bat. Nothing on offer."],[1,null,136,"good","middle","mid-on","Worked off the hip to mid-on, easy single."],[4,null,141,"short","leg","midwicket","FOUR — short and pulled hard through midwicket. Beautifully timed."],[0,null,139,"full","off",null,"Driven straight to cover, no run."],[0,null,137,"good","fourth",null,"Beaten outside off. That one held its line."],[1,null,140,"good","middle","square-leg","Tucked square for one to keep the strike rotating."]],"momentum":{"away":60,"rr":2.4,"w":0,"p":64}},{"over":76,"bowler":"wood","balls":[[1,null,148,"good","off","cover","Punched off the back foot to cover for one."],[0,null,150,"bouncer","body",null,"150 km/h bouncer — ducked underneath it. Serious pace."],[0,null,147,"good","fourth",null,"Defended into the pitch with soft hands."],[2,null,146,"full","middle","long-on","Driven down the ground, two runs to long-on."],[0,null,149,"good","off",null,"Left alone on length. Good judgement."],[1,null,145,"good","middle","fine-leg","Nudged fine for a single, over survived."]],"momentum":{"away":58,"rr":2.5,"w":0,"p":61}},{"over":77,"bowler":"atkinson","balls":[[0,null,138,"good","off",null,"Solid defence, right behind the line."],[1,null,137,"full","middle","mid-off","Pushed to mid-off and they scamper one."],[0,null,139,"good","fourth",null,"Played and missed — the ball did just enough."],[4,null,135,"full","leg","midwicket","FOUR — overpitched on the pads and clipped away."],[1,null,140,"good","middle","third-man","Dabbed late down to third man for one."],[0,null,141,"short","off",null,"Cut hard but straight to point. Well stopped."]],"momentum":{"away":56,"rr":2.6,"w":0,"p":58}},{"over":78,"bowler":"wood","balls":[[1,null,146,"good","middle","square-leg","Turned off the pads for a single."],[0,null,149,"bouncer","body",null,"Another bouncer, evaded well. Wood is bending his back."],[4,null,142,"good","off","cover","FOUR — driven on the up through extra cover. Shot of the session."],[0,null,150,"good","fourth",null,"Beaten. 150 km/h and it zipped past the outside edge."],[2,null,147,"full","middle","long-off","Driven wide of long-off, comfortable two."],[1,null,148,"good","leg","fine-leg","Glanced fine to end the over with a single."]],"momentum":{"away":59,"rr":2.4,"w":0,"p":62}},{"over":79,"bowler":"atkinson","upcoming":true,"balls":[[0,null,139,"good","off",null,"Defended solidly, nothing doing."],[1,null,137,"good","middle","mid-on","Nudged into the leg side for one."],[4,null,136,"full","leg","midwicket","FOUR — flicked off the pads, races to the rope."],[0,"Mohammad Rizwan c Root b Atkinson 46",141,"good","fourth","slip","WICKET — squared up outside off, thick edge, brilliant low catch at slip."],[0,null,138,"good","off",null,"New batter defends off the back foot. Watchful start."],[2,null,140,"full","middle","long-off","Driven to long-off for two to close the over."]],"momentum":{"away":72,"rr":2.5,"w":1,"p":81}}]
   },
 
    galle: {
     id:'galle',
-    label:'IND v SA Â· Galle',
+    label:'IND v SA · Galle',
     format:'Test Match',
-    stage:'Day 2 â€” Session 1',
-    venue:{ name:'Galle International Stadium', city:'Galle, Sri Lanka', pitch:'Dry, turning', weather:'Hazy sun', temp:'31Â°C', wind:'9 km/h', boundary:'62 m Ã— 68 m', floodlights:false },
+    stage:'Day 2 — Session 1',
+    venue:{ name:'Galle International Stadium', city:'Galle, Sri Lanka', pitch:'Dry, turning', weather:'Hazy sun', temp:'31°C', wind:'9 km/h', boundary:'62 m × 68 m', floodlights:false },
     theme:{ grassA:3740479, grassB:3095352, outfield:2883125, pitch:13844748, skyTop:2762982, skyBot:7226528, stand:1782062, seat:2893104, night:false },
     teams:{
-      home:{ key:'ind', name:'INDIA', short:'IND', flag:'ðŸ‡®ðŸ‡³', kit:1799608, cap:1195142,
+      home:{ key:'ind', name:'INDIA', short:'IND', flag:'🇮🇳', kit:1799608, cap:1195142,
         players:[
       { id:'i1', name:'Yashasvi Jaiswal', role:'Opener', pos:{x: 0.62, z: 10.61}, stats:{ runs:74,balls:122,fours:9,sixes:2,sr:60.7 } },
       { id:'i2', name:'Rohit Sharma', role:'Opener', pos:{x: -0.62, z: 9.44}, stats:{ runs:31,balls:67,fours:4,sixes:0,sr:46.3 } },
@@ -988,7 +988,7 @@ const MOCK_MATCHES = {
       { id:'i5', name:'Ravindra Jadeja', role:'All-rounder', pos:{x: 18, z: 8}, stats:{ runs:8,balls:18,fours:1,sixes:0,sr:44.4 } }
       ]
       },
-      away:{ key:'sa', name:'SOUTH AFRICA', short:'SA', flag:'ðŸ‡¿ðŸ‡¦', kit:1613662, cap:13365543,
+      away:{ key:'sa', name:'SOUTH AFRICA', short:'SA', flag:'🇿🇦', kit:1613662, cap:13365543,
         players:[
       { id:'s1', name:'Keshav Maharaj', role:'Spin Bowler', pos:{x: 0.35, z: -12.26}, stats:{ overs:24,maidens:5,runs:82,wickets:2,econ:3.42 } },
       { id:'s2', name:'Marco Jansen', role:'Seam All-rounder', pos:{x: 0, z: 0}, stats:{ overs:15,maidens:3,runs:48,wickets:1,econ:3.2 } },
@@ -1003,18 +1003,18 @@ const MOCK_MATCHES = {
     ai:{"current":{"away":26},"baseline":{"away":34,"over":56},"projected":{"from":352,"to":388},"newBallOver":80,"rr10":4.05,"lastWicket":{"text":"Yashasvi Jaiswal st de Kock b Maharaj 74","over":"55.4"}},
     momentumHistory:[{"over":56,"away":34,"rr":3.4,"w":1,"p":48},{"over":57,"away":32,"rr":3.6,"w":0,"p":44},{"over":58,"away":31,"rr":3.8,"w":0,"p":41},{"over":59,"away":30,"rr":3.9,"w":0,"p":39},{"over":60,"away":29,"rr":4,"w":0,"p":36},{"over":61,"away":28,"rr":4.1,"w":0,"p":34}],
     start:{"runs":294,"wickets":4,"over":61,"ball":6,"batsmen":[{"name":"Shubman Gill","short":"GILL","runs":88,"balls":131,"fours":9,"sixes":1,"onStrike":true,"form":9,"pressure":3},{"name":"Rishabh Pant","short":"PANT","runs":43,"balls":47,"fours":5,"sixes":1,"onStrike":false,"form":8,"pressure":4}],"partnership":{"runs":71,"balls":82},"bowlers":{"maharaj":{"name":"Keshav Maharaj","style":"Left-arm orthodox","overs":24,"maidens":5,"runs":82,"wickets":2},"jansen":{"name":"Marco Jansen","style":"Left-arm fast-medium","overs":15,"maidens":3,"runs":48,"wickets":1}},"toCome":["Ravindra Jadeja","KL Rahul","R Ashwin"]},
-    overs:[{"over":62,"bowler":"maharaj","balls":[[1,null,88,"good","off","cover","Pushed to cover off the front foot for one."],[0,null,86,"good","middle",null,"Defended, big turn from the rough."],[4,null,84,"short","leg","square-leg","FOUR â€” dropped short and swept fine to the rope."],[2,null,89,"full","middle","long-on","Driven inside-out down the ground for two."],[0,null,87,"good","off",null,"Beaten in the flight, no shot offered."],[1,null,90,"good","leg","midwicket","Worked to midwicket for a single."]],"momentum":{"away":27,"rr":4.1,"w":0,"p":33}},{"over":63,"bowler":"jansen","upcoming":true,"balls":[[0,null,137,"good","fourth",null,"Left on length outside off."],[6,null,133,"full","leg","midwicket","SIX â€” picked the length early and cleared midwicket."],[1,null,140,"good","middle","mid-on","Punched to mid-on for one."],[0,null,142,"bouncer","body",null,"Bouncer, swayed out of the way."],[4,null,138,"full","off","cover","FOUR â€” driven crisply through extra cover."],[1,null,139,"good","middle","square-leg","Tucked away for a single to finish."]],"momentum":{"away":24,"rr":4.3,"w":0,"p":29}}]
+    overs:[{"over":62,"bowler":"maharaj","balls":[[1,null,88,"good","off","cover","Pushed to cover off the front foot for one."],[0,null,86,"good","middle",null,"Defended, big turn from the rough."],[4,null,84,"short","leg","square-leg","FOUR — dropped short and swept fine to the rope."],[2,null,89,"full","middle","long-on","Driven inside-out down the ground for two."],[0,null,87,"good","off",null,"Beaten in the flight, no shot offered."],[1,null,90,"good","leg","midwicket","Worked to midwicket for a single."]],"momentum":{"away":27,"rr":4.1,"w":0,"p":33}},{"over":63,"bowler":"jansen","upcoming":true,"balls":[[0,null,137,"good","fourth",null,"Left on length outside off."],[6,null,133,"full","leg","midwicket","SIX — picked the length early and cleared midwicket."],[1,null,140,"good","middle","mid-on","Punched to mid-on for one."],[0,null,142,"bouncer","body",null,"Bouncer, swayed out of the way."],[4,null,138,"full","off","cover","FOUR — driven crisply through extra cover."],[1,null,139,"good","middle","square-leg","Tucked away for a single to finish."]],"momentum":{"away":24,"rr":4.3,"w":0,"p":29}}]
   },
 
    mcg: {
     id:'mcg',
-    label:'AUS v NZ Â· MCG',
+    label:'AUS v NZ · MCG',
     format:'Test Match',
-    stage:'Day 2 â€” Session 3',
-    venue:{ name:'Melbourne Cricket Ground', city:'Melbourne, Australia', pitch:'Hard, true bounce', weather:'Clear, floodlit', temp:'21Â°C', wind:'18 km/h', boundary:'71 m Ã— 78 m', floodlights:true },
+    stage:'Day 2 — Session 3',
+    venue:{ name:'Melbourne Cricket Ground', city:'Melbourne, Australia', pitch:'Hard, true bounce', weather:'Clear, floodlit', temp:'21°C', wind:'18 km/h', boundary:'71 m × 78 m', floodlights:true },
     theme:{ grassA:2788613, grassB:2257340, outfield:2050870, pitch:12542167, skyTop:67601, skyBot:721414, stand:1122324, seat:1878316, night:true },
     teams:{
-      home:{ key:'aus', name:'AUSTRALIA', short:'AUS', flag:'ðŸ‡¦ðŸ‡º', kit:1007165, cap:14652474,
+      home:{ key:'aus', name:'AUSTRALIA', short:'AUS', flag:'🇦🇺', kit:1007165, cap:14652474,
         players:[
       { id:'a1', name:'Usman Khawaja', role:'Opener', pos:{x: 0.62, z: 10.61}, stats:{ runs:42,balls:88,fours:5,sixes:0,sr:47.7 } },
       { id:'a2', name:'Steve Smith', role:'Top-order', pos:{x: -0.62, z: 9.44}, stats:{ runs:113,balls:198,fours:12,sixes:0,sr:57.1 } },
@@ -1023,7 +1023,7 @@ const MOCK_MATCHES = {
       { id:'a5', name:'Alex Carey', role:'WK-Batsman', pos:{x: 18, z: 8}, stats:{ runs:33,balls:44,fours:4,sixes:0,sr:75 } }
       ]
       },
-      away:{ key:'nz', name:'NEW ZEALAND', short:'NZ', flag:'ðŸ‡³ðŸ‡¿', kit:1189904, cap:4484672,
+      away:{ key:'nz', name:'NEW ZEALAND', short:'NZ', flag:'🇳🇿', kit:1189904, cap:4484672,
         players:[
       { id:'n1', name:'Matt Henry', role:'Fast Bowler', pos:{x: 0.35, z: -12.26}, stats:{ overs:29,maidens:7,runs:91,wickets:3,econ:3.14 } },
       { id:'n2', name:'Mitchell Santner', role:'Spin All-rounder', pos:{x: 0, z: 0}, stats:{ overs:33,maidens:9,runs:96,wickets:2,econ:2.91 } },
@@ -1038,18 +1038,18 @@ const MOCK_MATCHES = {
     ai:{"current":{"away":20},"baseline":{"away":26,"over":113},"projected":{"from":455,"to":471},"newBallOver":120,"rr10":3.85,"lastWicket":{"text":"Travis Head c Blundell b Henry 61","over":"104.5"}},
     momentumHistory:[{"over":113,"away":26,"rr":3.6,"w":0,"p":38},{"over":114,"away":25,"rr":3.7,"w":0,"p":36},{"over":115,"away":24,"rr":3.8,"w":0,"p":34},{"over":116,"away":23,"rr":3.9,"w":0,"p":32},{"over":117,"away":22,"rr":4,"w":0,"p":30},{"over":118,"away":21,"rr":4.1,"w":0,"p":28}],
     start:{"runs":399,"wickets":7,"over":118,"ball":6,"batsmen":[{"name":"Steve Smith","short":"SMITH","runs":113,"balls":198,"fours":12,"sixes":0,"onStrike":true,"form":9,"pressure":4},{"name":"Alex Carey","short":"CAREY","runs":32,"balls":44,"fours":4,"sixes":0,"onStrike":false,"form":6,"pressure":6}],"partnership":{"runs":58,"balls":79},"bowlers":{"henry":{"name":"Matt Henry","style":"Right-arm fast-medium","overs":29,"maidens":7,"runs":91,"wickets":3},"santner":{"name":"Mitchell Santner","style":"Left-arm orthodox","overs":33,"maidens":9,"runs":96,"wickets":2}},"toCome":["Pat Cummins","Mitchell Starc","Nathan Lyon"]},
-    overs:[{"over":119,"bowler":"henry","balls":[[1,null,138,"good","off","cover","Steered to cover for a single under lights."],[0,null,141,"good","fourth",null,"Left alone, shaping away."],[4,null,136,"full","middle","straight","FOUR â€” driven straight back past the bowler."],[0,null,143,"short","body",null,"Short and quick, evaded at the last moment."],[2,null,139,"good","leg","midwicket","Clipped off the toes for two."],[1,null,140,"good","middle","mid-on","Pushed to mid-on to retain strike."]],"momentum":{"away":19,"rr":4.2,"w":0,"p":26}},{"over":120,"bowler":"santner","upcoming":true,"balls":[[0,null,89,"good","off",null,"Defended off the back foot."],[1,null,87,"full","middle","long-on","Driven to long-on for one."],[0,"Alex Carey c Latham b Santner 33",85,"good","off","slip","WICKET â€” drawn forward, edged to slip. Santner strikes with the old ball."],[0,null,88,"good","middle",null,"The new man defends the hat-trick ball."],[1,null,90,"good","leg","square-leg","Worked away for one."],[4,null,86,"short","leg","square-leg","FOUR â€” rocked back and swept powerfully."]],"momentum":{"away":33,"rr":4.1,"w":1,"p":48}}]
+    overs:[{"over":119,"bowler":"henry","balls":[[1,null,138,"good","off","cover","Steered to cover for a single under lights."],[0,null,141,"good","fourth",null,"Left alone, shaping away."],[4,null,136,"full","middle","straight","FOUR — driven straight back past the bowler."],[0,null,143,"short","body",null,"Short and quick, evaded at the last moment."],[2,null,139,"good","leg","midwicket","Clipped off the toes for two."],[1,null,140,"good","middle","mid-on","Pushed to mid-on to retain strike."]],"momentum":{"away":19,"rr":4.2,"w":0,"p":26}},{"over":120,"bowler":"santner","upcoming":true,"balls":[[0,null,89,"good","off",null,"Defended off the back foot."],[1,null,87,"full","middle","long-on","Driven to long-on for one."],[0,"Alex Carey c Latham b Santner 33",85,"good","off","slip","WICKET — drawn forward, edged to slip. Santner strikes with the old ball."],[0,null,88,"good","middle",null,"The new man defends the hat-trick ball."],[1,null,90,"good","leg","square-leg","Worked away for one."],[4,null,86,"short","leg","square-leg","FOUR — rocked back and swept powerfully."]],"momentum":{"away":33,"rr":4.1,"w":1,"p":48}}]
   },
 
    hambantota: {
     id:'hambantota',
-    label:'NZ v BD Â· Hambantota',
+    label:'NZ v BD · Hambantota',
     format:'Test Match',
-    stage:'Day 3 â€” Session 2',
+    stage:'Day 3 — Session 2',
     venue:{ name:'Hambantota International Stadium', city:'Hambantota, Sri Lanka', pitch:'Dry, spinning track', weather:'Hot, humid', temp:'32', wind:'SW 12 km/h', boundary:70, floodlights:true },
-    theme:{ grassA:'#1B4D2A', grassB:'#2D6B3E', outfield:'#1A5C2E', pitch:'#C8A87A', skyTop:'#1E3A5F', skyBot:'#2E5A8A', stand:'#2A2A2A', seat:'#1A1A1A', night:true },
+    theme:{ grassA:#1B4D2A, grassB:#2D6B3E, outfield:#1A5C2E, pitch:#C8A87A, skyTop:#1E3A5F, skyBot:#2E5A8A, stand:#2A2A2A, seat:#1A1A1A, night:true },
     teams:{
-      home:{ key:'nz', name:'New Zealand', short:'NZ', flag:'ðŸ‡³ðŸ‡¿', kit:'#000000', cap:'#FFFFFF',
+      home:{ key:'nz', name:'New Zealand', short:'NZ', flag:'🇳🇿', kit:#000000, cap:#FFFFFF,
         players:[
       { id:'h1', name:'Finn Anderson', role:'Opener', pos:{x: 0.62, z: 10.61}, stats:{ runs:23,balls:56,fours:2,sixes:0,sr:41.1 } },
       { id:'h2', name:'Kane Williamson', role:'Top-order', pos:{x: -0.62, z: 9.44}, stats:{ runs:45,balls:128,fours:5,sixes:1,sr:35.2 } },
@@ -1058,7 +1058,7 @@ const MOCK_MATCHES = {
       { id:'h5', name:'Tom Latham', role:'WK-Batsman', pos:{x: 18, z: 8}, stats:{ runs:18,balls:41,fours:2,sixes:0,sr:43.9 } }
       ]
       },
-      away:{ key:'bd', name:'Bangladesh', short:'BD', flag:'ðŸ‡§ðŸ‡©', kit:'#006A4E', cap:'#F7C800',
+      away:{ key:'bd', name:'Bangladesh', short:'BD', flag:'🇧🇩', kit:#006A4E, cap:#F7C800,
         players:[
       { id:'b1', name:'Taskin Ahmed', role:'Fast Bowler', pos:{x: 0.35, z: -12.26}, stats:{ overs:12,maidens:3,runs:45,wickets:2,econ:3.75 } },
       { id:'b2', name:'Taijul Islam', role:'Spin All-rounder', pos:{x: 0, z: 0}, stats:{ overs:28,maidens:8,runs:52,wickets:1,econ:2.21 } },
@@ -1070,10 +1070,10 @@ const MOCK_MATCHES = {
     innings:{current:'New Zealand 1st innings', firstInnings:{"team":"bd","total":185,"wickets":10}},
     field:{ standard:FIELD_STANDARD, attacking:FIELD_ATTACKING },
     perOverRuns:{"home":[4,2,1,3,5,2,4,1,3,6,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2,1,4,3,5,2],"away":[1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4]},
-    ai:{"current":{"away":50},"baseline":{"away":50,"over":1},"projected":{"from":50,"to":50},"newBallOver":80,"rr10":3.5,"lastWicket":{"text":"â€”","over":0}},
+    ai:{"current":{"away":50},"baseline":{"away":50,"over":1},"projected":{"from":50,"to":50},"newBallOver":80,"rr10":3.5,"lastWicket":{"text":"—","over":0}},
     momentumHistory:[{"over":38,"away":22,"rr":3.4,"w":0,"p":34},{"over":39,"away":21,"rr":3.5,"w":0,"p":32},{"over":40,"away":20,"rr":3.6,"w":0,"p":30},{"over":41,"away":19,"rr":3.7,"w":0,"p":28},{"over":42,"away":18,"rr":3.8,"w":0,"p":26},{"over":43,"away":17,"rr":3.9,"w":0,"p":24}],
     start:{"runs":0,"wickets":0,"over":0,"ball":0,"batsmen":[{"name":"Finn Anderson","short":"AND","runs":0,"balls":0,"fours":0,"sixes":0,"onStrike":true,"form":0,"pressure":0},{"name":"Kane Williamson","short":"WIL","runs":0,"balls":0,"fours":0,"sixes":0,"onStrike":false,"form":0,"pressure":0}],"partnership":{"runs":0,"balls":0},"bowlers":{"taskin":{"name":"Taskin Ahmed","style":"Right-arm fast-medium","overs":0,"maidens":0,"runs":0,"wickets":0},"taijul":{"name":"Taijul Islam","style":"Left-arm orthodox","overs":0,"maidens":0,"runs":0,"wickets":0}},"toCome":["Rachin Ravindra","Devon Conway"]},
-    overs:[{"over":44,"bowler":"taskin","balls":[[0,null,128,"good","off",null,"Defended solidly on the front foot. Good start from Ahmed."],[1,null,126,"good","middle","midwicket","Worked off the hip for a single to midwicket."],[4,null,132,"full","off","cover","FOUR â€” driven crisply through extra cover. Class from Anderson."],[0,null,129,"good","off",null,"Pushed forward, bat and pad together. Leaves alone."],[0,"Finn Anderson c sub (BK) b Taskin Ahmed 23",131,"good","fourth","slip","WICKET â€” draws him forward, edge flies to slip. Ahmed strikes first ball with the older ball."],[1,null,130,"good","middle","midwicket","Pushed to midwicket, one taken. Williamson keeps strike."]],"momentum":{"away":22,"rr":3.5,"w":1,"p":32}},{"over":45,"bowler":"taijul","upcoming":true,"balls":[[0,null,84,"good","off",null,"Turned to leg, no run. Spin from Islam from the other end."],[1,null,86,"good","leg","square-leg","Worked to square leg for one. Comfortable rotation."],[4,null,82,"short","off","point","FOUR â€” loose on the off side, cracked through point. Loose ball from the spinner."],[1,null,85,"good","middle","midwicket","Nudged to midwicket, quick single taken."],[0,null,87,"good","off",null,"Defended back down the pitch. Pressing forward to the left-arm spinner."],[6,null,83,"full","middle","long-on","SIX â€” flights it up, launches over long-on. Big over to end at 399."],[1,null,88,"good","leg","midwicket","Single to midwicket to keep strike for the next over."]],"momentum":{"away":24,"rr":3.6,"w":0,"p":34}},{"over":46,"bowler":"taskin","balls":[[0,null,127,"good","off",null,"Defended into the pitch. Ahmed operating with the older ball again."],[1,null,125,"good","middle","midwicket","Single worked to midwicket. Easy rotation."],[4,null,131,"full","middle","mid-on","FOUR â€” full and straight, driven back past the bowler. Ravindra growing in confidence."],[0,null,130,"good","off",null,"Left alone outside off. Not offering."],[0,"Kane Williamson c sub (Rahim) b Taskin Ahmed 45",132,"good","off","gully","WICKET â€” nicks off a good length ball outside off. Gully takes a sharp catch. Bangladesh fighting back."],[1,null,128,"good","leg","midwicket","Single to midwicket. New batsman on strike."]],"momentum":{"away":22,"rr":3.5,"w":1,"p":30}},{"over":47,"bowler":"taijul","balls":[[0,null,83,"good","off",null,"Defended forward to the spinner. Conway settling in."],[1,null,81,"full","off","long-off","Driven to long-off for one. Ravindra takes strike."],[0,null,85,"good","middle",null,"Defended solidly. The pitch is starting to turn."],[4,null,79,"short","off","point","FOUR â€” cut powerfully through point. Runs starting to flow against the spin."],[1,null,84,"good","middle","midwicket","Nudged to midwicket, quick single. Conway faces."],[0,null,86,"good","leg",null,"Left alone on the leg side. The batsmen leave those."]],"momentum":{"away":23,"rr":3.6,"w":0,"p":32}}]
+    overs:[{"over":44,"bowler":"taskin","balls":[[0,null,128,"good","off",null,"Defended solidly on the front foot. Good start from Ahmed."],[1,null,126,"good","middle","midwicket","Worked off the hip for a single to midwicket."],[4,null,132,"full","off","cover","FOUR — driven crisply through extra cover. Class from Anderson."],[0,null,129,"good","off",null,"Pushed forward, bat and pad together. Leaves alone."],[0,"Finn Anderson c sub (BK) b Taskin Ahmed 23",131,"good","fourth","slip","WICKET — draws him forward, edge flies to slip. Ahmed strikes first ball with the older ball."],[1,null,130,"good","middle","midwicket","Pushed to midwicket, one taken. Williamson keeps strike."]],"momentum":{"away":22,"rr":3.5,"w":1,"p":32}},{"over":45,"bowler":"taijul","upcoming":true,"balls":[[0,null,84,"good","off",null,"Turned to leg, no run. Spin from Islam from the other end."],[1,null,86,"good","leg","square-leg","Worked to square leg for one. Comfortable rotation."],[4,null,82,"short","off","point","FOUR — loose on the off side, cracked through point. Loose ball from the spinner."],[1,null,85,"good","middle","midwicket","Nudged to midwicket, quick single taken."],[0,null,87,"good","off",null,"Defended back down the pitch. Pressing forward to the left-arm spinner."],[6,null,83,"full","middle","long-on","SIX — flights it up, launches over long-on. Big over to end at 399."],[1,null,88,"good","leg","midwicket","Single to midwicket to keep strike for the next over."]],"momentum":{"away":24,"rr":3.6,"w":0,"p":34}},{"over":46,"bowler":"taskin","balls":[[0,null,127,"good","off",null,"Defended into the pitch. Ahmed operating with the older ball again."],[1,null,125,"good","middle","midwicket","Single worked to midwicket. Easy rotation."],[4,null,131,"full","middle","mid-on","FOUR — full and straight, driven back past the bowler. Ravindra growing in confidence."],[0,null,130,"good","off",null,"Left alone outside off. Not offering."],[0,"Kane Williamson c sub (Rahim) b Taskin Ahmed 45",132,"good","off","gully","WICKET — nicks off a good length ball outside off. Gully takes a sharp catch. Bangladesh fighting back."],[1,null,128,"good","leg","midwicket","Single to midwicket. New batsman on strike."]],"momentum":{"away":22,"rr":3.5,"w":1,"p":30}},{"over":47,"bowler":"taijul","balls":[[0,null,83,"good","off",null,"Defended forward to the spinner. Conway settling in."],[1,null,81,"full","off","long-off","Driven to long-off for one. Ravindra takes strike."],[0,null,85,"good","middle",null,"Defended solidly. The pitch is starting to turn."],[4,null,79,"short","off","point","FOUR — cut powerfully through point. Runs starting to flow against the spin."],[1,null,84,"good","middle","midwicket","Nudged to midwicket, quick single. Conway faces."],[0,null,86,"good","leg",null,"Left alone on the leg side. The batsmen leave those."]],"momentum":{"away":23,"rr":3.6,"w":0,"p":32}}]
   },
 
   // -----------------------------------------------------------------------
@@ -1081,9 +1081,9 @@ const MOCK_MATCHES = {
   // -----------------------------------------------------------------------
   premadasa: {
     id:'premadasa',
-    label:'SL v WI Â· R. Premadasa',
+    label:'SL v WI · R. Premadasa',
     format:'T20 International',
-    stage:'T20I Â· Colombo Â· Night Match',
+    stage:'T20I · Colombo · Night Match',
     venue:{
       name:'R. Premadasa Stadium',
       city:'Colombo, Sri Lanka',
@@ -1100,7 +1100,7 @@ const MOCK_MATCHES = {
       stand:'#121A76', seat:'#1C30C8', night:true
     },
     teams:{
-      home:{ key:'sl', name:'SRI LANKA', short:'SL', flag:'ðŸ‡±ðŸ‡°', kit:'#132140', cap:'#1A3690',
+      home:{ key:'sl', name:'SRI LANKA', short:'SL', flag:'🇱🇰', kit:'#132140', cap:'#1A3690',
         players:[
           { id:'pn', name:'Pathum Nissanka',      role:'Opener',     pos:{x: 0.62, z:10.61}, stats:{runs:892, balls:648, fours:96, sixes:26, sr:137.7} },
           { id:'kp', name:'Kusal Perera',         role:'Opener',     pos:{x:-0.62, z: 9.44}, stats:{runs:1248,balls:857, fours:118, sixes:52, sr:145.6} },
@@ -1116,7 +1116,7 @@ const MOCK_MATCHES = {
           { id:'mt', name:'Matheesha Pathirana',  role:'Bowler',     pos:{x: 0.0,  z:-12.26}, stats:{overs:16, maidens:0, runs:122, wickets:22, econ:7.63} }
         ]
       },
-      away:{ key:'wi', name:'WEST INDIES', short:'WI', flag:'ðŸ´', kit:'#800000', cap:'#FFD700',
+      away:{ key:'wi', name:'WEST INDIES', short:'WI', flag:'🏴', kit:'#800000', cap:'#FFD700',
         players:[
           { id:'bk', name:'Brandon King',         role:'Batsman',    pos:{x: 0.62, z:10.61}, stats:{runs:1248,balls:884, fours:128, sixes:44, sr:141.2} },
           { id:'nc', name:'Nicholas Pooran',      role:'WK-Batsman', pos:{x:-0.62, z: 9.44}, stats:{runs:1562,balls:986, fours:148, sixes:82, sr:158.4} },
@@ -1163,38 +1163,38 @@ const MOCK_MATCHES = {
                         overs:[
       { over:1, bowler:'joseph_a', balls:[
         [0, null, 142, 'good', 'off', null, 'Solid defensive block, straight bat. Nissanka leaves it alone. DOT.'],
-        [1, null, 139, 'good', 'middle', null, 'Nudged into the leg side â€” drifting down leg though. Called WIDE. Nissanka does not take strike.', 'wide'],
-        [4, null, 145, 'full', 'off', 'cover', 'FOUR â€” driven on the up through extra cover, beautiful timing.'],
+        [1, null, 139, 'good', 'middle', null, 'Nudged into the leg side — drifting down leg though. Called WIDE. Nissanka does not take strike.', 'wide'],
+        [4, null, 145, 'full', 'off', 'cover', 'FOUR — driven on the up through extra cover, beautiful timing.'],
         [1, null, 141, 'good', 'middle', 'square-leg', 'Tucked off the hips for one, strike rotates to Samarawickrama.'],
-        [0, null, 144, 'good', 'off', null, 'Beaten outside off â€” late swing from Joseph. Samarawickrama shoulders arms.'],
+        [0, null, 144, 'good', 'off', null, 'Beaten outside off — late swing from Joseph. Samarawickrama shoulders arms.'],
         [2, null, 140, 'full', 'middle', 'mid-on', 'Driven through mid-on, comfortable two. Samarawickrama calls through.'],
-        [0, null, 140, 'good', 'off', null, 'Re-bowled after the wide â€” Nissanka leaves it alone. DOT.']
+        [0, null, 140, 'good', 'off', null, 'Re-bowled after the wide — Nissanka leaves it alone. DOT.']
       ], momentum:{ away:50, rr:8, w:0, p:50 } },
       { over:2, bowler:'hasaranga', balls:[
-        [1, null, 89, 'full', 'leg', null, 'WIDE â€” sliding down leg side, called by the umpire. Hasaranga has overpitched. One extra run.', 'wide'],
+        [1, null, 89, 'full', 'leg', null, 'WIDE — sliding down leg side, called by the umpire. Hasaranga has overpitched. One extra run.', 'wide'],
         [0, null, 86, 'good', 'off', null, 'Defended solidly into the pitch. Hasaranga finding good rhythm.'],
-        [2, null, 88, 'good', 'middle', 'midwicket', 'NO-BALL â€” Joseph oversteps! Driven through midwicket for one, plus the penalty. Free-hit coming.', 'noball'],
-        [0, null, 90, 'good', 'off', null, 'FREE-HIT â€” short and wide, Perera reaches for it but cannot connect cleanly. No run.'],
-        [0, 'Kusal Perera lbw b Hasaranga 6', 87, 'full', 'middle', null, 'WICKET â€” straightening from Hasaranga, trapped on the back pad. Umpire raises the finger. Perera departs for 6.'],
-        [0, null, 85, 'good', 'leg', null, 'First ball for Mendis â€” defended solidly into the pitch.'],
+        [2, null, 88, 'good', 'middle', 'midwicket', 'NO-BALL — Joseph oversteps! Driven through midwicket for one, plus the penalty. Free-hit coming.', 'noball'],
+        [0, null, 90, 'good', 'off', null, 'FREE-HIT — short and wide, Perera reaches for it but cannot connect cleanly. No run.'],
+        [0, 'Kusal Perera lbw b Hasaranga 6', 87, 'full', 'middle', null, 'WICKET — straightening from Hasaranga, trapped on the back pad. Umpire raises the finger. Perera departs for 6.'],
+        [0, null, 85, 'good', 'leg', null, 'First ball for Mendis — defended solidly into the pitch.'],
         [1, null, 84, 'good', 'middle', 'mid-on', 'Mendis works it back through mid-on for a single. Good running.'],
-        [0, null, 87, 'good', 'off', null, 'Hasaranga drifts outside off â€” Mendis shoulders arms. DOT.']
+        [0, null, 87, 'good', 'off', null, 'Hasaranga drifts outside off — Mendis shoulders arms. DOT.']
       ], momentum:{ away:48, rr:5.5, w:1, p:58 } },
       { over:3, bowler:'joseph_s', balls:[
-        [1, null, 138, 'good', 'off', null, 'Left alone outside off â€” keeper misses! Samarawickrama calls for the bye, quick single completed.', 'bye'],
-        [0, null, 140, 'bouncer', 'body', null, 'Sharp bouncer â€” sharp bounce past the shoulder. Samarawickrama sways out of the way.'],
-        [4, null, 136, 'full', 'off', 'cover', 'FOUR â€” driven crisply through extra cover, races to the rope.'],
+        [1, null, 138, 'good', 'off', null, 'Left alone outside off — keeper misses! Samarawickrama calls for the bye, quick single completed.', 'bye'],
+        [0, null, 140, 'bouncer', 'body', null, 'Sharp bouncer — sharp bounce past the shoulder. Samarawickrama sways out of the way.'],
+        [4, null, 136, 'full', 'off', 'cover', 'FOUR — driven crisply through extra cover, races to the rope.'],
         [0, null, 142, 'good', 'middle', null, 'Defended back down the pitch, Joseph keeps it tight.'],
-        [0, 'Kusal Mendis b Shamar Joseph 5', 144, 'yorker', 'middle', null, 'WICKET â€” BOWLED! Yorker crashes into middle stump. Mendis cleaned up for 5.'],
-        [0, null, 139, 'good', 'leg', null, 'New batsman Asalanka gets off the mark â€” defends solidly.']
+        [0, 'Kusal Mendis b Shamar Joseph 5', 144, 'yorker', 'middle', null, 'WICKET — BOWLED! Yorker crashes into middle stump. Mendis cleaned up for 5.'],
+        [0, null, 139, 'good', 'leg', null, 'New batsman Asalanka gets off the mark — defends solidly.']
       ], momentum:{ away:42, rr:5.33, w:1, p:62 } },
       { over:4, bowler:'joseph_a', balls:[
         [0, null, 143, 'good', 'off', null, 'Left alone outside off, Asalanka showing good judgement.'],
-        [1, null, 141, 'full', 'leg', 'midwicket', 'NO-BALL â€” Joseph oversteps! Driven through midwicket for one, plus the penalty. Free-hit next ball.', 'noball'],
-        [4, null, 140, 'full', 'leg', 'midwicket', 'FREE-HIT â€” driven through midwicket, races to the fence. No dismissal possible on the free-hit.'],
+        [1, null, 141, 'full', 'leg', 'midwicket', 'NO-BALL — Joseph oversteps! Driven through midwicket for one, plus the penalty. Free-hit next ball.', 'noball'],
+        [4, null, 140, 'full', 'leg', 'midwicket', 'FREE-HIT — driven through midwicket, races to the fence. No dismissal possible on the free-hit.'],
         [0, null, 144, 'good', 'off', null, 'Defended into the pitch by Asalanka, no run off this one.'],
-        [2, null, 139, 'good', 'middle', null, 'Worked to mid-on for a quick single â€” fielder fumbles! Shanaka pushes through for two. Leg-bye credited.', 'legbye'],
-        [0, null, 146, 'good', 'off', null, 'Re-bowled after the leg-bye â€” Asalanka leaves it alone. DOT.'],
+        [2, null, 139, 'good', 'middle', null, 'Worked to mid-on for a quick single — fielder fumbles! Shanaka pushes through for two. Leg-bye credited.', 'legbye'],
+        [0, null, 146, 'good', 'off', null, 'Re-bowled after the leg-bye — Asalanka leaves it alone. DOT.'],
         [0, null, 146, 'good', 'off', null, 'Left alone outside off to end a busy over from Joseph.']
       ], momentum:{ away:38, rr:5.4, w:0, p:55 } },
       { over:5, bowler:'johnson', balls:[
@@ -1203,17 +1203,17 @@ const MOCK_MATCHES = {
         [0, null, 138, 'good', 'off', null, 'Good length from Johnson, pitched up and shaping away. Asalanka leaves it alone.'],
         [2, null, 136, 'full', 'leg', 'midwicket', 'Driven through midwicket, good running for two.'],
         [0, null, 140, 'good', 'off', null, 'Good length, bit of extra bounce. Johnson testing the resolve.'],
-        [0, 'Charith Asalanka c Pooran b Johnson 2', 136, 'full', 'leg', 'long-on', 'WICKET â€” lofted down the ground, Pooran settles under it at long-on. Asalanka departs for 2.']
+        [0, 'Charith Asalanka c Pooran b Johnson 2', 136, 'full', 'leg', 'long-on', 'WICKET — lofted down the ground, Pooran settles under it at long-on. Asalanka departs for 2.']
       ], momentum:{ away:35, rr:5, w:1, p:65 } },
       { over:6, upcoming:true, bowler:'johnson', balls:[
-        [1, null, 136, 'full', 'leg', null, 'WIDE â€” sliding down the leg side again, drifting with Johnson\'s natural angle. One extra run, no striker change.', 'wide'],
-        [3, null, 134, 'full', 'off', 'midwicket', 'NO-BALL â€” Johnson oversteps again! Worked through midwicket for two, plus the penalty. Free hit coming.', 'noball'],
-        [0, null, 130, 'good', 'off', null, 'FREE-HIT â€” Johnson bowls it full and straight. Nissanka defends watchfully. No run. No dismissal possible.'],
-        [1, null, 129, 'good', 'off', null, 'Keeper misses â€” Samarawickrama calls for the bye, quick single completed. No run credited to bat.', 'bye'],
+        [1, null, 136, 'full', 'leg', null, 'WIDE — sliding down the leg side again, drifting with Johnson\'s natural angle. One extra run, no striker change.', 'wide'],
+        [3, null, 134, 'full', 'off', 'midwicket', 'NO-BALL — Johnson oversteps again! Worked through midwicket for two, plus the penalty. Free hit coming.', 'noball'],
+        [0, null, 130, 'good', 'off', null, 'FREE-HIT — Johnson bowls it full and straight. Nissanka defends watchfully. No run. No dismissal possible.'],
+        [1, null, 129, 'good', 'off', null, 'Keeper misses — Samarawickrama calls for the bye, quick single completed. No run credited to bat.', 'bye'],
         [1, null, 131, 'good', 'leg', null, 'Deflected off the pad, Samarawickrama calls through for the leg-bye. Nissanka takes strike.', 'legbye'],
-        [2, null, 133, 'full', 'middle', 'mid-on', 'Nudged into the leg side, Nissanka sets off and pushes through for two â€” strike rotates to Samarawickrama for the next over.'],
-        [0, null, 135, 'good', 'off', null, 'Re-bowled after the wide â€” Nissanka defends watchfully. DOT.'],
-        [0, null, 132, 'good', 'off', null, 'Re-bowled after the no-ball â€” Nissanka leaves it alone. DOT.']
+        [2, null, 133, 'full', 'middle', 'mid-on', 'Nudged into the leg side, Nissanka sets off and pushes through for two — strike rotates to Samarawickrama for the next over.'],
+        [0, null, 135, 'good', 'off', null, 'Re-bowled after the wide — Nissanka defends watchfully. DOT.'],
+        [0, null, 132, 'good', 'off', null, 'Re-bowled after the no-ball — Nissanka leaves it alone. DOT.']
       ], momentum:{ away:55, rr:5.5, w:0, p:55 } }
     ],
   }
@@ -1228,7 +1228,7 @@ const MOCK_MATCHES = {
    ------------------------------------------------------------------ */
 /* shot-type model: derives a broadcast-style shot label + distance (m)
    from the delivery's recorded direction and outcome.  Speed & direction
-   are already in the ball record â€” this is the last two fields of the
+   are already in the ball record — this is the last two fields of the
    Last Shot Analysis panel (3f). */
 const SHOT_MODEL = {
   cover      : { t:'Cover Drive',    d:24 },
@@ -1255,11 +1255,11 @@ function deriveShot(d){
   return { type: base.t, distance: dist, direction: (d.dir || 'unknown').replace(/-/g,' ') };
 }
 
-// tuple[7] extraType â€” optional 8th ball-tuple field: 'wide' | 'noball' | 'bye' | 'legbye'
+// tuple[7] extraType — optional 8th ball-tuple field: 'wide' | 'noball' | 'bye' | 'legbye'
 const EXTRA_LABEL = { wide:'WIDE', noball:'NO BALL' };
 const EXTRA_CHIP  = { wide:'WD',   noball:'NB' };
 
-// tuple[1] wicket â€” dismissal type, parsed from a structured {type} object
+// tuple[1] wicket — dismissal type, parsed from a structured {type} object
 // (future-proofing) or from the free-text "Name TYPE b Bowler runs" string.
 const DISMISSAL_LABEL = { caught:'CAUGHT', bowled:'BOWLED', lbw:'LBW', runout:'RUN OUT', stumped:'STUMPED' };
 const DISMISSAL_CHIP  = { caught:'c',      bowled:'b',      lbw:'lbw', runout:'ro',      stumped:'st' };
@@ -1303,7 +1303,7 @@ function buildFeed(def){
     // the final score. The result text reflects that rather than pretending
     // the match is live.
     const resultText = isComplete ? 'FINAL' : 'LIVE';
-    const statusText = isComplete ? 'Match complete â€” final score' : 'Live match â€” awaiting ball data';
+    const statusText = isComplete ? 'Match complete — final score' : 'Live match — awaiting ball data';
 
     out.push({
       key: `${currentOver}.${currentBall}`,
@@ -1321,7 +1321,7 @@ function buildFeed(def){
       line: 'middle',
       dir: 'straight',
       text: statusText,
-      shot: null, // No shot data available â€” renderLastShot shows empty state
+      shot: null, // No shot data available — renderLastShot shows empty state
       extraType: null,
       batRuns: 0,
       extraRuns: 0,
@@ -1330,7 +1330,7 @@ function buildFeed(def){
       freeHit: false,
       freeHitRejected: false,
       result: resultText,
-      chip: 'â—',
+      chip: '●',
       fieldSet: 'standard',
       winProb: { away: def.ai?.current?.away || 50, home: 100 - (def.ai?.current?.away || 50) },
       winProbPrev: { away: def.ai?.baseline?.away || 50, home: 100 - (def.ai?.baseline?.away || 50) },
@@ -1442,8 +1442,8 @@ function buildFeed(def){
       const wicketResult = DISMISSAL_LABEL[dismissalType] || 'WICKET';
       let chip = dismissed ? wicketChip : baseChip;
       let result = dismissed ? wicketResult : baseResult;
-      if (freeHitRejected) result = `FREE HIT â€” ${wicketResult} VOID`;
-      else if (freeHit) result = `FREE HIT â€” ${result}`;
+      if (freeHitRejected) result = `FREE HIT — ${wicketResult} VOID`;
+      else if (freeHit) result = `FREE HIT — ${result}`;
 
       out.push({
         key:`${ov.over}.${i+1}`,
@@ -1501,7 +1501,7 @@ function buildFeed(def){
 }
 
 /* ==================================================================
-   2. 3D ENGINE  â€”  venue-agnostic, driven entirely by match JSON
+   2. 3D ENGINE  —  venue-agnostic, driven entirely by match JSON
    ================================================================== */
 const STAGE  = document.getElementById('view3d');
 const CANVAS = document.getElementById('gl');
@@ -1735,7 +1735,7 @@ function buildStadium(theme){
     });
   }
 
-  // pavilion â€” a distinct block behind the bowler's end
+  // pavilion — a distinct block behind the bowler's end
   const pav = new THREE.Group();
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(46, 17, 15),
@@ -1821,7 +1821,7 @@ function buildPlayers(md){
     const p = createPlayer(bowl.kit, bowl.cap, f.id === 'wk' ? 'wk' : 'field');
     p.position.set(f.x, 0, f.z);
     p.lookAt(0, 0, STUMP_Z);
-    // build a synthetic fielder record â€” graceful even if MOCK_MATCHES doesn't define them
+    // build a synthetic fielder record — graceful even if MOCK_MATCHES doesn't define them
     const rec = {
       id: f.id, name: f.id.toUpperCase().replace(/-/g, ' '),
       role: f.id === 'wk' ? 'Wicketkeeper' : 'Fielder',
@@ -1889,7 +1889,7 @@ function quad(p0, p1, p2, n){
 }
 
 /**
- * buildTrajectory(d) â€” derives the whole flight path from the delivery
+ * buildTrajectory(d) — derives the whole flight path from the delivery
  * record alone (speed / length / line / shot direction).
  */
 function buildTrajectory(d){
@@ -1940,7 +1940,7 @@ function buildTrajectory(d){
       const mid = new THREE.Vector3((meet.x + end.x) / 2, y1, (meet.z + end.z) / 2);
       shot = quad(meet, mid, end, 26);
     } else {
-      // 1-3 runs, dot, wicket, extras â€” completely unchanged.
+      // 1-3 runs, dot, wicket, extras — completely unchanged.
       const reach = d.dismissed ? 0.24 : 0.42 + d.runs * 0.10;
       const end = new THREE.Vector3(dir.x * GR.rx * reach, d.runs === 6 ? 0.4 : 0.14, dir.z * GR.rz * reach);
       // a dismissal ends at the catcher, not at the rope
@@ -1992,7 +1992,7 @@ function animateBall(d, showPath = true, animate = true, slowMo = false){
   if (!d){ clearTrajectory(); return; }
   // Guarantee a clean slate BEFORE rebuilding: this ensures every Replay click
   // resets the ball to the origin and the trajectory drawProgress to 0, then
-  // animates the complete path from start to finish â€” identical on every click.
+  // animates the complete path from start to finish — identical on every click.
   resetAnimState();
   clearTrajectory();
   const { delivery, shot, bounce } = buildTrajectory(d);
@@ -2028,14 +2028,14 @@ function animateBall(d, showPath = true, animate = true, slowMo = false){
   ball.visible = true;
   ball.position.copy(Array.isArray(delivery) && delivery.length ? delivery[0] : {x:0,y:0,z:0});
 
-  // faster deliveries travel the pitch quicker â€” 140 km/h â‰ˆ 0.52 s of flight
+  // faster deliveries travel the pitch quicker — 140 km/h ≈ 0.52 s of flight
   const flight = Math.max(0.62, 1.55 - (d.speed - 120) / 95);
   const base = cShot ? [flight, 1.35] : [flight];
   anim.curves = cShot ? [cDel, cShot] : [cDel];
   anim.durs   = slowMo ? base.map(x => x * REPLAY_SLOWMO) : base;
   anim.phase = 0; anim.t = 0; anim.on = animate; anim.slowMo = slowMo;
 
-  // trajectory animation â€” draw the line progressively
+  // trajectory animation — draw the line progressively
   trajAnim.curves = cShot ? [cDel, cShot] : [cDel];
   trajAnim.durs   = cShot ? [flight, 1.35] : [flight];
   trajAnim.on     = animate || true;  // always animate trajectory drawing; ball animation controlled by anim.on
@@ -2250,10 +2250,10 @@ function loop(){
     }
   }
 
-  // trajectory drawing animation â€” draw the line progressively
+  // trajectory drawing animation — draw the line progressively
   if (trajAnim.on){
     if (anim.slowMo){
-      // Replay: trajectory line locked to the ball â€” same phase/progress,
+      // Replay: trajectory line locked to the ball — same phase/progress,
       // so line and ball reach the bounce and the shot at the same moment.
       trajAnim.phase = anim.phase;
       trajAnim.t = anim.t;
@@ -2275,7 +2275,7 @@ function loop(){
     const ud = t.userData;
 
     if (anim.slowMo) {
-      // Replay: line tip exactly at the ball â€” no lead, no easing.
+      // Replay: line tip exactly at the ball — no lead, no easing.
       if (trajAnim.on && i === anim.phase) {
         ud.drawProgress = Math.min(1, Math.max(0, anim.t));
       } else if (!trajAnim.on || i < anim.phase) {
@@ -2284,7 +2284,7 @@ function loop(){
         ud.drawProgress = 0;
       }
     } else {
-      // Normal playback / "Show Ball Trajectory" â€” unchanged.
+      // Normal playback / "Show Ball Trajectory" — unchanged.
       let targetProgress;
       if (trajAnim.on && trajAnim.phase === i){
         targetProgress = Math.min(1, trajAnim.t + 0.08);
@@ -2297,7 +2297,7 @@ function loop(){
     }
 
     if (ud.drawProgress > 0.01){
-      // Only rebuild when drawProgress changed since last frame â€” avoids
+      // Only rebuild when drawProgress changed since last frame — avoids
       // allocating/setting positions every frame for the same line.
       if (ud.lastProgress !== ud.drawProgress){
         ud.lastProgress = ud.drawProgress;
@@ -2340,7 +2340,7 @@ function loop(){
 }
 
 /* ==================================================================
-   3. UI LAYER â€” every panel is a pure render of matchData + state
+   3. UI LAYER — every panel is a pure render of matchData + state
    ================================================================== */
 const $ = id => document.getElementById(id);
 let MD = null;             // normalized match document
@@ -2480,7 +2480,7 @@ function loadRealMatchDoc(doc){
       MD.status = 'complete';
     }
 
-    // Build the feed â€” will create synthetic delivery if overs is empty
+    // Build the feed — will create synthetic delivery if overs is empty
     FEED = buildFeed(MD);
 
     // Set initial delivery index to the last played delivery (or last in feed)
@@ -2506,7 +2506,7 @@ function loadRealMatchDoc(doc){
     // Render static UI elements (venue, stage, teams, etc.)
     renderStatic();
 
-    // Apply the current delivery state â€” use the last non-upcoming delivery
+    // Apply the current delivery state — use the last non-upcoming delivery
     // or fall back to the last delivery in the feed
     const lastPlayedIdx = (FEED || []).reduce((k, d, i) => (!d.upcoming ? i : k), -1);
     const targetIdx = lastPlayedIdx >= 0 ? lastPlayedIdx : (FEED || []).length - 1;
@@ -2519,12 +2519,12 @@ function loadRealMatchDoc(doc){
     const realOpt = sel.querySelector('optgroup[label="Live Data"] option[value="sm_68949"]')
       || sel.querySelector('option[value="sm_68949"]');
     if (realOpt) {
-      realOpt.textContent = `${doc.label} Â· ${statusLabel()}`;
+      realOpt.textContent = `${doc.label} · ${statusLabel()}`;
     } else {
       // If not found in optgroup, add it to the root (outside optgroups)
       const newOpt = document.createElement('option');
       newOpt.value = 'sm_68949';
-      newOpt.textContent = `${doc.label} Â· ${statusLabel()}`;
+      newOpt.textContent = `${doc.label} · ${statusLabel()}`;
       sel.appendChild(newOpt);
     }
   } catch (err) {
@@ -2570,18 +2570,18 @@ function applyTheme(t){
 
 /* ---------------- static (per-match) chrome ---------------- */
 function renderStatic(){
-  $('dayTag').textContent = MD.stage.replace('â€”', 'Â·').toUpperCase();
+  $('dayTag').textContent = MD.stage.replace('—', '·').toUpperCase();
   $('venueName').textContent = MD.venue.name || 'Unknown Venue';
   $('venueLoc').textContent = MD.venue.city || 'Location unavailable';
 
   const venue = MD.venue || {};
   const venueValues = [
-    ['PITCH', venue.pitch || 'â€”'],
-    ['WEATHER', venue.weather || 'â€”'],
-    ['TEMPERATURE', venue.temp || 'â€”'],
-    ['WIND', venue.wind || 'â€”'],
-    ['BOUNDARY', venue.boundary || 'â€”'],
-    ['FORMAT', MD.format || 'â€”']
+    ['PITCH', venue.pitch || '—'],
+    ['WEATHER', venue.weather || '—'],
+    ['TEMPERATURE', venue.temp || '—'],
+    ['WIND', venue.wind || '—'],
+    ['BOUNDARY', venue.boundary || '—'],
+    ['FORMAT', MD.format || '—']
   ];
   $('venueGrid').innerHTML = venueValues.map(([k, v]) =>
     `<div class="cell"><label>${k}</label><div class="v">${v}</div></div>`).join('');
@@ -2607,12 +2607,12 @@ function renderStatic(){
 
   document.querySelectorAll('.prob-nums .side')[0].querySelector('.lbl').textContent = batTeam().name;
   document.querySelectorAll('.prob-nums .side')[1].querySelector('.lbl').textContent = bowlTeam().name;
-  document.querySelectorAll('.legend span')[0].innerHTML = `<i style="background:'#4C7DF0'"></i>${bowlTeam().name}`;
-  document.querySelectorAll('.legend span')[1].innerHTML = `<i style="background:'#19C46A'"></i>${batTeam().name}`;
+  document.querySelectorAll('.legend span')[0].innerHTML = `<i style="background:#4C7DF0"></i>${bowlTeam().name}`;
+  document.querySelectorAll('.legend span')[1].innerHTML = `<i style="background:#19C46A"></i>${batTeam().name}`;
 
   // over tabs
   $('overTabs').innerHTML = MD.overs.map(o =>
-    `<button class="otab${o.upcoming ? ' up' : ''}" data-over="${o.over}">OVER ${o.over}${o.upcoming ? ' Â·' : ''}</button>`
+    `<button class="otab${o.upcoming ? ' up' : ''}" data-over="${o.over}">OVER ${o.over}${o.upcoming ? ' ·' : ''}</button>`
   ).join('');
   $('overTabs').querySelectorAll('.otab').forEach(b =>
     b.addEventListener('click', () => { selOver = +b.dataset.over; renderTimeline(); }));
@@ -2621,11 +2621,11 @@ function renderStatic(){
 /* ---------------- score ---------------- */
 function formatInningsScore(runs, wickets, declared) {
   // Standard cricket notation (no over-count):
-  // - "X" when all 10 wickets fallen â€” NO wicket count, just runs
+  // - "X" when all 10 wickets fallen — NO wicket count, just runs
   // - "X/Y" when not all out, not declared
   // - "X/Y dec" when declared at Y wickets
   // - "X" when no wickets info
-  if (runs == null || runs === '') return 'â€”';
+  if (runs == null || runs === '') return '—';
   const r = Number(runs);
   const w = wickets != null ? Number(wickets) : undefined;
 
@@ -2636,7 +2636,7 @@ function formatInningsScore(runs, wickets, declared) {
   }
 
   if (w != null && w >= 10) {
-    // All out: "340" â€” NO wicket count shown
+    // All out: "340" — NO wicket count shown
     return `${r}`;
   }
 
@@ -2667,8 +2667,8 @@ function updateScore(){
   ? MD.stage.toUpperCase().replace('DEMO', 'COMPLETED')
   : MD.stage.toUpperCase();
   $('scoreMeta').innerHTML =
-    `<span>${MD.format.toUpperCase()}</span><span>Â·</span><span>${scoreStage}</span>` +
-    `<span>Â·</span><span>OVER ${s.over}.${s.ball}</span>`;
+    `<span>${MD.format.toUpperCase()}</span><span>·</span><span>${scoreStage}</span>` +
+    `<span>·</span><span>OVER ${s.over}.${s.ball}</span>`;
 
   // Compute total runs for each team across all innings
   const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
@@ -2683,9 +2683,9 @@ function updateScore(){
   const battingSub = complete
     ? hasSecondInnings
       ? 'FINAL'
-      : `FINAL Â· ${s.over}.${s.ball} OV`
-    : `BATTING Â· ${s.over}.${s.ball} OV`;
-  const bowlingSub = complete ? (hasSecondInnings ? 'FINAL Â· ALL INNINGS' : 'FINAL Â· 1ST INNINGS') : 'ALL OUT Â· 1ST INNINGS';
+      : `FINAL · ${s.over}.${s.ball} OV`
+    : `BATTING · ${s.over}.${s.ball} OV`;
+  const bowlingSub = complete ? (hasSecondInnings ? 'FINAL · ALL INNINGS' : 'FINAL · 1ST INNINGS') : 'ALL OUT · 1ST INNINGS';
 
   const homeKey = String(MD.teams?.home?.key);
   const awayKey = String(MD.teams?.away?.key);
@@ -2776,7 +2776,7 @@ function updateScore(){
         : 'Match tied'
     : trailText(bt, trail, firstInnBowl, s);
 
-  $('pshipV').innerHTML = MD.overs && MD.overs.length > 0 ? `${s.partnership.runs} <small>(${s.partnership.balls})</small>` : `${s.partnership.runs} <small>(${s.partnership.balls})</small> Â· Stats unavailable`;
+  $('pshipV').innerHTML = MD.overs && MD.overs.length > 0 ? `${s.partnership.runs} <small>(${s.partnership.balls})</small>` : `${s.partnership.runs} <small>(${s.partnership.balls})</small> · Stats unavailable`;
   const ovs = s.over + s.ball / 6;
   $('rrV').innerHTML = `${(s.runs / ovs).toFixed(2)} <small>rpo</small>`;
 
@@ -2790,7 +2790,7 @@ function updateScore(){
   const bwHasData = bw.overs > 0 || bw.wickets > 0 || (MD.overs && MD.overs.length > 0);
   $('bowlerFig').textContent = bwHasData
     ? `${bw.name.toUpperCase()} ${bw.wickets}/${bw.runs}`
-    : `${bw.name.toUpperCase()} Â· Stats unavailable`;
+    : `${bw.name.toUpperCase()} · Stats unavailable`;
 
   // current over strip (played balls only)
   const ovDef = MD.overs.find(o => o.over === d.over);
@@ -2798,7 +2798,7 @@ function updateScore(){
   $('overStrip').innerHTML = balls.map((b, i) => {
     const played = i + 1 <= d.ballNo;
     const chip = b[1] ? 'W' : String(b[0]);
-    return `<div class="bchip ${played ? chipClass(chip) : 'future'}">${played ? chip : 'Â·'}</div>`;
+    return `<div class="bchip ${played ? chipClass(chip) : 'future'}">${played ? chip : '·'}</div>`;
   }).join('');
 
   // Build plain-text innings lines for the HUD (single line, no <div> wrapper)
@@ -2813,15 +2813,15 @@ function updateScore(){
   const hudInningsScore = (runs, wickets, declared) =>
     formatInningsScore(runs, wickets, declared).replace(' dec', 'd');
   const hudLine = hasSecondInnings
-    ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} Â· ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
-    : `${bt.short} ${s.runs}/${s.wickets} Â· ${ot.short} ${first.total}`;
+    ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
+    : `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${first.total}`;
   $('hudScore').textContent = hudLine;
   $('hudSub').textContent = '';
 }
 function chipClass(c){
   if (c === 'W' || c === 'c' || c === 'b' || c === 'lbw' || c === 'ro' || c === 'st') return 'w';
   if (c === '4' || c === '6') return 'r' + c;
-  if (c === '0') return 'r0'; // dot ball â€” visible class
+  if (c === '0') return 'r0'; // dot ball — visible class
   if (c === 'WD' || c === 'NB') return 'x';
   if (/^\d+(b|lb)$/.test(c)) return 'x'; // byes / leg-byes, e.g. "1b", "2lb"
   return 'r' + c;
@@ -2838,7 +2838,7 @@ const strike = batsmen.find(b => b.onStrike) || batsmen[0];
 
   setLabel('striker', strike.name, `${strike.runs}*`);
   setLabel('nonstriker', other.name, `${other.runs}*`);
-  setLabel('bowler', bw.name, `Bowler Â· ${bw.wickets}/${bw.runs}`);
+  setLabel('bowler', bw.name, `Bowler · ${bw.wickets}/${bw.runs}`);
 }
 function setLabel(k, name, sub){
   const el = labels[k]; if (!el) return;
@@ -2863,7 +2863,7 @@ function renderDelivery(d){
     <div class="cell"><label>BALL SPEED</label><div class="v">${d.speed} <span style="font-size:11px;color:var(--color-muted)">km/h</span></div></div>
     <div class="cell"><label>LENGTH</label><div class="v sm">${L.label}</div></div>
     <div class="cell"><label>RESULT</label><div class="v sm" style="color:${d.dismissed ? '#FCA5A5' : d.freeHitRejected ? 'var(--color-warning)' : d.runs >= 4 ? 'var(--color-accent-2)' : 'inherit'}">${d.result}</div></div>`;
-  $('commentary').innerHTML = `<b>${d.bowlerName} to ${d.strikerName}</b> â€” ${d.text}`;
+  $('commentary').innerHTML = `<b>${d.bowlerName} to ${d.strikerName}</b> — ${d.text}`;
 
   $('ballReadout').innerHTML = `
     <div><label>BALL SPEED</label><div class="v">${d.speed} km/h</div></div>
@@ -2904,7 +2904,7 @@ function updateWinProbability(){
   } else {
     $('probDelta').classList.remove('hidden');
     const delta = +(away - d.winProbPrev.away).toFixed(1);
-    const sign = delta > 0 ? 'â–² +' : delta < 0 ? 'â–¼ ' : 'â€“ ';
+    const sign = delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '– ';
     $('probDelta').innerHTML = `<span style="color:${delta > 0 ? '#7FA0FF' : delta < 0 ? '#19C46A' : '#7A8B8B'}">${sign}${Math.abs(delta).toFixed(1)}% ${bowlTeam().short}</span>`;
     $('probStamp').textContent = `AFTER ${d.over}.${d.ballNo}`;
   }
@@ -2920,7 +2920,7 @@ function updateAIInsight(){
   let text;
 
   if (complete){
-    // Retrospective insight for completed matches â€” use full innings totals
+    // Retrospective insight for completed matches — use full innings totals
     const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
     const margin = btTotal - otTotal;
@@ -2928,13 +2928,13 @@ function updateAIInsight(){
     const loser = margin > 0 ? ot.name : bt.name;
     text = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'} against ${loser}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`; if (MD.resultText) text = MD.resultText + '. ' + text.slice(text.indexOf('. ') + 2);
   } else if (d.dismissed){
-    text = `${d.outName} falls â€” ${d.wicket}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} lose their set batter and a new partnership has to survive ${oversToNewBall <= 2 ? 'the second new ball' : 'the rest of this spell'}. Expect ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} to keep an attacking field for the next 12â€“18 deliveries.`;
+    text = `${d.outName} falls — ${d.wicket}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} lose their set batter and a new partnership has to survive ${oversToNewBall <= 2 ? 'the second new ball' : 'the rest of this spell'}. Expect ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} to keep an attacking field for the next 12–18 deliveries.`;
   } else if (d.runs >= 4){
     text = `Boundary releases the pressure. ${d.strikerName}'s scoring against this bowler is trending up, and ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s projected total moves back toward ${MD.ai.projected.from}. ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} will likely respond with a length correction rather than a field change.`;
   } else if (s.partnership.balls > 60){
     text = `${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s current partnership is stabilizing the innings. ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s second new-ball spell could create another wicket opportunity if ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s run rate remains below 3.0.`;
   } else {
-    text = `A new pair at the crease with the run rate at ${rr}. The model weights the next ${oversToNewBall <= 2 ? 'two overs before the second new ball' : 'six overs'} heavily â€” survival here is worth more to ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} than quick runs.`;
+    text = `A new pair at the crease with the run rate at ${rr}. The model weights the next ${oversToNewBall <= 2 ? 'two overs before the second new ball' : 'six overs'} heavily — survival here is worth more to ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} than quick runs.`;
   }
   typeInto($('aiInsight'), text);
 
@@ -2942,7 +2942,7 @@ function updateAIInsight(){
   if (complete){
     const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
-    why.push(`Match completed â€” final score: ${batTeam().name} ${btTotal} vs ${bowlTeam().name} ${otTotal}`);
+    why.push(`Match completed — final score: ${batTeam().name} ${btTotal} vs ${bowlTeam().name} ${otTotal}`);
   } else {
     if (d.dismissed) why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is now exposed at ${s.runs}/${s.wickets}`);
     else why.push(`${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s middle order is under pressure at ${s.runs}/${s.wickets}`);
@@ -2952,9 +2952,9 @@ function updateAIInsight(){
     if (weather) conditions.push(weather);
     if (wind) conditions.push(`${wind} wind`);
     if (conditions.length > 0) {
-      why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions â€” ${conditions.join(', ')}`);
+      why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions — ${conditions.join(', ')}`);
     } else {
-      why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions â€” weather data unavailable`);
+      why.push(`${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} has favourable bowling conditions — weather data unavailable`);
     }
     why.push(s.partnership.balls > 40
       ? `Partnership stability (${s.partnership.runs} off ${s.partnership.balls}) is improving ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()}'s position`
@@ -2999,7 +2999,7 @@ function renderMomentum(){
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.clearRect(0, 0, w, h);
 
-  // Graceful emptyâ€‘state when there is no ballâ€‘byâ€‘ball data
+  // Graceful empty‑state when there is no ball‑by‑ball data
   if (series.length === 0){
     c.fillStyle = '#5A6A68';
     c.font = '600 10px "JetBrains Mono", monospace';
@@ -3051,10 +3051,10 @@ function renderMomentum(){
   $('momBars').innerHTML = `
     <div class="mom-bar"><span class="nm">${bowlTeam().short}</span>
       <span class="track"><i style="width:${away}%;background:linear-gradient(90deg,#2E52A8,#4C7DF0)"></i></span>
-      <span class="val" style="color:'#7FA0FF'">${away}</span></div>
+      <span class="val" style="color:#7FA0FF">${away}</span></div>
     <div class="mom-bar"><span class="nm">${batTeam().short}</span>
       <span class="track"><i style="width:${home}%;background:linear-gradient(90deg,#0E9E56,#19C46A)"></i></span>
-      <span class="val" style="color:'#19C46A'">${home}</span></div>`;
+      <span class="val" style="color:#19C46A">${home}</span></div>`;
 
   const lead = away >= 50 ? bowlTeam().short : batTeam().short;
   const pressure = last.p >= 70 ? 'HIGH' : last.p >= 45 ? 'BUILDING' : 'LOW';
@@ -3069,7 +3069,7 @@ function renderMomentum(){
 /* ---------------- player intelligence ---------------- */
 function renderPlayers(){
   const s = st(), d = cur();
-  // Ensure at least two batsmen exist â€” needed for the spread below
+  // Ensure at least two batsmen exist — needed for the spread below
   const bat = Array.isArray(s.batsmen) ? s.batsmen : [];
   while (bat.length < 2) bat.push({ name: 'Batsman', runs:0, balls:0, fours:0, sixes:0, onStrike:false });
   const people = [
@@ -3089,7 +3089,7 @@ function renderPlayers(){
   if (p.kind === 'bat'){
     const sr = p.balls ? (p.runs / p.balls * 100).toFixed(2) : '0.00';
     $('plName').textContent = p.name;
-    $('plRole').textContent = `${batTeam().name} Â· ${p.onStrike ? 'ON STRIKE' : 'NON-STRIKER'}`;
+    $('plRole').textContent = `${batTeam().name} · ${p.onStrike ? 'ON STRIKE' : 'NON-STRIKER'}`;
     $('plBig').className = 'big';
     $('plBig').textContent = `${p.runs}*`;
     $('plStats').innerHTML = [
@@ -3102,7 +3102,7 @@ function renderPlayers(){
     const econ = econRaw.toFixed(2);
     const form = Math.max(1, Math.min(10, Math.round(p.wickets * 2 + (4.5 - econRaw) * 1.4)));
     $('plName').textContent = p.name;
-    $('plRole').textContent = `${bowlTeam().name} Â· ${p.style.toUpperCase()}`;
+    $('plRole').textContent = `${bowlTeam().name} · ${p.style.toUpperCase()}`;
     $('plBig').className = 'big eng';
     $('plBig').textContent = `${p.wickets}/${p.runs}`;
     $('plStats').innerHTML = [
@@ -3164,13 +3164,13 @@ function renderFantasy(){
   const s = st();
   const rows = [];
   s.batsmen.forEach(b => rows.push({
-    name:b.name, sub:`${batTeam().short} Â· BAT`,
+    name:b.name, sub:`${batTeam().short} · BAT`,
     pts: b.runs + b.fours * 1 + b.sixes * 2 + (b.runs >= 50 ? 8 : 0) + (b.runs >= 100 ? 16 : 0)
   }));
   Object.values(s.bowlers).forEach(bw => {
     const econ = bw.overs ? bw.runs / bw.overs : 0;
     rows.push({
-      name:bw.name, sub:`${bowlTeam().short} Â· BOWL`,
+      name:bw.name, sub:`${bowlTeam().short} · BOWL`,
       pts: Math.round(bw.wickets * 25 + bw.maidens * 4 + Math.max(0, (4.2 - econ) * 6))
     });
   });
@@ -3181,14 +3181,14 @@ function renderFantasy(){
         <div><div class="nm">${r.name}</div><div class="sub">${r.sub}</div></div></div>
       <div class="pts">${r.pts}</div>
     </div>`).join('') +
-    `<div style="margin-top:10px"><span class="tag">PROJECTED POINTS Â· FANTASY SCORING</span></div>`;
+    `<div style="margin-top:10px"><span class="tag">PROJECTED POINTS · FANTASY SCORING</span></div>`;
 }
 
 /* ---------------- timeline ---------------- */
 function renderTimeline(){
   const ov = (MD.overs && MD.overs.find(o => o.over === selOver)) || undefined;
   if (!ov) {
-    $('tlLabel').textContent = 'OVER â€” no ball-by-ball data';
+    $('tlLabel').textContent = 'OVER — no ball-by-ball data';
     $('tlBalls').innerHTML = '<div class="bchip">no data</div>';
     $('btnPrev').disabled = true;
     $('btnNext').disabled = true;
@@ -3203,7 +3203,7 @@ function renderTimeline(){
     const future = fi > playedIdx;
     const chip = fi >= 0 ? FEED[fi].chip : (b[1] ? 'W' : String(b[0]));
     const freeHit = fi >= 0 && FEED[fi].freeHit;
-    const title = freeHit ? `${key} â€” FREE HIT` : key;
+    const title = freeHit ? `${key} — FREE HIT` : key;
     return `<div class="bchip ${future ? 'future' : chipClass(chip)}${freeHit ? ' fh' : ''}${fi === idx ? ' sel' : ''}" data-i="${fi}" title="${title}">${future ? '?' : chip}</div>`;
   }).join('');
 
@@ -3246,9 +3246,9 @@ function applyDelivery(i, animate){
   if (animate){
     animateBall(d, true);
     $('ballReadout').classList.add('show');
-    if (d.dismissed) toast(`WICKET â€” ${d.wicket}`, 3800);
+    if (d.dismissed) toast(`WICKET — ${d.wicket}`, 3800);
     else if (d.freeHitRejected) toast(d.result, 3200);
-    else if (d.runs >= 4) toast(`${d.runs === 6 ? 'SIX' : 'FOUR'} â€” ${d.strikerName}`, 2400);
+    else if (d.runs >= 4) toast(`${d.runs === 6 ? 'SIX' : 'FOUR'} — ${d.strikerName}`, 2400);
   }
 }
 
@@ -3277,42 +3277,42 @@ function openWhy(){
     const loser = margin > 0 ? ot.name : bt.name;
     lede = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}. The win probability settled at ${Math.round(to)}% for ${ot.short} as the final result became clear.`; if (MD.resultText) lede = MD.resultText + '. ' + lede.slice(lede.indexOf('. ') + 2);
     drivers = [
-      ['ðŸ', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}.`, 'terminal'],
-      ['ðŸ“Š', 'Final score', `${bt.name} ${hasSecond ? btTotal : `${s.runs}/${s.wickets}`} vs ${ot.name} ${hasSecond ? otTotal : first.total}.`, 'major'],
-      ['ðŸ›¡ï¸', hasSecond ? 'Match total' : 'First-innings platform', hasSecond ? `${ot.name} totalled ${otTotal} across all innings.` : `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
-      ['â±ï¸', 'Match status', `Match completed â€” no live probability change to explain.`, 'â€”']
+      ['🏁', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}.`, 'terminal'],
+      ['📊', 'Final score', `${bt.name} ${hasSecond ? btTotal : `${s.runs}/${s.wickets}`} vs ${ot.name} ${hasSecond ? otTotal : first.total}.`, 'major'],
+      ['🛡️', hasSecond ? 'Match total' : 'First-innings platform', hasSecond ? `${ot.name} totalled ${otTotal} across all innings.` : `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
+      ['⏱️', 'Match status', `Match completed — no live probability change to explain.`, '—']
     ];
   } else if (d.dismissed){
-    lede = `${otN}'s win probability increased from ${from}% â†’ ${to}% because ${btN} lost a wicket and their projected first-innings total decreased.`;
+    lede = `${otN}'s win probability increased from ${from}% → ${to}% because ${btN} lost a wicket and their projected first-innings total decreased.`;
     drivers = [
-      ['ðŸŽ¯', 'Wicket', `${d.wicket} at ${d.over}.${d.ballNo}. A set batter is replaced by a new batter with a materially higher early-dismissal rate.`, `+${(to - from).toFixed(1)}%`],
-      ['ðŸ“‰', 'Projected total', `Model revises ${btN}'s projection from ${MD.ai.projected.from} down to ${MD.ai.projected.to}.`, 'major'],
-      ['ðŸ›¡ï¸', 'Field pressure', `${otN} moves to an attacking field â€” catchers in, boundary riders removed.`, 'moderate']
+      ['🎯', 'Wicket', `${d.wicket} at ${d.over}.${d.ballNo}. A set batter is replaced by a new batter with a materially higher early-dismissal rate.`, `+${(to - from).toFixed(1)}%`],
+      ['📉', 'Projected total', `Model revises ${btN}'s projection from ${MD.ai.projected.from} down to ${MD.ai.projected.to}.`, 'major'],
+      ['🛡️', 'Field pressure', `${otN} moves to an attacking field — catchers in, boundary riders removed.`, 'moderate']
     ];
   } else {
-    lede = `${otN}'s win probability moved from ${MD.ai.baseline.away}% â†’ ${Math.round(to)}% over the last 10 overs. ${btN}'s scoring rate has fallen to ${MD.ai.rr10} rpo and the model has cut their projected first-innings total.`;
+    lede = `${otN}'s win probability moved from ${MD.ai.baseline.away}% → ${Math.round(to)}% over the last 10 overs. ${btN}'s scoring rate has fallen to ${MD.ai.rr10} rpo and the model has cut their projected first-innings total.`;
     drivers = [
-      ['ðŸŽ¯', 'Last wicket', `${MD.ai.lastWicket.text} at ${MD.ai.lastWicket.over} â€” the innings has not recovered its earlier tempo.`, 'major'],
-      ['ðŸ“‰', 'Projected total', `${MD.ai.projected.from} â†’ ${MD.ai.projected.to} runs, cutting ${btN}'s first-innings platform.`, `âˆ’${MD.ai.projected.from - MD.ai.projected.to}`],
-      ['â±ï¸', 'Scoring rate', `${MD.ai.rr10} rpo across the last 10 overs against a required tempo of 3.0.`, 'moderate'],
-      ['ðŸ”´', 'Second new ball', `Available at over ${MD.ai.newBallOver} â€” ${Math.max(0, MD.ai.newBallOver - s.over)} over${MD.ai.newBallOver - s.over === 1 ? '' : 's'} away. Historically the highest-wicket phase of a Test innings.`, 'rising']
+      ['🎯', 'Last wicket', `${MD.ai.lastWicket.text} at ${MD.ai.lastWicket.over} — the innings has not recovered its earlier tempo.`, 'major'],
+      ['📉', 'Projected total', `${MD.ai.projected.from} → ${MD.ai.projected.to} runs, cutting ${btN}'s first-innings platform.`, `−${MD.ai.projected.from - MD.ai.projected.to}`],
+      ['⏱️', 'Scoring rate', `${MD.ai.rr10} rpo across the last 10 overs against a required tempo of 3.0.`, 'moderate'],
+      ['🔴', 'Second new ball', `Available at over ${MD.ai.newBallOver} — ${Math.max(0, MD.ai.newBallOver - s.over)} over${MD.ai.newBallOver - s.over === 1 ? '' : 's'} away. Historically the highest-wicket phase of a Test innings.`, 'rising']
     ];
   }
 
   $('whyBody').innerHTML = `
     <div class="delta-viz">
-      <div class="box"><label>${ot.short} BEFORE</label><div class="v" style="color:'#7A8B8B'">${d.dismissed ? from : MD.ai.baseline.away}%</div></div>
-      <div class="arrow">â†’</div>
+      <div class="box"><label>${ot.short} BEFORE</label><div class="v" style="color:#7A8B8B">${d.dismissed ? from : MD.ai.baseline.away}%</div></div>
+      <div class="arrow">→</div>
       <div class="box" style="border-color:rgba(76,125,240,.4);background:rgba(76,125,240,.09)">
-        <label>${ot.short} NOW</label><div class="v" style="color:'#7FA0FF'">${Math.round(to)}%</div></div>
-      <div class="box"><label>${bt.short} NOW</label><div class="v" style="color:'#19C46A'">${Math.round(100 - to)}%</div></div>
+        <label>${ot.short} NOW</label><div class="v" style="color:#7FA0FF">${Math.round(to)}%</div></div>
+      <div class="box"><label>${bt.short} NOW</label><div class="v" style="color:#19C46A">${Math.round(100 - to)}%</div></div>
     </div>
     <p class="lede">${lede}</p>
     ${drivers.map(([ic, t, s2, w]) => `
       <div class="driver"><div class="ic">${ic}</div>
         <div class="tx"><b>${t}</b><span>${s2}</span></div>
         <div class="w">${w}</div></div>`).join('')}
-    <div class="modal-note">Explainability. Drivers are derived from the match document â€”
+    <div class="modal-note">Explainability. Drivers are derived from the match document —
     in production each driver would carry a SHAP-style contribution from the live win-probability model.</div>`;
   $('whyModal').classList.add('open');
 }
@@ -3617,7 +3617,7 @@ function renderRpo(){
       ${por.home.slice(0, maxOver).map((r, i) => `
         <div class="rpo-cell">
           <span class="o">${i + 1}</span>
-          <span class="r ${r >= 6 ? 'six' : r >= 4 ? 'boundary' : r === 0 ? 'dot' : 'good'}">${r === 0 ? 'Â·' : r}</span>
+          <span class="r ${r >= 6 ? 'six' : r >= 4 ? 'boundary' : r === 0 ? 'dot' : 'good'}">${r === 0 ? '·' : r}</span>
         </div>`).join('')}
     </div>
     <div style="margin:10px 0 5px"><b style="color:var(--color-accent-2)">${awayTeam} BATTING (1st inn)</b></div>
@@ -3625,7 +3625,7 @@ function renderRpo(){
       ${por.away.slice(0, maxOver).map((r, i) => `
         <div class="rpo-cell">
           <span class="o">${i + 1}</span>
-          <span class="r ${r >= 6 ? 'six' : r >= 4 ? 'boundary' : r === 0 ? 'dot' : 'good'}">${r === 0 ? 'Â·' : r}</span>
+          <span class="r ${r >= 6 ? 'six' : r >= 4 ? 'boundary' : r === 0 ? 'dot' : 'good'}">${r === 0 ? '·' : r}</span>
         </div>`).join('')}
     </div>`;
 }
@@ -3675,8 +3675,8 @@ function renderWagonWheel(){
   // legend
   $('wwWheel').insertAdjacentHTML('beforeend', `
     <div class="wheel-legend">
-      <span><i style="background:'#38BDF8'"></i>1-3 Runs</span>
-      <span><i style="background:'#F97316'"></i>Boundary / Six</span>
+      <span><i style="background:#38BDF8"></i>1-3 Runs</span>
+      <span><i style="background:#F97316"></i>Boundary / Six</span>
     </div>`);
 }
 
@@ -3744,7 +3744,7 @@ function renderLastShot(){
 
   // also populate the wwLast hidden panel
   $('wwLast').innerHTML = `
-    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--color-muted);margin-bottom:8px">LAST DELIVERY â€” ${d.over}.${d.ballNo}</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--color-muted);margin-bottom:8px">LAST DELIVERY — ${d.over}.${d.ballNo}</div>
     <div class="last-shot-grid" style="margin-bottom:10px">
       <div class="cell"><label>SHOT</label><div class="v">${shot.type}</div></div>
       <div class="cell"><label>DIST</label><div class="v">${shot.distance}m</div></div>
@@ -3793,12 +3793,12 @@ function updateLastShotScrub(e){
 function renderCarousel(){
   const d = cur();
   const stages = [
-    { id:'runup', label:'Run Up', icon:'ðŸƒ', ts:0 },
-    { id:'stride', label:'Delivery Stride', icon:'ðŸƒâ€â™‚ï¸', ts:0.2 },
-    { id:'release', label:'Ball Release', icon:'ðŸŽ¯', ts:0.4 },
-    { id:'shot', label:'Batter Shot', icon:'ðŸ', ts:0.6 },
-    { id:'air', label:'Ball In Air', icon:'ðŸ’¨', ts:0.8 },
-    { id:'bounce', label:'Ball Bounce', icon:'âš¡', ts:1.0 }
+    { id:'runup', label:'Run Up', icon:'🏃', ts:0 },
+    { id:'stride', label:'Delivery Stride', icon:'🏃‍♂️', ts:0.2 },
+    { id:'release', label:'Ball Release', icon:'🎯', ts:0.4 },
+    { id:'shot', label:'Batter Shot', icon:'🏏', ts:0.6 },
+    { id:'air', label:'Ball In Air', icon:'💨', ts:0.8 },
+    { id:'bounce', label:'Ball Bounce', icon:'⚡', ts:1.0 }
   ];
   const isWicket = d.dismissed;
   const isBoundary = d.runs >= 4;
@@ -3817,7 +3817,7 @@ function renderCarousel(){
       const tval = [0, 30, 60, 90, 120, 150][si];
       $('lsaScrub').value = tval;
       updateLastShotScrub();
-      toast(`Jumped to ${stages[si].label} â€” ${tval/100*1.5}s`);
+      toast(`Jumped to ${stages[si].label} — ${tval/100*1.5}s`);
     });
   });
 }
@@ -3928,7 +3928,7 @@ function showPlayerForGroup(group, clientX, clientY){
 }
 
 function pauseAutoDrift(){
-  // Called on any user interaction â€” resumes after autoDrift.resumeDelay ms
+  // Called on any user interaction — resumes after autoDrift.resumeDelay ms
   controls.autoRotate = false;
   autoDrift.pauseUntil = performance.now() + autoDrift.resumeDelay;
 }
@@ -3987,7 +3987,7 @@ let options = `
     ${Object.values(MOCK_MATCHES).map(m => `<option value="${m.id}">${m.label}</option>`).join('')}
   </optgroup>
   <optgroup label="Live Data">
-    <option value="sm_68949">Somerset v Leicestershire Â· Finished</option>
+    <option value="sm_68949">Somerset v Leicestershire · Finished</option>
   </optgroup>
 `;
 sel.innerHTML = options;
@@ -3999,13 +3999,13 @@ sel.addEventListener('change', async () => {
       const resp = await fetch(`matches/match-real-68949.json`);
       const doc = await resp.json();
       loadRealMatchDoc(doc);
-      toast(`Loaded ${doc.label} from live Sportmonks data â€” same 3D engine`, 3600);
+      toast(`Loaded ${doc.label} from live Sportmonks data — same 3D engine`, 3600);
     } catch (err) {
       toast('Failed to load real match: ' + err.message, 3600);
     }
   } else {
     loadMatch(val);
-    toast(`Loaded ${MOCK_MATCHES[val].venue.name} from match JSON â€” same 3D engine`, 3600);
+    toast(`Loaded ${MOCK_MATCHES[val].venue.name} from match JSON — same 3D engine`, 3600);
   }
 });
 
@@ -4027,7 +4027,7 @@ const spy = new IntersectionObserver(es => {
 });
 
 /* ==================================================================
-   2. LIVE MATCH TEST â€“ temporary UI (adds a section below the header)
+   2. LIVE MATCH TEST – temporary UI (adds a section below the header)
    ------------------------------------------------------------------
    Clicking "Fetch Live Matches" prompts for a SportMonks API token,
    then calls listLiveMatches(), displays each match as a clickable
@@ -4036,7 +4036,7 @@ const spy = new IntersectionObserver(es => {
    starts pollLiveMatch().
    ------------------------------------------------------------------
    This section is hidden until the user clicks the button, and the
-   token is only ever collected via a prompt() in the browser â€“ it is
+   token is only ever collected via a prompt() in the browser – it is
    never written into the page source.
    ================================================================== */
 
@@ -4048,7 +4048,7 @@ const spy = new IntersectionObserver(es => {
   const liveList = $('liveList');
   const noLiveMsg = $('noLiveMsg');
 
-  // Helper: defensive teamâ€‘name fallback used by the adapter
+  // Helper: defensive team‑name fallback used by the adapter
   function teamName(team){
     return team && (team.name || team.code || 'UNKNOWN');
   }
@@ -4063,7 +4063,7 @@ const spy = new IntersectionObserver(es => {
         `/api/live`
       );
       if (!resp.ok){
-        alert('Liveâ€‘matches request failed: ' + resp.status);
+        alert('Live‑matches request failed: ' + resp.status);
         return;
       }
       const data = await resp.json();
@@ -4129,7 +4129,7 @@ try {
   // expose the seam for console demos / future API wiring
   window.CricBeacon = { loadMatch, applyDelivery, animateBall, setCamera, get matchData(){ return MD; }, get feed(){ return FEED; } };
 } catch (err){
-  $('loader').innerHTML = `<div style="text-align:center;padding:20px"><p style="color:'#FCA5A5';letter-spacing:.1em">3D ENGINE FAILED TO START</p><p style="margin-top:8px;font-size:11px;color:'#7A8B8B';letter-spacing:0">${err.message}</p></div>`;
+  $('loader').innerHTML = `<div style="text-align:center;padding:20px"><p style="color:#FCA5A5;letter-spacing:.1em">3D ENGINE FAILED TO START</p><p style="margin-top:8px;font-size:11px;color:#7A8B8B;letter-spacing:0">${err.message}</p></div>`;
   console.error(err);
 }
 </script>
