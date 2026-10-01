@@ -2909,13 +2909,13 @@ function updateScore(){
   // Second innings wickets per team (use per-team fields if available, else fall back to firstInnings.wickets)
   const secondInnHomeWk = MD.innings.secondInningsHomeWickets != null
     ? MD.innings.secondInningsHomeWickets
-    : 0;
+    : secondWkts(second.home);
   const secondInnAwayWk = MD.innings.secondInningsAwayWickets != null
     ? MD.innings.secondInningsAwayWickets
-    : 0;
+    : secondWkts(second.away);
   // Second innings declared flags per team
-  const secondInnHomeDec = MD.innings.secondInningsHomeDeclared || false;
-  const secondInnAwayDec = MD.innings.secondInningsAwayDeclared || false;
+  const secondInnHomeDec = MD.innings.secondInningsHomeDeclared || secondDeclared(second.home);
+  const secondInnAwayDec = MD.innings.secondInningsAwayDeclared || secondDeclared(second.away);
 
   // Render each team's own innings in the main scoreboard
   const firstInnBat = bt.key === MD.teams.home.key ? firstInnHome : firstInnAway;
