@@ -963,7 +963,7 @@ const MOCK_MATCHES = {
              ] }
     },
     battingTeam:'home',
-    innings:{ current:'Pakistan 2nd innings equivalent — demo', firstInnings:{ team:'eng', total:342, wickets:10 }, secondInnings:{ home:{ runs:287, wickets:8, declared:false }, away:{ runs:280, wickets:5, declared:true } } },
+    innings:{ current:'Pakistan 2nd innings equivalent — demo', firstInnings:{ team:'eng', total:342, wickets:10 }, firstInningsHome:{ team:'pak', total:277, wickets:10 }, secondInnings:{ home:{ runs:287, wickets:8, declared:false }, away:{ runs:280, wickets:5, declared:true } } },
     field:{ standard:FIELD_STANDARD, attacking:FIELD_ATTACKING },
     perOverRuns:{ home:[3,5,2,7,1,4,6,2,3,5,4,3,2,1,0,4,5,3,2,1,3,4,2,5,1,3,4,2,0,1,3,2,4,1,3,2,5,1,2,3,4,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6,1,2,3,4,5,6], away:[2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4] },
     ai:{
@@ -2894,18 +2894,20 @@ function updateScore(){
   const awayKey = String(MD.teams?.away?.key);
   // First innings totals per team (use per-team fields if available, else fall back to firstInnings.team match)
   const firstInnHome = MD.innings.firstInningsHome != null
-    ? MD.innings.firstInningsHome
+    ? (typeof MD.innings.firstInningsHome === 'object' ? MD.innings.firstInningsHome.total : MD.innings.firstInningsHome)
     : (String(MD.teams.home.key) === MD.innings.firstInnings?.team ? (first?.total || 0) : 0);
   const firstInnAway = MD.innings.firstInningsAway != null
-    ? MD.innings.firstInningsAway
+    ? (typeof MD.innings.firstInningsAway === 'object' ? MD.innings.firstInningsAway.total : MD.innings.firstInningsAway)
     : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.total || 0) : 0);
   // First innings wickets per team (use per-team fields if available, else fall back to firstInnings.wickets)
   const firstInnHomeWk = MD.innings.firstInningsHomeWickets != null
     ? MD.innings.firstInningsHomeWickets
-    : (String(MD.teams.home.key) === MD.innings.firstInnings?.team ? (first?.wickets || 0) : 0);
+    : (typeof MD.innings.firstInningsHome === 'object' ? MD.innings.firstInningsHome.wickets
+      : (String(MD.teams.home.key) === MD.innings.firstInnings?.team ? (first?.wickets || 0) : 0));
   const firstInnAwayWk = MD.innings.firstInningsAwayWickets != null
     ? MD.innings.firstInningsAwayWickets
-    : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.wickets || 0) : 0);
+    : (typeof MD.innings.firstInningsAway === 'object' ? MD.innings.firstInningsAway.wickets
+      : (String(MD.teams.away.key) === MD.innings.firstInnings?.team ? (first?.wickets || 0) : 0));
   // Second innings wickets per team (use per-team fields if available, else fall back to firstInnings.wickets)
   const secondInnHomeWk = MD.innings.secondInningsHomeWickets != null
     ? MD.innings.secondInningsHomeWickets
