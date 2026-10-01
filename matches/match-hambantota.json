@@ -549,37 +549,37 @@
     }
   ],
   "start": {
-    "runs": 0,
+    "runs": 128,
     "wickets": 0,
-    "over": 0,
-    "ball": 0,
+    "over": 43,
+    "ball": 6,
     "batsmen": [
       {
         "name": "Finn Anderson",
         "short": "AND",
-        "runs": 0,
-        "balls": 0,
-        "fours": 0,
+        "runs": 19,
+        "balls": 53,
+        "fours": 1,
         "sixes": 0,
-        "onStrike": true,
-        "form": 0,
-        "pressure": 0
+        "onStrike": false,
+        "form": 5,
+        "pressure": 5
       },
       {
         "name": "Kane Williamson",
         "short": "WIL",
-        "runs": 0,
-        "balls": 0,
-        "fours": 0,
+        "runs": 34,
+        "balls": 121,
+        "fours": 4,
         "sixes": 0,
-        "onStrike": false,
-        "form": 0,
-        "pressure": 0
+        "onStrike": true,
+        "form": 5,
+        "pressure": 5
       }
     ],
     "partnership": {
-      "runs": 0,
-      "balls": 0
+      "runs": 128,
+      "balls": 264
     },
     "bowlers": {
       "taskin": {
