@@ -2970,9 +2970,28 @@ function updateScore(){
   }
 
   
-  const trail = complete
-    ? btTotal - otTotal
-    : first.total - s.runs;
+  // FIX 2: For Test match chases, use official second innings score
+  // instead of potentially stale feed state (s.runs)
+  let trail;
+  if (complete) {
+    trail = btTotal - otTotal;
+  } else {
+    // Test match chase detection: if batting team is in 2nd innings,
+    // use official second innings runs rather than feed state
+    const battingTeamKey = MD.battingTeam; // 'home' or 'away'
+    const isSecondInnings = !!MD.innings.secondInnings
+      && MD.innings.secondInnings[battingTeamKey]
+      && MD.innings.secondInnings[battingTeamKey].runs > 0;
+
+    if (!isLimitedOvers() && isSecondInnings){
+      // Use official second innings score (more reliable than feed state)
+      const officialSecondInningsRuns = MD.innings.secondInnings[battingTeamKey].runs;
+      trail = first.total - officialSecondInningsRuns;
+    } else {
+      // Fall back to feed state for limited-overs or 1st innings
+      trail = first.total - s.runs;
+    }
+  }
   $('trailLine').textContent = complete
     ? btTotal > otTotal
       ? (MD.resultText || `${bt.name} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`)
@@ -3763,6 +3782,22 @@ function trailText(bt, trail, otRuns, s){
   const pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
   if (isLimitedOvers()){
     if (!(Number(otRuns) > 0)) return nm + ' batting first';
+    const need = Number(otRuns) + 1 - Number(s.runs);
+    if (need <= 0) return nm + ' have reached the target';
+    const maxOv = maxOversFor();
+    if (!maxOv) return nm + ' need ' + pl(need, 'run');
+    const left = Math.max(0, maxOv * 6 - (s.over * 6 + s.ball));
+    return nm + ' need ' + pl(need, 'run') + ' from ' + pl(left, 'ball');
+  }
+  // FIX 1: Test match chase detection
+  // If the batting team is in their 2nd innings (MD.innings.secondInnings exists
+  // with the batting team having scored), they're chasing a target.
+  // Otherwise they're still in their 1st innings and "trail by X" is correct.
+  const battingTeamKey = MD.battingTeam; // 'home' or 'away'
+  const isSecondInnings = !!MD.innings.secondInnings
+    && MD.innings.secondInnings[battingTeamKey]
+    && MD.innings.secondInnings[battingTeamKey].runs > 0;
+  if (isSecondInnings){
     const need = Number(otRuns) + 1 - Number(s.runs);
     if (need <= 0) return nm + ' have reached the target';
     const maxOv = maxOversFor();
