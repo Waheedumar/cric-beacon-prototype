@@ -98,14 +98,17 @@ function buildFeed(def){
   return out;
 }
 
-function formatInningsScore(runs, wickets, declared) {
+function formatInningsScore(runs, wickets, declared, overs) {
   if (runs == null || runs === '') return '-';
   const r = Number(runs);
   const w = wickets != null ? Number(wickets) : undefined;
-  if (declared) { if (w != null) return `${r}/${w} dec`; return `${r} dec`; }
-  if (w != null && w >= 10) return `${r}`;
-  if (w != null) return `${r}/${w}`;
-  return `${r}`;
+  let base;
+  if (declared) { base = w != null ? `${r}/${w} dec` : `${r} dec`; }
+  else if (w != null && w >= 10) { base = `${r}`; }
+  else if (w != null) { base = `${r}/${w}`; }
+  else { base = `${r}`; }
+  if (overs != null && overs > 0) { return `${base} (${overs} Overs)`; }
+  return base;
 }
 
 // --- helper to build minimal match def ---
@@ -216,6 +219,12 @@ test('formatInningsScore: all out, declared, in-progress', () => {
   assert.strictEqual(formatInningsScore(342, 10, false), '342');
   assert.strictEqual(formatInningsScore(280, 5, true), '280/5 dec');
   assert.strictEqual(formatInningsScore(287, 8, false), '287/8');
+});
+
+test('formatInningsScore: with overs (completed innings)', () => {
+  assert.strictEqual(formatInningsScore(342, 10, false, 78), '342 (78 Overs)');
+  assert.strictEqual(formatInningsScore(280, 5, true, 65), '280/5 dec (65 Overs)');
+  assert.strictEqual(formatInningsScore(287, 8, false, 78), '287/8 (78 Overs)');
 });
 
 console.log('');
