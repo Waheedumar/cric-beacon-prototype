@@ -65,3 +65,42 @@ Hypothesis: on the 2nd replay, the first frame gets a huge dt, so `trajAnim.t` j
 - NEXT: Step 12 - real Sportmonks matches in 3D
 - WAITING: Shiyan's answer on AI integration scope
 - Section 7: test multi-innings scoring. All 5 mock matches are 1st innings only; check M2 test scripts, else add one finished Test mock with 2 innings per team (& layout)
+
+## Bug 3 — Premadasa Match Batsman Name Mismatch (2026-10-04)
+
+**Context:** The user reported that in the SL v WI Premadasa ball-by-ball timeline, the commentary AI Insight sometimes names a different batsman as dismissed than the actual striker per the simulation. Example: commentary says "Cole Johnson to Kusal Mendis — WICKET — Asalanka departs", AI Insight says "Kusal Mendis falls — Charith Asalanka c Pooran b Johnson 2".
+
+**Investigation:**
+- Located `MOCK_MATCHES.premadasa` data (lines 1285-1422) and traced strike rotation via `buildFeed()` logic (lines 1481-1673).
+- Three wicket text mismatches identified:
+
+  1. **Over 2 Ball 5:** outName="Pathum Nissanka", wicketText="Kusal Perera lbw b Hasaranga 6" — Nissanka was the actual striker; Perera isn't in the toCome list.
+  
+  2. **Over 3 Ball 5:** outName="Sadeera Samarawickrama", wicketText="Kusal Mendis b Shamar Joseph 5" — Samarawickrama was the actual striker; Mendis was retired out earlier (Over 3 Ball 5 wicket).
+  
+  3. **Over 5 Ball 6:** outName="Kusal Mendis", wicketText="Charith Asalanka c Pooran b Johnson 2" → commentary "Asalanka departs for 2" — Simulation confirms: Mendis was the striker on Over 5 Ball 6 with 6 runs total after the over. The authored text incorrectly names Asalanka.
+
+- **Simulation trace (definitive):**
+  - After Over 4: Mendis 4/8, Asalanka 0/2* (on strike)
+  - Over 5 Ball 1: DOT (Asalanka on strike)
+  - Over 5 Ball 2: 1 run → strike rotates to Mendis
+  - Over 5 Ball 3: DOT (Mendis on strike)
+  - Over 5 Ball 4: 2 runs (Mendis scores) → total 6 runs
+  - Over 5 Ball 6: Mendis out c Pooran b Johnson 6
+
+- **Fix applied (Over 5 Ball 6):**
+  - Line 1342: `lastWicket.text` → `'Kusal Mendis c Pooran b Johnson 6'`
+  - Line 1409: Wicket field → `'Kusal Mendis c Pooran b Johnson 6'`
+  - Line 1409: Commentary → `'Mendis departs for 6.'`
+- **Fix applied (Over 2 Ball 5):**
+  - Line 1381: Wicket field → `'Pathum Nissanka lbw b Hasaranga 18'`
+  - Line 1381: Commentary → `'Nissanka departs for 18.'`
+- **Fix applied (Over 3 Ball 5):**
+  - Line 1391: Wicket field → `'Sadeera Samarawickrama b Shamar Joseph 7'`
+  - Line 1391: Commentary → `'Samarawickrama cleaned up for 7.'`
+
+All three Premadasa wicket-text mismatches fixed and verified against buildFeed simulation.
+
+## Next features
+
+1. **Trajectory line color by outcome** — Color the trajectory line based on the delivery outcome: 1/2/3 runs = white `#FFFFFF`, 4 runs = blue `#2F80ED`, 6 runs = purple `#9B51E0`, wicket = red `#EB5757`. Dot balls and extras keep the current color. Both `trajA` and `trajB` use the outcome color.
