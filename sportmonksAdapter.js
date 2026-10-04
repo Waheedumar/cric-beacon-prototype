@@ -4,7 +4,7 @@
  * Phase 2 Provider Adapter: Sportmonks World Plan API → Cric Beacon MatchDocument.
  *
  * API base: https://cricket.sportmonks.com/api/v2.0/
- * Auth:     ?api_token=<VITE_SPORTMONKS_API_TOKEN>
+ * Auth:     ?api_token=<SPORTMONKS_API_TOKEN>
  * Docs:     https://docs.sportmonks.com/cricket/
  *
  * The adapter is the ONLY file that knows Sportmonks field names.
