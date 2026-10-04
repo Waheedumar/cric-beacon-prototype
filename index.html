@@ -223,6 +223,9 @@ button{font-family:inherit;color:inherit;}
    OrbitControls. Actual buttons stay interactive (pointer-events not
    inherited). */
 .hud-top,.hud-mid,.hud-bot{pointer-events:none;}
+/* Interactive elements inside bands — override inherited none so they
+   remain clickable/tappable while empty band space stays pass-through. */
+.cbtn,.btn-primary,#btnReplay,.ball-readout{pointer-events:auto;}
 .hud-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .glass{
   background:rgba(8,14,15,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
