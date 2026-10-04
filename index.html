@@ -217,7 +217,12 @@ button{font-family:inherit;color:inherit;}
 .vignette{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(120% 90% at 50% 42%,transparent 42%,rgba(0,0,0,.55) 100%);}
 .hud{position:absolute;inset:0;pointer-events:none;padding:12px;display:flex;flex-direction:column;gap:10px;}
-.hud > *{pointer-events:auto;touch-action:none;}
+.hud > *{pointer-events:auto;}
+/* HUD band containers are layout spacers — keep them transparent to
+   hit-testing so touches pass through empty gaps to the canvas for
+   OrbitControls. Actual buttons stay interactive (pointer-events not
+   inherited). */
+.hud-top,.hud-mid,.hud-bot{pointer-events:none;}
 .hud-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .glass{
   background:rgba(8,14,15,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
