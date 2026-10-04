@@ -212,22 +212,28 @@ function normalizeSportMonksBall(smBall, ctx) {
   }
 
   // --- speed, length, line, dir ------------------------------------
-  // Sportmonks World plan may include rate_id / ball_type fields.
-  // Map them to our LENGTHS / LINES if present; otherwise null.
-  const speed   = smBall.rate_id  ? null : null;  // placeholder — Sportmonks
-                                                   // does not expose km/h per ball
-                                                   // in the public endpoint; set
-                                                   // null and buildFeed will use
-                                                   // a default range for display.
-  const length  = smBall.ball_type
+  // Sportmonks World plan may include rate_id / ball_type / line /
+  // direction fields.  Map them when present; fall back to the
+  // inference layer otherwise (seeded by ball.id, reproducible).
+  const speed = null;  // Sportmonks does not expose km/h per ball
+
+  let length = smBall.ball_type
     ? _mapBallType(smBall.ball_type)
     : null;
-  const line    = smBall.line
+  let line   = smBall.line
     ? _mapLine(smBall.line)
     : null;
-  const dir     = smBall.direction
+  let dir    = smBall.direction
     ? _mapDirection(smBall.direction)
     : null;
+
+  // Fallback: inference layer when any trajectory field is missing
+  if (length == null || line == null || dir == null) {
+    const inferred = inferDelivery(smBall, ctx);
+    if (length == null) length = inferred.length;
+    if (line == null)   line   = inferred.line;
+    if (dir == null)    dir    = inferred.dir;
+  }
 
   // --- shot text (commentary) ---------------------------------------
   const text    = smBall.commentary
@@ -330,6 +336,587 @@ function _buildCommentary(smBall, { batRuns, extraType, wicket, extraRuns }) {
   if (runs === 4) return `FOUR runs!${ex}`;
   if (runs === 6) return `SIX runs!${ex}`;
   return `${runs} run${runs > 1 ? 's' : ''}.${ex}`;
+}
+
+/* ===================================================================
+   INFERENCE LAYER — ball_type / line / direction when Sportmonks is silent
+   ===================================================================
+   Sportmonks World Plan may optionally supply `ball_type`, `line` and
+   `direction` per ball. The normalizer above consumes them when present and
+   leaves the corresponding field as `null`. This layer fills those gaps with
+   a weighted, data-informed heuristic driven by:
+
+     • the delivery outcome (extraType, wicket.type, runs / batRuns)
+     • match phase  (powerplay / middle / death, from over number)
+     • bowler/batsman style (spinners → more 'good', fast → more 'short'/'yorker')
+     • batsman handedness (off ↔ leg flip for left-handers, line only)
+     • a deterministic xorshift random seeded by smBall.id
+
+   Because everything is seeded by the ball id, the same ball always yields the
+   same length / line / dir — the replay is 100% reproducible.
+   =================================================================== */
+
+// --- seeded PRNG (deterministic per ball id) ----------------------------
+// xorshift32, 0..1
+function _inferenceRandom(id) {
+  let x = (Number(id) || 1) >>> 0;
+  x ^= x << 13;
+  x ^= x >>> 17;
+  x ^= x << 5;
+  return (x >>> 0) / 4294967296;
+}
+
+// Weighted pick: pairs = [{value, weight}, ...], r in [0,1).
+function _pickWeighted(pairs, r) {
+  const total = pairs.reduce((sum, p) => sum + p.weight, 0);
+  let acc = 0;
+  for (const { value, weight } of pairs) {
+    acc += weight;
+    if (r < acc / total) return value;
+  }
+  return pairs[pairs.length - 1].value;
+}
+
+// Match phase from over number (same buckets buildFeed / legacy code use).
+function _phaseOf(overId) {
+  const ov = Number(overId);
+  if (ov <= 6) return 'powerplay';
+  if (ov >= 16) return 'death';
+  return 'middle';
+}
+
+// Does a bowling-style string denote a spinner?
+function _isSpinner(style) {
+  return /break|spin|orthodox|slow|googly|chinaman/i.test(style || '');
+}
+
+// Does a bowling-style string denote a fast bowler?
+function _isFast(style) {
+  return /fast/i.test(style || '');
+}
+
+// Batsman handedness from batsmanstyle string.
+function _isLeftHander(style) {
+  return /left/i.test(style || '');
+}
+
+// Extra type: replicate the exact logic from normalizeSportMonksBall so the
+// inference layer is self-contained (it's also used by normalizeSportMonksLive).
+function _inferenceExtraType(smBall) {
+  const sc = (smBall && typeof smBall.score === 'object' && smBall.score) || {};
+  const has = (k) => smBall[k] !== undefined && smBall[k] !== null;
+  const isWide = has('wide') ? smBall.wide : (/wide/i.test(String(sc.name)) ? 1 : 0);
+  const bye = has('bye') ? smBall.bye : (Number(sc.bye) || 0);
+  const legBye = has('leg_bye') ? smBall.leg_bye : (Number(sc.leg_bye) || 0);
+  const nb = has('noball') ? smBall.noball : (Number(sc.noball) || 0);
+  const nbRuns = has('noball_runs') ? smBall.noball_runs : (Number(sc.noball_runs) || 0);
+  let wideRuns = has('wide_runs') ? smBall.wide_runs : 0;
+  if (smBall.wide === undefined && sc.wide_runs !== undefined) wideRuns = sc.wide_runs;
+  if (isWide || wideRuns > 0) return 'wide';
+  if (nb === 1 || nb === '1' || nb === true) return 'noball';
+  if (bye > 0) return 'bye';
+  if (legBye > 0) return 'legbye';
+  return null;
+}
+
+// --- PROBABILITY TABLES (from docs/inference-heuristic-proposal.md) ----
+// LENGTH distributions keyed by condition. Each entry is a list of
+// {value, weight} pairs. The inference function picks one using the seeded RNG.
+
+const _LEN_TABLE = {
+  // Extras
+  wide: [
+    { value: 'full',  weight: 92 },
+    { value: 'yorker', weight: 8 },
+  ],
+  noball: [
+    { value: 'full',  weight: 85 },
+    { value: 'yorker', weight: 10 },
+    { value: 'good',  weight: 5 },
+  ],
+  // Wickets
+  bowled: (phase) => ({
+    powerplay: [
+      { value: 'full',  weight: 60 },
+      { value: 'good',  weight: 35 },
+      { value: 'yorker', weight: 5 },
+    ],
+    middle: [
+      { value: 'full',  weight: 50 },
+      { value: 'good',  weight: 30 },
+      { value: 'yorker', weight: 20 },
+    ],
+    death: [
+      { value: 'yorker', weight: 55 },
+      { value: 'full',  weight: 35 },
+      { value: 'good',  weight: 10 },
+    ],
+  })[phase],
+  lbw: (phase) => ({
+    powerplay: [
+      { value: 'full',  weight: 55 },
+      { value: 'good',  weight: 40 },
+      { value: 'yorker', weight: 5 },
+    ],
+    middle: [
+      { value: 'full',  weight: 45 },
+      { value: 'good',  weight: 35 },
+      { value: 'yorker', weight: 20 },
+    ],
+    death: [
+      { value: 'yorker', weight: 30 },
+      { value: 'full',  weight: 55 },
+      { value: 'good',  weight: 15 },
+    ],
+  })[phase],
+  stumped: [
+    { value: 'full',  weight: 65 },
+    { value: 'good',  weight: 30 },
+    { value: 'yorker', weight: 5 },
+  ],
+  caughtKSSlip: [
+    { value: 'good',  weight: 55 },
+    { value: 'full',  weight: 30 },
+    { value: 'short', weight: 15 },
+  ],
+  caughtOffSide: [
+    { value: 'good',  weight: 50 },
+    { value: 'full',  weight: 25 },
+    { value: 'short', weight: 25 },
+  ],
+  caughtOnSide: [
+    { value: 'short', weight: 45 },
+    { value: 'good',  weight: 45 },
+    { value: 'full',  weight: 10 },
+  ],
+  runout: [
+    { value: 'good',  weight: 45 },
+    { value: 'full',  weight: 35 },
+    { value: 'short', weight: 20 },
+  ],
+  hitwicket: [
+    { value: 'good',  weight: 55 },
+    { value: 'full',  weight: 30 },
+    { value: 'short', weight: 15 },
+  ],
+  // Boundary outcomes
+  six: [
+    { value: 'full',  weight: 30 },
+    { value: 'short', weight: 45 },
+    { value: 'good',  weight: 25 },
+  ],
+  four: [
+    { value: 'full',  weight: 35 },
+    { value: 'good',  weight: 45 },
+    { value: 'short', weight: 20 },
+  ],
+  // Non-scorable / off-bat extras
+  bye: [
+    { value: 'full',  weight: 40 },
+    { value: 'good',  weight: 40 },
+    { value: 'short', weight: 20 },
+  ],
+  legbye: [
+    { value: 'full',  weight: 40 },
+    { value: 'good',  weight: 40 },
+    { value: 'short', weight: 20 },
+  ],
+  // Non-boundary runs
+  dot: (phase) => ({
+    powerplay: [
+      { value: 'good',  weight: 45 },
+      { value: 'full',  weight: 35 },
+      { value: 'short', weight: 20 },
+    ],
+    middle: [
+      { value: 'good',  weight: 55 },
+      { value: 'full',  weight: 30 },
+      { value: 'short', weight: 15 },
+    ],
+    death: [
+      { value: 'good',  weight: 50 },
+      { value: 'short', weight: 40 },
+      { value: 'yorker', weight: 10 },
+    ],
+  })[phase],
+  single: [
+    { value: 'full',  weight: 45 },
+    { value: 'good',  weight: 45 },
+    { value: 'short', weight: 10 },
+  ],
+  twoThree: [
+    { value: 'full',  weight: 45 },
+    { value: 'good',  weight: 45 },
+    { value: 'short', weight: 10 },
+  ],
+};
+
+// LINE distributions keyed by condition.
+const _LINE_TABLE = {
+  wide: [
+    { value: 'wide', weight: 100 },
+  ],
+  bowled: [
+    { value: 'middle', weight: 50 },
+    { value: 'off',    weight: 25 },
+    { value: 'leg',    weight: 20 },
+    { value: 'fourth', weight: 5 },
+  ],
+  lbw: [
+    { value: 'middle', weight: 55 },
+    { value: 'off',    weight: 20 },
+    { value: 'leg',    weight: 20 },
+    { value: 'fourth', weight: 5 },
+  ],
+  stumped: [
+    { value: 'middle', weight: 45 },
+    { value: 'off',    weight: 30 },
+    { value: 'leg',    weight: 20 },
+    { value: 'fourth', weight: 5 },
+  ],
+  caughtKSSlip: [
+    { value: 'off',    weight: 40 },
+    { value: 'fourth', weight: 40 },
+    { value: 'middle', weight: 15 },
+    { value: 'leg',    weight: 5 },
+  ],
+  caughtOffSide: [
+    { value: 'off',    weight: 50 },
+    { value: 'fourth', weight: 25 },
+    { value: 'middle', weight: 20 },
+    { value: 'leg',    weight: 5 },
+  ],
+  caughtOnSide: [
+    { value: 'leg',    weight: 45 },
+    { value: 'middle', weight: 35 },
+    { value: 'off',    weight: 15 },
+    { value: 'fourth', weight: 5 },
+  ],
+  runout: [
+    { value: 'middle', weight: 40 },
+    { value: 'off',    weight: 35 },
+    { value: 'leg',    weight: 25 },
+  ],
+  hitwicket: [
+    { value: 'middle', weight: 50 },
+    { value: 'off',    weight: 25 },
+    { value: 'leg',    weight: 20 },
+    { value: 'fourth', weight: 5 },
+  ],
+  noball: [
+    { value: 'middle', weight: 40 },
+    { value: 'off',    weight: 35 },
+    { value: 'leg',    weight: 25 },
+  ],
+  six: [
+    { value: 'middle', weight: 35 },
+    { value: 'off',    weight: 35 },
+    { value: 'leg',    weight: 30 },
+  ],
+  four: [
+    { value: 'middle', weight: 40 },
+    { value: 'off',    weight: 30 },
+    { value: 'leg',    weight: 30 },
+  ],
+  bye: [
+    { value: 'middle', weight: 35 },
+    { value: 'off',    weight: 35 },
+    { value: 'leg',    weight: 30 },
+  ],
+  legbye: [
+    { value: 'middle', weight: 35 },
+    { value: 'off',    weight: 35 },
+    { value: 'leg',    weight: 30 },
+  ],
+  single: [
+    { value: 'middle', weight: 40 },
+    { value: 'off',    weight: 40 },
+    { value: 'leg',    weight: 20 },
+  ],
+  twoThree: [
+    { value: 'middle', weight: 45 },
+    { value: 'off',    weight: 40 },
+    { value: 'leg',    weight: 15 },
+  ],
+  dot: [
+    { value: 'middle', weight: 40 },
+    { value: 'off',    weight: 35 },
+    { value: 'leg',    weight: 25 },
+  ],
+};
+
+// DIR distributions. null means no shot direction (missed bat / wicket).
+const _DIR_TABLE = {
+  bowled: null,
+  lbw: null,
+  stumped: null,
+  hitwicket: null,
+  keeper: [
+    { value: 'keeper', weight: 45 },
+    { value: 'slip',   weight: 35 },
+  ],
+  catcherNearWicket: [
+    { value: 'keeper', weight: 45 },
+    { value: 'slip',   weight: 35 },
+    { value: 'off',    weight: 20 },
+  ],
+  offSide: [
+    { value: 'cover', weight: 30 },
+    { value: 'point', weight: 25 },
+    { value: 'mid-off', weight: 20 },
+    { value: 'third-man', weight: 15 },
+    { value: 'slip', weight: 10 },
+  ],
+  onSide: [
+    { value: 'midwicket', weight: 35 },
+    { value: 'square-leg', weight: 30 },
+    { value: 'fine-leg', weight: 20 },
+    { value: 'mid-on', weight: 15 },
+  ],
+  runout: 'uniform',
+  six: [
+    { value: 'long-on', weight: 25 },
+    { value: 'midwicket', weight: 25 },
+    { value: 'long-off', weight: 20 },
+    { value: 'straight', weight: 15 },
+    { value: 'fine-leg', weight: 15 },
+  ],
+  four: [
+    { value: 'cover', weight: 25 },
+    { value: 'midwicket', weight: 20 },
+    { value: 'point', weight: 15 },
+    { value: 'square-leg', weight: 12.5 },
+    { value: 'third-man', weight: 12.5 },
+    { value: 'long-off', weight: 10 },
+    { value: 'long-on', weight: 5 },
+  ],
+  bye: null,
+  legbye: null,
+  single: [
+    { value: 'mid-off', weight: 30 },
+    { value: 'mid-on', weight: 30 },
+    { value: 'straight', weight: 20 },
+    { value: 'cover', weight: 10 },
+    { value: 'square-leg', weight: 10 },
+  ],
+  twoThree: [
+    { value: 'mid-off', weight: 20 },
+    { value: 'mid-on', weight: 20 },
+    { value: 'cover', weight: 20 },
+    { value: 'midwicket', weight: 15 },
+    { value: 'square-leg', weight: 10 },
+    { value: 'third-man', weight: 10 },
+    { value: 'long-off', weight: 5 },
+  ],
+  dot: 'halfNull',  // 60% null, 40% uniform random
+  uniform: 'uniform',
+};
+
+// Valid shot-direction keys, mirrored from index.html SHOT_DIRS (without null).
+const _SHOT_DIRS_KEYS = [
+  'cover', 'point', 'third-man', 'mid-off', 'long-off', 'straight',
+  'long-on', 'mid-on', 'midwicket', 'square-leg', 'fine-leg',
+  'keeper', 'slip',
+];
+
+// --- BOWLER STYLE MODIFIERS (apply AFTER the base table pick) ----------
+// Spinners bowl straighter/shorter-of-a-length: shift mass toward 'good',
+// away from 'full'/'short'; also nudge yorkers toward full.
+function _applySpinnerLengthModifier(length, r) {
+  switch (length) {
+    case 'full':
+      return r < 0.10 ? 'good' : 'full';  // 10% full → good
+    case 'short':
+      return r < 0.05 ? 'good' : 'short';  // 5% short → good
+    case 'yorker':
+      return r < 0.05 ? 'full' : 'yorker';  // 5% yorker → full
+    default:
+      return length;
+  }
+}
+
+// Fast bowlers: more expressiveness — push 'short'/'yorker' into play,
+// and on yorkers keep some chance of a fuller length.
+function _applyFastLengthModifier(length, r) {
+  switch (length) {
+    case 'full':
+      return r < 0.05 ? 'short' : 'full';  // 5% full → short
+    case 'good':
+      return r < 0.05 ? 'short' : 'good';  // 5% good → short
+    case 'short':
+      return r < 0.05 ? 'yorker' : 'short';  // 5% short → yorker
+    case 'bouncer':
+      return r < 0.05 ? 'short' : 'bouncer';  // 5% bouncer → short
+    default:
+      return length;
+  }
+}
+
+// LINE flip for a left-handed batter: off-side and leg-side are swapped
+// from the bowler's (world) coordinate frame, so the bounce lands on the
+// correct side of the stumps for the handedness shown.
+function _flipLineForLeftHander(line) {
+  switch (line) {
+    case 'off':  return 'leg';
+    case 'leg':  return 'off';
+    case 'fourth': return 'body';
+    case 'body': return 'fourth';
+    default:     return line;
+  }
+}
+
+// Main entry point: infer { length, line, dir } from a raw Sportmonks ball.
+// Returns an object where every missing field is null — the normalizer
+// merges inferred values only for the fields that were absent.
+function inferDelivery(smBall, ctx = {}) {
+  const { playersMap } = ctx;
+  const overId = smBall.over_id || smBall.over || 1;
+  const phase = _phaseOf(overId);
+
+  const rL  = _inferenceRandom(smBall.id || overId);           // length
+  const rLN = (smBall.id || overId) % 4294967296 === 0
+    ? _inferenceRandom(smBall.id || overId + 0.5)
+    : _inferenceRandom(smBall.id ? String(smBall.id) + '_line' : String(overId) + '_line');
+  const rD  = _inferenceRandom(smBall.id ? String(smBall.id) + '_dir' : String(overId) + '_dir');
+
+  const totalRuns = Number(smBall.runs) || 0;
+  let batRuns     = smBall.batsman_score
+    ? Number(smBall.batsman_score.runs)
+    : null;
+  if (batRuns === null) {
+    // Fall back to subtraction when the sub-object is missing.
+    const sc = (smBall && typeof smBall.score === 'object' && smBall.score) || {};
+    const runsField = smBall.runs;
+    const base = runsField !== undefined && runsField !== null ? Number(runsField) : (Number(sc.runs) || 0);
+    const bye = smBall.bye !== undefined ? smBall.bye : (Number(sc.bye) || 0);
+    const legBye = smBall.leg_bye !== undefined ? smBall.leg_bye : (Number(sc.leg_bye) || 0);
+    const nbRuns = smBall.noball_runs !== undefined ? smBall.noball_runs : (Number(sc.noball_runs) || 0);
+    const isWide = smBall.wide || (/wide/i.test(String(sc.name)) ? 1 : 0);
+    batRuns = (isWide || bye > 0 || legBye > 0 || nbRuns > 0) ? 0 : base;
+  }
+  const extraType = _inferenceExtraType(smBall);
+  const wicket = parseSportMonksWicket(smBall, playersMap);
+
+  const bowlerStyle = (smBall.bowler || {}).bowlingstyle || '';
+  const batsmanStyle = (smBall.batsman || {}).batsmanstyle || '';
+  const isSpinner = _isSpinner(bowlerStyle);
+  const isFast    = _isFast(bowlerStyle);
+  const isLeftH   = _isLeftHander(batsmanStyle);
+
+  // ---- LENGTH ---------------------------------------------------------
+  let lenBase;
+  if (extraType === 'wide')      lenBase = _LEN_TABLE.wide;
+  else if (extraType === 'noball') lenBase = _LEN_TABLE.noball;
+  else if (wicket) {
+    if (wicket.type === 'bowled')        lenBase = _LEN_TABLE.bowled(phase);
+    else if (wicket.type === 'lbw')      lenBase = _LEN_TABLE.lbw(phase);
+    else if (wicket.type === 'stumped')  lenBase = _LEN_TABLE.stumped;
+    else if (wicket.type === 'caught') {
+      if (wicket.caughtBy) {
+        const cb = wicket.caughtBy.toLowerCase();
+        if (cb === 'keeper' || cb === 'wk') lenBase = _LEN_TABLE.keeper;
+        else if (cb.toLowerCase() === 'slip' || cb.toLowerCase() === 'sl') lenBase = _LEN_TABLE.caughtKSSlip;
+        else lenBase = _LEN_TABLE.caughtOffSide;  // slips are off-side; any other named fielder off-side
+      } else {
+        lenBase = _LEN_TABLE.caughtOffSide;
+      }
+    }
+    else if (wicket.type === 'runout') lenBase = _LEN_TABLE.runout;
+    else if (wicket.type === 'hitwicket') lenBase = _LEN_TABLE.hitwicket;
+    else lenBase = _LEN_TABLE.caughtOffSide;
+  }
+  else if (totalRuns === 6)            lenBase = _LEN_TABLE.six;
+  else if (totalRuns === 4)            lenBase = _LEN_TABLE.four;
+  else if (extraType === 'bye')        lenBase = _LEN_TABLE.bye;
+  else if (extraType === 'legbye')     lenBase = _LEN_TABLE.legbye;
+  else if (totalRuns === 0)            lenBase = _LEN_TABLE.dot(phase);
+  else if (totalRuns === 1)            lenBase = _LEN_TABLE.single;
+  else if (totalRuns >= 2 && totalRuns <= 3) lenBase = _LEN_TABLE.twoThree;
+  else lenBase = _LEN_TABLE.dot(phase);
+
+  let length = _pickWeighted(lenBase, rL);
+
+  if (isSpinner) length = _applySpinnerLengthModifier(length, rL);
+  if (isFast)    length = _applyFastLengthModifier(length, rL);
+
+  // ---- LINE -----------------------------------------------------------
+  let lnBase;
+  if (extraType === 'wide')        lnBase = _LINE_TABLE.wide;
+  else if (wicket) {
+    if (wicket.type === 'bowled')        lnBase = _LINE_TABLE.bowled;
+    else if (wicket.type === 'lbw')      lnBase = _LINE_TABLE.lbw;
+    else if (wicket.type === 'stumped')  lnBase = _LINE_TABLE.stumped;
+    else if (wicket.type === 'caught') {
+      if (wicket.caughtBy) {
+        const cb = wicket.caughtBy.toLowerCase();
+        if (cb === 'keeper' || cb === 'wk') lnBase = _LINE_TABLE.caughtKSSlip;
+        else if (cb.toLowerCase() === 'slip' || cb.toLowerCase() === 'sl') lnBase = _LINE_TABLE.caughtKSSlip;
+        else lnBase = _LINE_TABLE.caughtOffSide;
+      } else {
+        lnBase = _LINE_TABLE.caughtOffSide;
+      }
+    }
+    else if (wicket.type === 'runout') lnBase = _LINE_TABLE.runout;
+    else if (wicket.type === 'hitwicket') lnBase = _LINE_TABLE.hitwicket;
+    else lnBase = _LINE_TABLE.bowled;
+  }
+  else if (totalRuns === 6)        lnBase = _LINE_TABLE.six;
+  else if (totalRuns === 4)        lnBase = _LINE_TABLE.four;
+  else if (extraType === 'noball') lnBase = _LINE_TABLE.noball;
+  else if (extraType === 'bye')    lnBase = _LINE_TABLE.bye;
+  else if (extraType === 'legbye') lnBase = _LINE_TABLE.legbye;
+  else if (totalRuns === 1)        lnBase = _LINE_TABLE.single;
+  else if (totalRuns >= 2 && totalRuns <= 3) lnBase = _LINE_TABLE.twoThree;
+  else lnBase = _LINE_TABLE.dot;
+
+  let line = _pickWeighted(lnBase, rLN);
+  if (isLeftH) line = _flipLineForLeftHander(line);
+
+  // ---- DIR ------------------------------------------------------------
+  let dirBase;
+  if (wicket) {
+    if (wicket.type === 'bowled' || wicket.type === 'lbw' ||
+        wicket.type === 'stumped' || wicket.type === 'hitwicket') dirBase = null;
+    else if (wicket.type === 'caught') {
+      if (wicket.caughtBy) {
+        const cb = wicket.caughtBy.toLowerCase();
+        if (cb === 'keeper' || cb === 'wk') dirBase = _DIR_TABLE.keeper;
+        else if (cb.toLowerCase() === 'slip' || cb.toLowerCase() === 'sl') dirBase = _DIR_TABLE.catcherNearWicket;
+        else dirBase = _DIR_TABLE.offSide;
+      } else {
+        dirBase = _DIR_TABLE.offSide;
+      }
+    }
+    else if (wicket.type === 'runout') dirBase = _DIR_TABLE.runout;
+    else dirBase = _DIR_TABLE.bowled;
+  }
+  else if (totalRuns >= 4 && batRuns === 0) {
+    // Extra boundary (4/6 off extras): no shot direction.
+    dirBase = null;
+  }
+  else if (wicket && wicket.type === 'caught' && !wicket.caughtBy) {
+    dirBase = _DIR_TABLE.offSide;
+  }
+  else if (totalRuns === 6)            dirBase = _DIR_TABLE.six;
+  else if (totalRuns === 4)            dirBase = _DIR_TABLE.four;
+  else if (extraType === 'bye' || extraType === 'legbye') dirBase = null;
+  else if (totalRuns === 1)            dirBase = _DIR_TABLE.single;
+  else if (totalRuns >= 2 && totalRuns <= 3) dirBase = _DIR_TABLE.twoThree;
+  else if (totalRuns === 0)            dirBase = _DIR_TABLE.dot;
+  else dirBase = _DIR_TABLE.dot;
+
+  let dir;
+  if (dirBase === null) {
+    dir = null;
+  } else if (dirBase === 'uniform' || dirBase === _DIR_TABLE.runout) {
+    dir = _SHOT_DIRS_KEYS[Math.floor(rD * _SHOT_DIRS_KEYS.length) % _SHOT_DIRS_KEYS.length];
+  } else if (dirBase === 'halfNull') {
+    dir = rD < 0.6 ? null : _SHOT_DIRS_KEYS[Math.floor(rD * _SHOT_DIRS_KEYS.length) % _SHOT_DIRS_KEYS.length];
+  } else {
+    dir = _pickWeighted(dirBase, rD);
+  }
+
+  return { length, line, dir, inferred: true };
 }
 
 /* ===================================================================
@@ -1505,25 +2092,11 @@ function normalizeSportMonksLive(data) {
   if (tot[0]) I.firstInnings = { total: tot[0].total, wickets: tot[0].wickets };
 
   // Procedural estimates (Section 4): Sportmonks has no speed/length/line/direction per ball.
+  // Length/line/dir are now filled by normalizeSportMonksBall via inferDelivery().
+  // Only speed (t[2]) remains null — buildFeed falls back to a default range.
   const styleById = {};
   balls.forEach(b => { if (b.bowler && b.bowler.id) styleById[String(b.bowler.id)] = String(b.bowler.bowlingstyle || ''); });
   Object.keys(s.bowlers).forEach(key => { const id = key.replace('sm_bowler_', ''); if (!s.bowlers[key].style && styleById[id]) s.bowlers[key].style = styleById[id]; if (s.bowlers[key].maidens === undefined) s.bowlers[key].maidens = 0; });
-  const DIRS = ['midwicket', 'cover', 'mid-on', 'square-leg', 'long-on', 'fine-leg'];
-  const LENS = ['good', 'good', 'full', 'good', 'short', 'full'];
-  const LNS = ['off', 'middle', 'off', 'fourth', 'leg', 'middle'];
-  let k = 0;
-  (doc.overs || []).forEach(o => {
-    const st = styleById[String(o.bowler || '').replace('sm_bowler_', '')] || '';
-    const spin = /break|spin|orthodox|slow|googly|chinaman/i.test(st);
-    (o.balls || []).forEach(t => {
-      k++;
-      const r = ((k * 9301 + 49297) % 233280) / 233280;
-      if (t[2] == null) t[2] = spin ? Math.round(82 + r * 12) : Math.round(126 + r * 16);
-      if (t[3] == null) t[3] = LENS[k % LENS.length];
-      if (t[4] == null) t[4] = LNS[(k * 7) % LNS.length];
-      if (t[5] == null && Number(t[0]) > 0 && !t[1] && !t[7]) t[5] = DIRS[Math.floor(r * DIRS.length) % DIRS.length];
-    });
-  });
   doc.procedural = true;
   if (data.type) doc.format = data.type;
   if (data.note && /won|tied|tie|no result|draw|abandon/i.test(String(data.note))) doc.resultText = String(data.note);
