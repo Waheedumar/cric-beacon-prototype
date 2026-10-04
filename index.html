@@ -2462,7 +2462,8 @@ function loop(){
       trajAnim.t = anim.t;
       if (!anim.on) trajAnim.on = false;
     } else {
-      trajAnim.t += trajDt / TRAJ_PHASE_DUR;
+      const phaseDur = trajAnim.durs[trajAnim.phase];
+      trajAnim.t += trajDt / phaseDur;
       if (trajAnim.t >= 1){
         if (trajAnim.phase < trajAnim.curves.length - 1){
           trajAnim.phase++;
