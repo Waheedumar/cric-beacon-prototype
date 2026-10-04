@@ -3078,13 +3078,17 @@ function updateScore(){
     : `${s.runs}/${s.wickets}`;
   const otLines = hasSecondInnings
     ? formatInningsLinesPlain(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
-    : `${first.total}`;
+    : (String(MD.innings.firstInnings?.team) === ot.key
+        ? formatInningsScore(first.total, first.wickets || 0, false).replace(' dec', 'd')
+        : '—');
   // MATCH CONDITIONS line: compact score line shared by single and multi-innings.
   // Declared innings use "d" (cricket shorthand) instead of "dec" in this line.
   const hudInningsScore = (runs, wickets, declared) =>
     formatInningsScore(runs, wickets, declared).replace(' dec', 'd');
   const hudLine = !hasSecondInnings
-    ? `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${first.total}`
+    ? `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${String(MD.innings.firstInnings?.team) === ot.key
+        ? hudInningsScore(first.total, first.wickets || 0, false)
+        : '—'}`
     : (complete
         ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
         : `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(s.runs, s.wickets, false)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`);
