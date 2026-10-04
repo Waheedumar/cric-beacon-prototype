@@ -2472,6 +2472,13 @@ function loop(){
           trajAnim.on = false;
         }
       }
+      // Cap trajectory phase to the ball's phase while the ball is still
+      // in flight. trajDt (≤0.25) is much larger than dt (≤0.05), so the
+      // trajectory timer races ahead of the ball and would otherwise let
+      // trajB (the shot-line segment) start drawing before the ball has
+      // actually reached the bat. The slowMo branch is unaffected — it
+      // already locks trajAnim.phase to anim.phase.
+      if (anim.on) trajAnim.phase = Math.min(trajAnim.phase, anim.phase);
     }
   }
   [trajA, trajB].forEach((t, i) => {
