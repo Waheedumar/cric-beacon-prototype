@@ -2058,7 +2058,7 @@ function disposeGroup(g){
 }
 
 /* ---------- ball + trajectory ---------- */
-const ballScaleFor = () => (window.innerWidth < 768 ? 1.8 : 1);
+const ballScaleFor = () => 1;
 function buildBall(){
   ballGroup = new THREE.Group();
   ball = new THREE.Mesh(
