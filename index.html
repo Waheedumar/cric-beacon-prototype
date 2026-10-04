@@ -2462,23 +2462,30 @@ function loop(){
       trajAnim.t = anim.t;
       if (!anim.on) trajAnim.on = false;
     } else {
-      const phaseDur = trajAnim.durs[trajAnim.phase];
-      trajAnim.t += trajDt / phaseDur;
-      if (trajAnim.t >= 1){
-        if (trajAnim.phase < trajAnim.curves.length - 1){
-          trajAnim.phase++;
-          trajAnim.t = 0;
-        } else {
-          trajAnim.on = false;
+      // Normal playback / "Show Ball Trajectory": while the ball is still
+      // animating (anim.on is true), lock trajAnim to the ball's timer so
+      // the two never drift out of sync. This makes both segments grow
+      // progressively alongside the ball (no premature trajB, no snap-in),
+      // and eliminates the whole class of drift bugs instead of patching
+      // each symptom. When the ball has stopped (anim.on is false), run
+      // trajAnim on its own clock so the line can finish drawing its
+      // remaining progress independently. Same approach already used
+      // correctly by the slowMo branch above.
+      if (anim.on){
+        trajAnim.phase = anim.phase;
+        trajAnim.t = anim.t;
+      } else {
+        const phaseDur = trajAnim.durs[trajAnim.phase];
+        trajAnim.t += trajDt / phaseDur;
+        if (trajAnim.t >= 1){
+          if (trajAnim.phase < trajAnim.curves.length - 1){
+            trajAnim.phase++;
+            trajAnim.t = 0;
+          } else {
+            trajAnim.on = false;
+          }
         }
       }
-      // Cap trajectory phase to the ball's phase while the ball is still
-      // in flight. trajDt (≤0.25) is much larger than dt (≤0.05), so the
-      // trajectory timer races ahead of the ball and would otherwise let
-      // trajB (the shot-line segment) start drawing before the ball has
-      // actually reached the bat. The slowMo branch is unaffected — it
-      // already locks trajAnim.phase to anim.phase.
-      if (anim.on) trajAnim.phase = Math.min(trajAnim.phase, anim.phase);
     }
   }
   [trajA, trajB].forEach((t, i) => {
