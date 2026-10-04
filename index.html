@@ -1488,6 +1488,26 @@ function parseDismissal(wicket){
   return null;
 }
 
+/**
+ * Format a wicket object (from SportMonks normalized data) into a
+ * human-readable string for toast notifications and HUD display.
+ * Matches the mock data format: "Name c Fielder b Bowler runs"
+ */
+function formatWicketDisplay(wicket) {
+  if (!wicket || !wicket.dismissed) return '';
+  const type = wicket.type || '';
+  const caughtBy = wicket.caughtBy || '';
+  const bowledBy = wicket.bowledBy || '';
+  if (type === 'caught' && caughtBy) return `${caughtBy}`;
+  if (type === 'caught') return 'caught';
+  if (type === 'bowled' && bowledBy) return `bowled b ${bowledBy}`;
+  if (type === 'lbw' && bowledBy) return `lbw b ${bowledBy}`;
+  if (type === 'runout' && caughtBy) return `run out ${caughtBy}`;
+  if (type === 'stumped') return 'stumped';
+  if (type === 'hitwicket') return 'hit wicket';
+  return type;
+}
+
 function buildFeed(def){
   const s = JSON.parse(JSON.stringify(def.start));
   s.toCome = s.toCome.slice();
@@ -3499,7 +3519,10 @@ function applyDelivery(i, animate){
   if (animate){
     animateBall(d, true);
     $('ballReadout').classList.add('show');
-    if (d.dismissed) toast(`WICKET — ${d.wicket}`, 3800);
+    if (d.dismissed) {
+      const wicketText = typeof d.wicket === 'object' ? formatWicketDisplay(d.wicket) : d.wicket;
+      toast(`WICKET — ${wicketText}`, 3800);
+    }
     else if (d.freeHitRejected) toast(d.result, 3200);
     else if (d.runs >= 4) toast(`${d.runs === 6 ? 'SIX' : 'FOUR'} — ${d.strikerName}`, 2400);
   }

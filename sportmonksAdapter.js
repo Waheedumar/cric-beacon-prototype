@@ -100,6 +100,43 @@ function parseFallbackDismissalType(name) {
   return 'caught';  // safe fallback — buildFeed will handle it
 }
 
+/**
+ * Format a SportMonks wicket object into a human-readable string
+ * for display in toast notifications, HUD, etc.
+ * E.g. "Root c Atkinson" or "bowled b Leach" or "lbw b Wood"
+ */
+function formatWicketDisplay(wicket) {
+  if (!wicket || !wicket.dismissed) return '';
+
+  const type = wicket.type || '';
+  const caughtBy = wicket.caughtBy || '';
+  const bowledBy = wicket.bowledBy || '';
+
+  if (type === 'caught' && caughtBy) {
+    return `${caughtBy}`;
+  }
+  if (type === 'caught') {
+    return 'caught';
+  }
+  if (type === 'bowled' && bowledBy) {
+    return `bowled b ${bowledBy}`;
+  }
+  if (type === 'lbw' && bowledBy) {
+    return `lbw b ${bowledBy}`;
+  }
+  if (type === 'runout' && caughtBy) {
+    return `run out ${caughtBy}`;
+  }
+  if (type === 'stumped') {
+    return 'stumped';
+  }
+  if (type === 'hitwicket') {
+    return 'hit wicket';
+  }
+  // Fallback: just the type name
+  return type;
+}
+
 /* ===================================================================
    NORMALIZER — single ball
    Maps one Sportmonks ball object → Cric Beacon 8-element tuple
@@ -2105,5 +2142,5 @@ function normalizeSportMonksLive(data) {
 
 // Export for browser / module use
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { SportMonksAdapter, normalizeSportMonksBall, normalizeSportMonksMatch, normalizeSportMonksLive, runTests };
+  module.exports = { SportMonksAdapter, normalizeSportMonksBall, normalizeSportMonksMatch, normalizeSportMonksLive, runTests, formatWicketDisplay };
 }
