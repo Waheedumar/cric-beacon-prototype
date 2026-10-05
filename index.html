@@ -871,7 +871,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
-const trajLinePx = () => (window.innerWidth < 768 ? 10 : 8);
+const trajLinePx = () => (window.innerWidth < 768 ? 6 : 4);
 
 /* ==================================================================
    1. DATA LAYER  —  THE API SEAM
@@ -2286,7 +2286,7 @@ function animateBall(d, showPath = true, animate = true, slowMo = false){
     // Create Line objects for progressive drawing of trajectory
     trajA = new Line2(
       new LineGeometry(),
-      new LineMaterial({ color: colA === null ? 0x19E07A : colA, transparent:true, opacity:.82, linewidth: trajLinePx(), resolution: new THREE.Vector2(window.innerWidth, window.innerHeight), linecap: 'round', linejoin: 'round' })
+      new LineMaterial({ color: colA === null ? 0x19E07A : colA, transparent:true, opacity:.82, linewidth: trajLinePx(), resolution: new THREE.Vector2(window.innerWidth, window.innerHeight) })
     );
     trajA.frustumCulled = false;
     ballGroup.add(trajA);
@@ -2295,7 +2295,7 @@ function animateBall(d, showPath = true, animate = true, slowMo = false){
       const colB = trajColorFor(d);
       trajB = new Line2(
         new LineGeometry(),
-        new LineMaterial({ color: colB === null ? (d.dismissed ? 0xEF4444 : 0xF0B429) : colB, transparent:true, opacity:.72, linewidth: trajLinePx(), resolution: new THREE.Vector2(window.innerWidth, window.innerHeight), linecap: 'round', linejoin: 'round' })
+        new LineMaterial({ color: colB === null ? (d.dismissed ? 0xEF4444 : 0xF0B429) : colB, transparent:true, opacity:.72, linewidth: trajLinePx(), resolution: new THREE.Vector2(window.innerWidth, window.innerHeight) })
       );
       trajB.frustumCulled = false;
       ballGroup.add(trajB);
