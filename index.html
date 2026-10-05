@@ -3136,9 +3136,7 @@ function updateScore(){
   const hudLine = !hasSecondInnings
     ? (complete
         : `${bt.short} ${teamTotal(bt.key)}/${bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk} · ${ot.short} ${teamTotal(ot.key)}/${ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk}`
-        : `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${String(MD.innings.firstInnings?.team) === ot.key
-            ? hudInningsScore(first.total, first.wickets || 0, false)
-            : '—'}`)
+        : `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${teamTotal(ot.key)}/${ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk}`)
     : (complete
         ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
         : `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(s.runs, s.wickets, false)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`);
