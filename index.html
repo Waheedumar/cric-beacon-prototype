@@ -3134,8 +3134,7 @@ function updateScore(){
   const hudInningsScore = (runs, wickets, declared) =>
     formatInningsScore(runs, wickets, declared).replace(' dec', 'd');
   const hudLine = !hasSecondInnings
-    ? (complete
-        : `${bt.short} ${teamTotal(bt.key)}/${bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk} · ${ot.short} ${teamTotal(ot.key)}/${ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk}`
+    ? (complete ? `${bt.short} ${teamTotal(bt.key)}/${bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk} · ${ot.short} ${teamTotal(ot.key)}/${ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk}`
         : `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${teamTotal(ot.key)}/${ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk}`)
     : (complete
         ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
