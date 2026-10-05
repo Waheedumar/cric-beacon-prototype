@@ -3134,23 +3134,24 @@ function updateScore(){
   const hudInningsScore = (runs, wickets, declared) =>
     formatInningsScore(runs, wickets, declared).replace(' dec', 'd');
 
-  // Helper: format opponent's score for the single-innings HUD line.
-  // Handles three states:
-  //   - hasn't batted at all -> "{short} Yet to Bat"
-  //   - all out (wickets >= 10) -> "{short} {runs}" (no wicket count, per all-out convention)
-  //   - in progress -> "{short} {runs}/{wickets}"
-  const hudOtDisplay = () => {
-    const otWkts = ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
-    const otTotal = teamTotal(ot.key);
-    const otBattedFirst = first && String(first.team) === ot.key;
-    const otHasBatted = otBattedFirst || otTotal > 0 || otWkts > 0;
-    if (!otHasBatted) return `${ot.short} Yet to Bat`;
-    if (otWkts >= 10) return `${ot.short} ${otTotal}`;
-    return `${ot.short} ${otTotal}/${otWkts}`;
+  // Helper: format team's score for the single-innings HUD line.
+// Handles three states:
+//   - hasn't batted at all -> "{short} Yet to Bat"
+//   - all out (wickets >= 10) -> "{short} {runs}" (no wicket count, per all-out convention)
+//   - in progress -> "{short} {runs}/{wickets}"
+  const hudTeamDisplay = (team) => {
+    const teamWkts = team.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
+    const teamTotalRuns = teamTotal(team.key);
+    const teamBattedFirst = first && String(first.team) === team.key;
+    const teamHasBatted = teamBattedFirst || teamTotalRuns > 0 || teamWkts > 0;
+    if (!teamHasBatted) return `${team.short} Yet to Bat`;
+    if (teamWkts >= 10) return `${team.short} ${teamTotalRuns}`;
+    return `${team.short} ${teamTotalRuns}/${teamWkts}`;
   };
+  const hudOtDisplay = () => hudTeamDisplay(ot);
 
   const hudLine = !hasSecondInnings
-    ? (complete ? `${bt.short} ${teamTotal(bt.key)}/${bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk} · ${hudOtDisplay()}`
+    ? (complete ? `${hudTeamDisplay(bt)} · ${hudOtDisplay()}`
         : `${bt.short} ${s.runs}/${s.wickets} · ${hudOtDisplay()}`)
     : (complete
         ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
