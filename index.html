@@ -1529,8 +1529,50 @@ function buildFeed(def){
     const currentBowlerKey = (s.bowlers && Object.keys(s.bowlers).length) ? Object.keys(s.bowlers)[0] : 'bowler_0';
     const striker = batsmen.find(b => b.onStrike) || batsmen[0];
     const bowler = s.bowlers ? s.bowlers[currentBowlerKey] : undefined;
-    const currentOver = s.over || 0;
-    const currentBall = s.ball || 1;
+
+    // For completed matches: correct the stale live-snapshot (def.start) with
+    // the actual final-score data from def.innings. Without ball-by-ball data,
+    // the live polling stops when the match ends, leaving s.over/s.ball/s.runs/
+    // s.wickets frozen at the last polled state. Use real final score instead.
+    let currentOver = s.over || 0;
+    let currentBall = s.ball || 1;
+    let finalRuns = s.runs != null ? s.runs : 0;
+    let finalWickets = s.wickets != null ? s.wickets : 0;
+
+    if (isComplete) {
+      // Identify the team that batted last (battingTeam for completed match)
+      const batTeamKey = def.battingTeam === 'home'
+        ? def.teams?.home?.key
+        : def.teams?.away?.key;
+      if (batTeamKey) {
+        // Real final runs for the batting team
+        finalRuns = teamTotal(batTeamKey);
+        // Real final wickets for the batting team
+        const second = def.innings?.secondInnings;
+        const secondRuns = (x) => (x && typeof x === 'object' ? x.runs : (x || 0));
+        const secondWkts = (x) => (x && typeof x === 'object' ? (x.wickets || 0) : 0);
+        if (def.battingTeam === 'home' && second && second.home) {
+          finalWickets = secondWkts(second.home);
+        } else if (def.battingTeam === 'away' && second && second.away) {
+          finalWickets = secondWkts(second.away);
+        } else if (def.innings?.firstInnings && String(def.innings.firstInnings.team) === String(batTeamKey)) {
+          finalWickets = def.innings.firstInnings.wickets != null
+            ? def.innings.firstInnings.wickets
+            : finalWickets;
+        }
+        // If all out (>= 10), ensure wickets shows 10
+        if (finalWickets >= 10) finalWickets = 10;
+      }
+      // Over/ball at innings end: we don't have ball-by-ball, so use
+      // the innings over count if available, otherwise 0 to avoid stale
+      // "OVER 6.1" display on a finished match.
+      currentOver = def.innings?.lastOver != null ? def.innings.lastOver : 0;
+      currentBall = def.innings?.lastBall != null ? def.innings.lastBall : 0;
+    }
+
+    // Push corrected values back to s so state reflects the real final score
+    s.runs = finalRuns;
+    s.wickets = finalWickets;
 
     // For a completed match with no ball-by-ball data, the "current state" is
     // the final score. The result text reflects that rather than pretending
@@ -3086,9 +3128,11 @@ function updateScore(){
   const hudInningsScore = (runs, wickets, declared) =>
     formatInningsScore(runs, wickets, declared).replace(' dec', 'd');
   const hudLine = !hasSecondInnings
-    ? `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${String(MD.innings.firstInnings?.team) === ot.key
-        ? hudInningsScore(first.total, first.wickets || 0, false)
-        : '—'}`
+    ? (complete
+        : `${bt.short} ${teamTotal(bt.key)}/${bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk} · ${ot.short} ${teamTotal(ot.key)}/${ot.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk}`
+        : `${bt.short} ${s.runs}/${s.wickets} · ${ot.short} ${String(MD.innings.firstInnings?.team) === ot.key
+            ? hudInningsScore(first.total, first.wickets || 0, false)
+            : '—'}`)
     : (complete
         ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
         : `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(s.runs, s.wickets, false)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`);
