@@ -1579,15 +1579,20 @@ function _mapStatus(smResponse) {
 
   // Determine if the match is complete based on available data.
   // If there are 2+ completed scoreboard innings, the match is complete.
-  // If there's only 1 completed innings but no ball-by-ball data and a first
-  // innings total, treat it as complete (finished match).
+  // If there's only 1 completed innings:
+  //   - If there's NO ball-by-ball data at all → complete (finished match with synthetic data)
+  //   - If ball-by-ball data IS present → match is LIVE (ball data flowing = match in progress)
+  //     UNLESS Sportmonks' own note field explicitly says the match has ended (won/tied/no result/draw/abandon)
   // Otherwise, it's live/upcoming.
   const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
   if (completedInnings.length >= 2) return 'complete';
   if (completedInnings.length === 1) {
-    // Single completed innings — if there's no ball-by-ball data, it's complete
     const hasBalls = smResponse.balls && smResponse.balls.length > 0;
     if (!hasBalls) return 'complete';
+    // Ball data present → match is live unless Sportmonks explicitly says it's ended
+    const note = String(smResponse.note || '');
+    if (/won|tied|tie|no result|draw|abandon/i.test(note)) return 'complete';
+    return 'live';
   }
   return 'live';
 }
