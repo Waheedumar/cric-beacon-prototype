@@ -216,7 +216,10 @@ function normalizeSportMonksBall(smBall, ctx) {
   // Sportmonks provides `batsman_score` (runs off the bat) in the
   // batsman_score sub-object; fall back to our own subtraction.
   const totalRuns     = Number(runs) || 0;
-  let   batRuns       = Number(batsman_score) || null;
+  let   batRuns       = batsman_score ? Number(batsman_score.runs) : null;
+  if (typeof batRuns === 'number' && isNaN(batRuns)) {
+    batRuns = null;
+  }
   let   extraRuns     = 0;
 
   if (batRuns === null) {
@@ -820,6 +823,9 @@ function inferDelivery(smBall, ctx = {}) {
   let batRuns     = smBall.batsman_score
     ? Number(smBall.batsman_score.runs)
     : null;
+  if (typeof batRuns === 'number' && isNaN(batRuns)) {
+    batRuns = null;
+  }
   if (batRuns === null) {
     // Fall back to subtraction when the sub-object is missing.
     const sc = (smBall && typeof smBall.score === 'object' && smBall.score) || {};
