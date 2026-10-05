@@ -46,6 +46,7 @@ function buildFeed(def) {
       errors.push(`match ${def.id}, over ${ov.over}: bowler "${ov.bowler}" not in start.bowlers`);
     }
 
+    var legalBallsThisOver = 0;
     ov.balls.forEach((b, i) => {
       try {
         const [runs, wicket, speed, length, line, dir, text, shotDetail] = b;
@@ -124,13 +125,14 @@ function buildFeed(def) {
         const bs = bowlerState[ov.bowler] || (bowlerState[ov.bowler] = { legalBalls: 0, runsThisOver: 0, maidens: 0 });
         if (legal) {
           bs.legalBalls++;
-          if (i === 5 && bs.legalBalls === 6 && bs.runsThisOver === 0) {
+          legalBallsThisOver++;
+          if (legalBallsThisOver === 6 && bs.runsThisOver === 0) {
             bs.maidens++;
             bowler.maidens = (bowler.maidens || 0) + 1;
           }
         }
         bs.runsThisOver += (extraType === 'noball') ? batRuns : runs;
-        if (i === 5) { bs.legalBalls = 0; bs.runsThisOver = 0; }
+        if (legalBallsThisOver === 6) { bs.legalBalls = 0; bs.runsThisOver = 0; }
         if (i === 0) bowler.overs++;
 
         if (dismissed && !freeHitRejected) {
@@ -148,8 +150,8 @@ function buildFeed(def) {
           s.batsmen.forEach(x => x.onStrike = !x.onStrike);
         }
 
-        s.over = ov.over; s.ball = i + 1;
-        if (i === 5) s.batsmen.forEach(x => x.onStrike = !x.onStrike);
+        s.over = ov.over; s.ball = legalBallsThisOver;
+        if (legalBallsThisOver === 6) s.batsmen.forEach(x => x.onStrike = !x.onStrike);
 
         s.batsmen.forEach(x => {
           const sr = x.balls ? (x.runs / x.balls) * 100 : 0;
@@ -159,7 +161,7 @@ function buildFeed(def) {
 
         out.push({
           key: `${ov.over}.${i+1}`,
-          over: ov.over, ballNo: i+1, upcoming: !!ov.upcoming,
+          over: ov.over, ballNo: legalBallsThisOver, upcoming: !!ov.upcoming,
           bowlerKey: ov.bowler, bowlerName: bowler ? bowler.name : null,
           strikerName: striker ? striker.name : null,
           runs, wicket: wicket || null, outName,
@@ -175,7 +177,7 @@ function buildFeed(def) {
                : `${runs} RUN${runs>1?'S':''}`,
           chip: dismissed && !freeHitRejected ? 'W' : String(runs),
           fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard',
-          overMomentum: i === 5 ? (ov.momentum || null) : null,
+          overMomentum: legalBallsThisOver === 6 ? (ov.momentum || null) : null,
           state: JSON.parse(JSON.stringify(s))
         });
       } catch (err) {

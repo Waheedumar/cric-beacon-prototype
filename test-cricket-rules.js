@@ -38,6 +38,7 @@ function buildFeed(def){
   const isLimitedOvers = !fmt.includes('test') && !fmt.includes('first class');
   let prevWasNoBall = false;
   def.overs.forEach(ov => {
+    let legalBallsThisOver = 0;
     ov.balls.forEach((b, i) => {
       const [runs, wicket, speed, length, line, dir, text, extraType] = b;
       const strikerIdx = s.batsmen.findIndex(x => x.onStrike);
@@ -62,6 +63,7 @@ function buildFeed(def){
         batRuns = runs > 0 ? runs - 1 : 0; extraRuns = 1;
       } else { batRuns = runs; extraRuns = 0; }
       const legal = !isExtraBall;
+      if (legal) legalBallsThisOver++;
       if (legal) striker.balls++;
       striker.runs += batRuns;
       if (batRuns === 4) striker.fours++;
@@ -82,8 +84,8 @@ function buildFeed(def){
       } else if (legal ? runs % 2 === 1 : extraType === 'legbye'){
         s.batsmen.forEach(x => x.onStrike = !x.onStrike);
       }
-      s.over = ov.over; s.ball = i + 1;
-      if (i === 5) s.batsmen.forEach(x => x.onStrike = !x.onStrike);
+      s.over = ov.over; s.ball = legalBallsThisOver;
+      if (legalBallsThisOver === 6) s.batsmen.forEach(x => x.onStrike = !x.onStrike);
       const baseChip = extraType === 'wide' ? EXTRA_CHIP.wide : extraType === 'noball' ? EXTRA_CHIP.noball : extraType === 'bye' ? `${runs}b` : extraType === 'legbye' ? `${runs}lb` : String(runs);
       const baseResult = extraType === 'wide' ? EXTRA_LABEL.wide : extraType === 'noball' ? EXTRA_LABEL.noball : extraType === 'bye' ? `${runs} BYE${runs>1?'S':''}` : extraType === 'legbye' ? `${runs} LEG BYE${runs>1?'S':''}` : runs === 0 ? 'DOT BALL' : runs === 4 ? 'FOUR' : runs === 6 ? 'SIX' : `${runs} RUN${runs>1?'S':''}`;
       const wicketChip = DISMISSAL_CHIP[dismissalType] || 'W';
@@ -92,7 +94,7 @@ function buildFeed(def){
       let result = dismissed ? wicketResult : baseResult;
       if (freeHitRejected) result = `FREE HIT - ${wicketResult} VOID`;
       else if (freeHit) result = `FREE HIT - ${result}`;
-      out.push({ key:`${ov.over}.${i+1}`, over:ov.over, ballNo:i+1, upcoming:!!ov.upcoming, bowlerKey:ov.bowler, bowlerName:s.bowlers[ov.bowler].name, strikerName:striker.name, runs, wicket:wicket || null, outName, speed, length, line, dir, text, shot, extraType: extraType || null, batRuns, extraRuns, dismissalType, dismissed, freeHit, freeHitRejected, result, chip, fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard', overMomentum: i === 5 ? ov.momentum : null, state: JSON.parse(JSON.stringify(s)) });
+      out.push({ key:`${ov.over}.${i+1}`, over:ov.over, ballNo:legalBallsThisOver, upcoming:!!ov.upcoming, bowlerKey:ov.bowler, bowlerName:s.bowlers[ov.bowler].name, strikerName:striker.name, runs, wicket:wicket || null, outName, speed, length, line, dir, text, shot, extraType: extraType || null, batRuns, extraRuns, dismissalType, dismissed, freeHit, freeHitRejected, result, chip, fieldSet: wicketsInWindow > 0 ? 'attacking' : 'standard', overMomentum: legalBallsThisOver === 6 ? ov.momentum : null, state: JSON.parse(JSON.stringify(s)) });
     });
   });
   return out;
@@ -202,13 +204,23 @@ test('bye/legbye: extras runs, legal ball, no bat runs credited', () => {
   assert.strictEqual(feed[0].extraRuns, 1);
 });
 
-// Test 6: End-of-over strike swap happens at 6th array entry regardless of legality (documented gap)
-test('over boundary: strike swaps at 6th entry even with extras present (known gap)', () => {
+// Test 6: Over boundary: strike swaps after 6th legal ball even with extras present (fixes known gap)
+test('over boundary: strike swaps after 6th legal ball, not at array position 5', () => {
+  // Case 1: 6 legal balls — strike swaps after 6th legal ball (feed[5])
   const balls = [];
   for (let k = 0; k < 6; k++) balls.push([0, null, 130, 'good', 'off', null, 'dot', null]);
   const def = mkDef([{ over:0, bowler:'bowler1', balls }]);
   const feed = buildFeed(def);
-  assert.strictEqual(feed[5].state.batsmen[0].onStrike, false);
+  assert.strictEqual(feed[5].state.batsmen[0].onStrike, false, 'after 6th legal ball, striker has swapped');
+
+  // Case 2: wide at position 0 — strike should NOT swap at array index 5 (only 5 legal balls bowled)
+  const ballsWide = [];
+  ballsWide.push([0, null, 130, 'good', 'off', null, 'wide', 'wide']);
+  for (let k = 0; k < 5; k++) ballsWide.push([0, null, 130, 'good', 'off', null, 'dot', null]);
+  const defWide = mkDef([{ over:0, bowler:'bowler1', balls: ballsWide }]);
+  const feedWide = buildFeed(defWide);
+  assert.strictEqual(feedWide[5].state.batsmen[0].onStrike, true, 'at 5th legal ball (6th array entry with wide), striker still on strike');
+  assert.strictEqual(feedWide[5].ballNo, 5, 'ballNo should be 5 after 5 legal balls');
 });
 
 // Test 7: Multi-innings score formatting
