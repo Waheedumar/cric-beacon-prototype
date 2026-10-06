@@ -1115,10 +1115,10 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
   const homeInningsWickets = [];
   const awayInningsWickets = [];
   completedInnings.forEach(sb => {
-    if (sb.team_id === home.id) {
+    if (String(sb.team_id) === String(home.id)) {
       homeInningsRuns.push(sb.total);
       homeInningsWickets.push(sb.wickets || 0);
-    } else if (sb.team_id === away.id) {
+    } else if (String(sb.team_id) === String(away.id)) {
       awayInningsRuns.push(sb.total);
       awayInningsWickets.push(sb.wickets || 0);
     }
@@ -1126,7 +1126,7 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
 
   // Determine which team batted first (from the earliest completed innings)
   const firstBattingTeamId = completedInnings.length > 0 ? completedInnings[0].team_id : null;
-  const firstBattingIsHome = firstBattingTeamId === home.id;
+  const firstBattingIsHome = String(firstBattingTeamId) === String(home.id);
 
   // First innings total = first innings of the team that batted first
   const firstInningsTotal = firstBattingIsHome
@@ -1148,9 +1148,9 @@ function normalizeSportMonksMatch(smResponse, providedPlayersMap = {}) {
   const homeInningsOvers = [];
   const awayInningsOvers = [];
   completedInnings.forEach(sb => {
-    if (sb.team_id === home.id) {
+    if (String(sb.team_id) === String(home.id)) {
       homeInningsOvers.push(sb.overs != null ? Number(sb.overs) : 0);
-    } else if (sb.team_id === away.id) {
+    } else if (String(sb.team_id) === String(away.id)) {
       awayInningsOvers.push(sb.overs != null ? Number(sb.overs) : 0);
     }
   });
