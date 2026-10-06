@@ -1555,7 +1555,7 @@ function buildFeed(def){
           finalWickets = secondWkts(second.home);
         } else if (def.battingTeam === 'away' && second && second.away) {
           finalWickets = secondWkts(second.away);
-        } else if (def.innings?.firstInnings && String(def.innings.firstInnings.team) === String(batTeamKey)) {
+        } else if (def.innings?.firstInnings && (String(def.innings.firstInnings.team) === String(batTeamKey) || def.innings.firstInnings.team === 'home' && batTeamKey === String(def.teams?.home?.key) || def.innings.firstInnings.team === 'away' && batTeamKey === String(def.teams?.away?.key))) {
           finalWickets = def.innings.firstInnings.wickets != null
             ? def.innings.firstInnings.wickets
             : finalWickets;
@@ -2671,7 +2671,7 @@ const teamTotal = (teamKey) => {
   } else {
     // Fallback for single-innings matches: use firstInnings if it matches this team
     const first = MD.innings.firstInnings;
-    if (first && String(first.team) === key) {
+    if (first && (String(first.team) === key || first.team === 'home' && key === homeKey || first.team === 'away' && key === awayKey)) {
       total += Number(first.total) || 0;
     }
   }
@@ -3126,7 +3126,7 @@ function updateScore(){
     : `${s.runs}/${s.wickets}`;
   const otLines = hasSecondInnings
     ? formatInningsLinesPlain(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
-    : (String(MD.innings.firstInnings?.team) === ot.key
+    : ((String(MD.innings.firstInnings?.team) === ot.key || MD.innings.firstInnings?.team === 'home' && ot.key === homeKey || MD.innings.firstInnings?.team === 'away' && ot.key === awayKey)
         ? formatInningsScore(first.total, first.wickets || 0, false).replace(' dec', 'd')
         : '—');
   // MATCH CONDITIONS line: compact score line shared by single and multi-innings.
@@ -3142,7 +3142,7 @@ function updateScore(){
   const hudTeamDisplay = (team) => {
     const teamWkts = team.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
     const teamTotalRuns = teamTotal(team.key);
-    const teamBattedFirst = first && String(first.team) === team.key;
+    const teamBattedFirst = first && (String(first.team) === team.key || first.team === 'home' && team.key === homeKey || first.team === 'away' && team.key === awayKey);
     const teamHasBatted = teamBattedFirst || teamTotalRuns > 0 || teamWkts > 0;
     if (!teamHasBatted) return `${team.short} Yet to Bat`;
     if (teamWkts >= 10) return `${team.short} ${teamTotalRuns}`;
