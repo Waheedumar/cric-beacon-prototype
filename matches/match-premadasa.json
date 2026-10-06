@@ -416,11 +416,7 @@
   },
   "battingTeam": "home",
   "innings": {
-    "current": "Sri Lanka innings",
-    "firstInnings": {
-      "team": "away",
-      "total": 0
-    }
+    "current": "Sri Lanka innings"
   },
   "field": {
     "standard": [
