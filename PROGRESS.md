@@ -84,6 +84,18 @@ When `!hasSecondInnings && isComplete()` → use `teamTotal(bt.key)`/`teamTotal(
 - WAITING: Shiyan's answer on AI integration scope
 - Section 7: test multi-innings scoring. All 5 mock matches are 1st innings only; check M2 test scripts, else add one finished Test mock with 2 innings per team (& layout)
 
+## Trajectory Bug Fix — Boundary Extras (2026-10-07)
+
+**Fix applied:** sportmonksAdapter.js:936-944 — Changed dir assignment for boundary extras (four-byes, four-leg-byes, six-byes, six-leg-byes). Previously `dirBase = null`, now `dirBase = _DIR_TABLE.six or _DIR_TABLE.four` so the shot curve renders.
+
+**Verification:** trace-dir-real.js (6 cases) shows:
+- B (four byes) and C (four leg-byes): now produce dir="cover", shot curve ✅
+- A, D, E, F: unchanged from before ✅
+
+**Known deferred edge case:** If Sportmonks returns `runs=0` with `score.name="FOUR"`, the inference layer sees `totalRuns=0` and assigns `dir=null` via the dot-ball branch. This is a data-quality issue (malformed API response), not a code bug. Tracked in `trace-edge-cases.js` cases F/G. Deferred until such data is actually encountered in production.
+
+------
+
 ## Bug 3 — Premadasa Match Batsman Name Mismatch (2026-10-04)
 
 **Context:** The user reported that in the SL v WI Premadasa ball-by-ball timeline, the commentary AI Insight sometimes names a different batsman as dismissed than the actual striker per the simulation. Example: commentary says "Cole Johnson to Kusal Mendis — WICKET — Asalanka departs", AI Insight says "Kusal Mendis falls — Charith Asalanka c Pooran b Johnson 2".
