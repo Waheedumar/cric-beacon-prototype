@@ -174,3 +174,40 @@ All three Premadasa wicket-text mismatches fixed and verified against buildFeed 
 ## Next features
 
 1. **Trajectory line color by outcome** — Color the trajectory line based on the delivery outcome: 1/2/3 runs = white `#FFFFFF`, 4 runs = blue `#2F80ED`, 6 runs = purple `#9B51E0`, wicket = red `#EB5757`. Dot balls and extras keep the current color. Both `trajA` and `trajB` use the outcome color.
+
+## Overlay HUD runtime trace
+
+- [Overlay HUD runtime trace](overlay-hud-runtime-trace.md) — Hambantota overlay bug ("BD 0/0" instead of "BD 185" in 3D-view top overlay) resolved via positional-key fallback in teamTotal (line 2674), firstInnAway (line 2994), and hudTeamDisplay (line 3145). Runtime trace (trace-overlay-debug.js) simulates hudTeamDisplay()/hudOtDisplay() at runtime: confirms "BD 185" for Hambantota AND "WI Yet to Bat" preserved for Premadasa (firstInnings undefined → fallback short-circuits). Deployed in commit 3035dc9, verified live in production.
+
+## Bug — South Western Districts v Lions: Live match shown as completed (2026-10-07)
+
+**Root cause:** `sportmonksAdapter.js:_mapStatus()` line 1588 had an early exit
+`if (completedInnings.length >= 2) return 'complete'`. Two completed innings
+(scoreboards S1 for the team batting first, S2 for the chasing team) caused any
+match to be marked `complete` — even a live chase like LIONS needing 57 runs.
+
+**Downstream symptoms (single root cause):**
+1. False "won by 57 runs" banner (index.html:3090-3096) — driven by `complete` flag
+2. False 100%/0% win probability (index.html:3223-3232) — driven by `complete` flag
+3. AI win probability also computed from same flawed `isComplete` heuristic (`_buildAiDefaults`)
+
+**Fix (sportmonksAdapter.js):**
+1. **New helper `_isMatchComplete()`** — uses real scoreboard signals, not just count:
+   - Limited-overs (T20/ODI/one-day/list-a/T10): 2nd innings complete when (2nd total >= 1st + 1 = chase won) OR (2nd wickets = 10 = all out) OR (2nd overs >= format max, e.g. 20 for T20). Uses `smResponse.type` for format detection.
+   - Test/First Class: 4+ scoreboards = both teams batted twice = complete; 2-3 scoreboards = still live.
+2. **`_mapStatus()`** — delegates to `_isMatchComplete()`, then checks ball data flow; only returns `complete` for a single completed innings with no ball data (finished match with synthetic data). Test/First Class with 2 innings and no balls is still `live`.
+3. **`_buildAiDefaults()`** — now uses `_isMatchComplete()`, so win probability is no longer forced to 85/15 on a live chase.
+
+**Note on constraints:** Fix does NOT rely on `hasBalls + no-note`. It uses real
+scoreboard state (target vs total, wickets, overs). Explicit `status` field still
+overrides all heuristics.
+
+**Tests added:** `test-mapstatus.js` — 13 cases covering: live chase with 2 scoreboards + balls → live; finished T20 (2nd all out, target reached, overs complete) → complete; Test 4+ scoreboards → complete, Test 2 scoreboards → live; explicit statuses; no-scoreboard/no-ball edge cases.
+
+**Tests run:**
+- test-mapstatus.js: 13 passed, 0 failed ✅
+- test-cricket-rules.js: 7 passed, 0 failed ✅
+- sportmonksAdapter.js internal suite: 4 passed, 0 failed ✅
+- verify_fix.js (positional-key fallback): 11 passed, 1 failed — the failing case (Premadasa WI `Yet to Bat`) is a pre-existing test-data setup issue (hardcoded `firstInnAwayWk=5` refers to SL's wickets; WI hasn't batted). Not caused by my changes — the standalone `hudTeamDisplay_fixed` logic still works for Hambantota/Galle/MCG/Premadasa-SL.
+
+**Next:** commit the fix (diff shown above), verify on the live South Western Districts v Lions match.

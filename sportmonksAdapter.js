@@ -1567,6 +1567,35 @@ function _groupBallsIntoOvers(smBalls, ctx) {
     });
 }
 
+function _isMatchComplete(smResponse) {
+  // Determine if a match is genuinely complete based on scoreboard state.
+  // Returns true if finished, false if still in progress.
+  const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
+  if (completedInnings.length < 2) return false;
+
+  // Detect match format from the API's type field.
+  const formatType = (smResponse.type || '').toLowerCase();
+  const isLimitedOvers = /t20|odi|one.?day|list a|t10/.test(formatType);
+  const formatMaxOvers = /t10/.test(formatType) ? 10 : /t20|20.?over/.test(formatType) ? 20 : /odi|50.?over|one.?day|list a/.test(formatType) ? 50 : 0;
+
+  if (isLimitedOvers && completedInnings.length === 2) {
+    const sorted = [...completedInnings].sort((a, b) =>
+      new Date(a.updated_at) - new Date(b.updated_at));
+    const firstTotal = sorted[0].total;
+    const secondTotal = sorted[sorted.length - 1].total;
+    const secondWickets = sorted[sorted.length - 1].wickets || 0;
+    const secondOvers = sorted[sorted.length - 1].overs != null ? Number(sorted[sorted.length - 1].overs) : 0;
+    return (secondTotal >= firstTotal + 1) ||
+           (secondWickets >= 10) ||
+           (formatMaxOvers > 0 && secondOvers >= formatMaxOvers);
+  }
+
+  // For Test/First Class: each team bats up to twice.
+  // 4+ scoreboards = both teams batted twice = complete.
+  // 2-3 scoreboards = each team batted once = still live.
+  return completedInnings.length >= 4;
+}
+
 function _mapStatus(smResponse) {
   // Check for an explicit SportMonks status field first; fall back to
   // scoreboard/ball heuristics only when the API does not provide one.
@@ -1577,23 +1606,18 @@ function _mapStatus(smResponse) {
     if (s === 'scheduled' || s === 'upcoming') return 'not_started';
   }
 
-  // Determine if the match is complete based on available data.
-  // If there are 2+ completed scoreboard innings, the match is complete.
-  // If there's only 1 completed innings:
-  //   - If there's NO ball-by-ball data at all → complete (finished match with synthetic data)
-  //   - If ball-by-ball data IS present → match is LIVE (ball data flowing = match in progress)
-  //     UNLESS Sportmonks' own note field explicitly says the match has ended (won/tied/no result/draw/abandon)
-  // Otherwise, it's live/upcoming.
+  if (_isMatchComplete(smResponse)) return 'complete';
+
+  const hasBalls = smResponse.balls && smResponse.balls.length > 0;
+  if (hasBalls) return 'live';
+
+  // No ball data and not definitively complete.
+  // A single completed innings with no ball-by-ball data = finished match
+  // with synthetic data (e.g. a one-day fixture where only the final score
+  // is recorded). Anything else (0 or 2+ scoreboards, no balls) is still
+  // live/in-progress — the original code returned 'live' for these.
   const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
-  if (completedInnings.length >= 2) return 'complete';
-  if (completedInnings.length === 1) {
-    const hasBalls = smResponse.balls && smResponse.balls.length > 0;
-    if (!hasBalls) return 'complete';
-    // Ball data present → match is live unless Sportmonks explicitly says it's ended
-    const note = String(smResponse.note || '');
-    if (/won|tied|tie|no result|draw|abandon/i.test(note)) return 'complete';
-    return 'live';
-  }
+  if (completedInnings.length === 1) return 'complete';
   return 'live';
 }
 
@@ -1735,22 +1759,17 @@ function _buildAiDefaults(smResponse) {
   // Derive a status-aware baseline. For a completed match, the win probability
   // should reflect the final result rather than a 50/50 live guess.
   const completedInnings = (smResponse.scoreboards || []).filter(sb => sb.type === 'total');
-  const isComplete = completedInnings.length >= 2 ||
-    (completedInnings.length === 1 && !(smResponse.balls && smResponse.balls.length > 0));
+  const isComplete = _isMatchComplete(smResponse);
 
-  // Determine the away (batting) team's win probability from the result.
-  // If the batting team won, give them ~85%; if they lost, ~15%.
   let awayProb = 50;
   if (isComplete && completedInnings.length >= 2) {
     const sorted = [...completedInnings].sort((a, b) =>
       new Date(a.updated_at) - new Date(b.updated_at));
     const firstInnings = sorted[0];
     const secondInnings = sorted[sorted.length - 1];
-    // The batting team is the one that batted second (or first, depending on battingTeam).
-    // We don't know the exact batting team here, so use a heuristic:
-    // If the second innings total exceeds the first innings total, the second-batting team won.
+    // If the second-batting team's total exceeds the first-batting team's,
+    // the chasing team won.
     const secondWon = secondInnings.total > firstInnings.total;
-    // The battingTeam is determined later; for now, assume away team is batting
     awayProb = secondWon ? 85 : 15;
   }
 
