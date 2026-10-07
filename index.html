@@ -3156,6 +3156,26 @@ function updateScore(){
     : (complete
         ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
         : `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(s.runs, s.wickets, false)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`);
+
+  // DEBUG: trace overlay values for Hambantota
+  const dbgOtKey = ot.key;
+  const dbgComplete = complete;
+  const dbgHasSecond = hasSecondInnings;
+  const dbgFirstInnAwayWk = firstInnAwayWk;
+  const dbgFirstInnAway = firstInnAway;
+  const dbgTeamTotalBD = teamTotal('bd');
+  const dbgHudOt = hudTeamDisplay(ot);
+  console.log('[DEBUG hudLine]', {
+    otKey: dbgOtKey,
+    complete: dbgComplete,
+    hasSecondInnings: dbgHasSecond,
+    firstInnAwayWk: dbgFirstInnAwayWk,
+    firstInnAway: dbgFirstInnAway,
+    teamTotal_bd: dbgTeamTotalBD,
+    hudTeamDisplay_ot: dbgHudOt,
+    hudLine: hudLine
+  });
+
   $('hudScore').textContent = hudLine;
   $('hudSub').textContent = '';
 }
