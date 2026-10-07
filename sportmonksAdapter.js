@@ -934,8 +934,10 @@ function inferDelivery(smBall, ctx = {}) {
     else dirBase = _DIR_TABLE.bowled;
   }
   else if (totalRuns >= 4 && batRuns === 0) {
-    // Extra boundary (4/6 off extras): no shot direction.
-    dirBase = null;
+    // Boundary via extras (byes/leg-byes): ball still traveled to the
+    // rope, so draw a shot trajectory.  Pick the six or four table
+    // based on totalRuns so the curve reflects the distance.
+    dirBase = (totalRuns === 6) ? _DIR_TABLE.six : _DIR_TABLE.four;
   }
   else if (wicket && wicket.type === 'caught' && !wicket.caughtBy) {
     dirBase = _DIR_TABLE.offSide;
