@@ -2310,7 +2310,7 @@ function animateBall(d, showPath = true, animate = true, slowMo = false){
   ball.position.copy(Array.isArray(delivery) && delivery.length ? delivery[0] : {x:0,y:0,z:0});
 
   // faster deliveries travel the pitch quicker — 140 km/h ≈ 0.52 s of flight
-  const flight = Math.max(0.62, 1.55 - (d.speed - 120) / 95);
+  const flight = Math.max(0.62, 1.55 - ((d.speed != null ? d.speed : 135) - 120) / 95);
   const base = cShot ? [flight, 1.35] : [flight];
   anim.curves = cShot ? [cDel, cShot] : [cDel];
   anim.durs   = slowMo ? base.map(x => x * REPLAY_SLOWMO) : base;
@@ -2590,6 +2590,10 @@ function loop(){
         targetProgress = 0;
       }
       ud.drawProgress += (targetProgress - ud.drawProgress) * Math.min(1, trajDt * 6);
+      // Snap to 1 when target is complete — exponential smoothing never
+      // actually reaches 1.0, so the line would stop a fraction short
+      // of the boundary on every shot.
+      if (targetProgress >= 1) ud.drawProgress = 1;
     }
 
     if (ud.drawProgress > 0.01){
@@ -3087,9 +3091,18 @@ function updateScore(){
       trail = first.total - s.runs;
     }
   }
+  // --- Win margin: runs vs wickets for second-innings chases ---
+  // If the batting team is in the 2nd innings and won by reaching the target,
+  // the margin should be in wickets, not runs.
+  const btKey = MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key;
+  const isSecondInningsChase = complete && MD.innings.secondInnings && MD.innings.secondInnings[btKey];
+  const btWickets = isSecondInningsChase ? (MD.innings.secondInnings[btKey].wickets || 0) : 0;
+  const btMarginWk = isSecondInningsChase ? (10 - btWickets) : 0;
+  const isWicketWin = isSecondInningsChase && btTotal > otTotal && btMarginWk > 0;
+
   $('trailLine').textContent = complete
     ? btTotal > otTotal
-      ? (MD.resultText || `${bt.name} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`)
+      ? (MD.resultText || `${bt.name} won by ${isWicketWin ? btMarginWk : btTotal - otTotal} ${isWicketWin ? 'wicket' + (btMarginWk === 1 ? '' : 's') : 'run' + (btTotal - otTotal === 1 ? '' : 's')}`)
       : otTotal > btTotal
         ? (MD.resultText || `${ot.name} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`)
         : 'Match tied'
@@ -3201,13 +3214,13 @@ function renderDelivery(d){
   $('deliveryTag').className = 'tag ' + (deliveryComplete ? 'green' : (d.upcoming ? 'amber' : 'green'));
   $('deliveryCard').innerHTML = `
     <div class="cell"><label>BALL</label><div class="v">${d.over}.${d.ballNo}</div></div>
-    <div class="cell"><label>BALL SPEED</label><div class="v">${d.speed} <span style="font-size:11px;color:var(--color-muted)">km/h</span></div></div>
+    <div class="cell"><label>BALL SPEED</label><div class="v">${d.speed !== null ? d.speed + ' km/h' : '—'}</div></div>
     <div class="cell"><label>LENGTH</label><div class="v sm">${L.label}</div></div>
     <div class="cell"><label>RESULT</label><div class="v sm" style="color:${d.dismissed ? '#FCA5A5' : d.freeHitRejected ? 'var(--color-warning)' : d.runs >= 4 ? 'var(--color-accent-2)' : 'inherit'}">${d.result}</div></div>`;
   $('commentary').innerHTML = `<b>${d.bowlerName} to ${d.strikerName}</b> — ${d.text}`;
 
   $('ballReadout').innerHTML = `
-    <div><label>BALL SPEED</label><div class="v">${d.speed} km/h</div></div>
+    <div><label>BALL SPEED</label><div class="v">${d.speed !== null ? d.speed + ' km/h' : '—'}</div></div>
     <div><label>LENGTH</label><div class="v">${L.label}</div></div>
     <div><label>RESULT</label><div class="v ${rc}">${d.result}</div></div>`;
 }
@@ -3236,11 +3249,16 @@ function updateWinProbability(){
     const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
     // Determine result based on which team chased successfully
-    const resultText = btTotal > otTotal
-      ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} won by ${btTotal - otTotal} run${btTotal - otTotal === 1 ? '' : 's'}`
-      : otTotal > btTotal
-        ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
-        : 'Match drawn';
+  const btKey = MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key;
+  const isSecondInningsChase = complete && MD.innings.secondInnings && MD.innings.secondInnings[btKey];
+  const btWickets = isSecondInningsChase ? (MD.innings.secondInnings[btKey].wickets || 0) : 0;
+  const btMarginWk = isSecondInningsChase ? (10 - btWickets) : 0;
+  const isWicketWin = isSecondInningsChase && btTotal > otTotal && btMarginWk > 0;
+  const resultText = btTotal > otTotal
+    ? `${bt.name.charAt(0) + bt.name.slice(1).toLowerCase()} won by ${isWicketWin ? btMarginWk : btTotal - otTotal} ${isWicketWin ? 'wicket' + (btMarginWk === 1 ? '' : 's') : 'run' + (btTotal - otTotal === 1 ? '' : 's')}`
+    : otTotal > btTotal
+      ? `${ot.name.charAt(0) + ot.name.slice(1).toLowerCase()} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`
+      : 'Match drawn';
     stamp.textContent = MD.resultText || resultText;
   } else {
     $('probDelta').classList.remove('hidden');
@@ -3265,9 +3283,17 @@ function updateAIInsight(){
     const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
     const margin = btTotal - otTotal;
-    const winner = margin > 0 ? bt.name : ot.name;
-    const loser = margin > 0 ? ot.name : bt.name;
-    text = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'} against ${loser}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`; if (MD.resultText) text = MD.resultText + '. ' + text.slice(text.indexOf('. ') + 2);
+    // Determine win margin: for second-innings chases, use wickets;
+    // otherwise use runs
+    const btKey = MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key;
+    const isSecondInningsChase = MD.innings.secondInnings && MD.innings.secondInnings[btKey];
+    const btWickets = isSecondInningsChase ? (MD.innings.secondInnings[btKey].wickets || 0) : 0;
+    const btMarginWk = isSecondInningsChase ? (10 - btWickets) : 0;
+    const isWicketWin = isSecondInningsChase && btTotal > otTotal && btMarginWk > 0;
+    const winner = isWicketWin ? bt.name : (margin > 0 ? bt.name : ot.name);
+    const loser = isWicketWin ? null : (margin > 0 ? ot.name : bt.name);
+    const marginText = isWicketWin ? btMarginWk : Math.abs(margin);
+    text = `${winner} won by ${marginText} ${isWicketWin ? 'wicket' + (btMarginWk === 1 ? '' : 's') : 'run' + (marginText === 1 ? '' : 's')} against ${loser}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} scored ${btTotal} in response to ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()}'s ${otTotal}.`; if (MD.resultText) text = MD.resultText + '. ' + text.slice(text.indexOf('. ') + 2);
   } else if (d.dismissed){
     text = `${d.outName} falls — ${d.wicket}. ${bt.name.charAt(0)}${bt.name.slice(1).toLowerCase()} lose their set batter and a new partnership has to survive ${oversToNewBall <= 2 ? 'the second new ball' : 'the rest of this spell'}. Expect ${ot.name.charAt(0)}${ot.name.slice(1).toLowerCase()} to keep an attacking field for the next 12–18 deliveries.`;
   } else if (d.runs >= 4){
@@ -3616,14 +3642,22 @@ function openWhy(){
     const hasSecond = second && (Number(secondRuns(second.home)) > 0 || Number(secondRuns(second.away)) > 0);
     const btTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key);
     const otTotal = teamTotal(MD.battingTeam === 'home' ? MD.teams.away.key : MD.teams.home.key);
-    const margin = hasSecond ? btTotal - otTotal : s.runs - first.total;
-    const winner = margin > 0 ? bt.name : ot.name;
-    const loser = margin > 0 ? ot.name : bt.name;
-    lede = `${winner} won by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}. The win probability settled at ${Math.round(to)}% for ${ot.short} as the final result became clear.`; if (MD.resultText) lede = MD.resultText + '. ' + lede.slice(lede.indexOf('. ') + 2);
+    // Determine win margin: for second-innings chases, use wickets; otherwise use runs
+    const btKey = MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key;
+    const isSecondInningsChase = hasSecond && MD.innings.secondInnings && MD.innings.secondInnings[btKey];
+    const btWickets = isSecondInningsChase ? (MD.innings.secondInnings[btKey].wickets || 0) : 0;
+    const btMarginWk = isSecondInningsChase ? (10 - btWickets) : 0;
+    const isWicketWin = isSecondInningsChase && btTotal > otTotal && btMarginWk > 0;
+    const margin = isWicketWin ? btMarginWk : btTotal - otTotal;
+    const winner = isWicketWin ? bt.name : (margin > 0 ? bt.name : ot.name);
+    const loser = isWicketWin ? null : (margin > 0 ? ot.name : bt.name);
+    lede = `${winner} won by ${Math.abs(margin)} ${isWicketWin ? 'wicket' + (btMarginWk === 1 ? '' : 's') : 'run' + (Math.abs(margin) === 1 ? '' : 's')}. The win probability settled at ${Math.round(to)}% for ${ot.short} as the final result became clear.`; if (MD.resultText) lede = MD.resultText + '. ' + lede.slice(lede.indexOf('. ') + 2);
     drivers = [
-      ['🏁', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} run${Math.abs(margin) === 1 ? '' : 's'}.`, 'terminal'],
+      ['🏁', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} ${isWicketWin ? 'wickets' : Math.abs(margin) === 1 ? 'run' : 'runs'}.`, 'terminal'],
       ['📊', 'Final score', `${bt.name} ${hasSecond ? btTotal : `${s.runs}/${s.wickets}`} vs ${ot.name} ${hasSecond ? otTotal : first.total}.`, 'major'],
-      ['🛡️', hasSecond ? 'Match total' : 'First-innings platform', hasSecond ? `${ot.name} totalled ${otTotal} across all innings.` : `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
+      ['🛡️', hasSecond ? 'Match total' : 'First-innings platform', hasSecond ?
+        `${ot.name} totalled ${otTotal} across all innings. ${isWicketWin ? `Lost by ${btMarginWk} wicket${btMarginWk === 1 ? '' : 's'}.` : `A lead of ${Math.abs(margin)} ${isWicketWin ? 'wickets' : 'runs'}.`}
+        : `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
       ['⏱️', 'Match status', `Match completed — no live probability change to explain.`, '—']
     ];
   } else if (d.dismissed){
@@ -4059,7 +4093,7 @@ function renderLastShot(){
   $('lsaGrid').innerHTML = `
     <div class="cell"><label>SHOT TYPE</label><div class="v">${st}</div></div>
     <div class="cell"><label>DISTANCE</label><div class="v">${sdist} m</div></div>
-    <div class="cell"><label>SPEED</label><div class="v">${d.speed} km/h</div></div>
+    <div class="cell"><label>SPEED</label><div class="v">${d.speed !== null ? d.speed + ' km/h' : '—'}</div></div>
     <div class="cell"><label>DIRECTION</label><div class="v">${ss}</div></div>`;
 
   // mini replay - simple trajectory SVG
@@ -4108,7 +4142,7 @@ function renderLastShot(){
     <div class="last-shot-grid" style="margin-bottom:10px">
       <div class="cell"><label>SHOT</label><div class="v">${shot.type}</div></div>
       <div class="cell"><label>DIST</label><div class="v">${shot.distance}m</div></div>
-      <div class="cell"><label>SPD</label><div class="v">${d.speed}km/h</div></div>
+      <div class="cell"><label>SPD</label><div class="v">${d.speed !== null ? d.speed + 'km/h' : '—'}</div></div>
       <div class="cell"><label>DIR</label><div class="v" style="font-size:10px">${shot.direction}</div></div>
     </div>
     <div style="font-size:9px;letter-spacing:.12em;font-weight:700;color:var(--color-muted);margin-bottom:6px">TRAJECTORY REPLAY</div>
