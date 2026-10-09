@@ -2118,7 +2118,7 @@ function updateScore(){
       : `FINAL · ${s.over}.${s.ball} OV`
     : `BATTING · ${s.over}.${s.ball} OV`;
   // Placeholder - will be set after wicket calculations
-  const bowlingSub = '1ST INNINGS';
+  let bowlingSub = '1ST INNINGS';
 
   const homeKey = String(MD.teams?.home?.key);
   const awayKey = String(MD.teams?.away?.key);
