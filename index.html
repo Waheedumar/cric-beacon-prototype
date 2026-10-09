@@ -3656,7 +3656,7 @@ function openWhy(){
       ['🏁', 'Final result', `${winner} defeated ${loser} by ${Math.abs(margin)} ${isWicketWin ? 'wickets' : Math.abs(margin) === 1 ? 'run' : 'runs'}.`, 'terminal'],
       ['📊', 'Final score', `${bt.name} ${hasSecond ? btTotal : `${s.runs}/${s.wickets}`} vs ${ot.name} ${hasSecond ? otTotal : first.total}.`, 'major'],
       ['🛡️', hasSecond ? 'Match total' : 'First-innings platform', hasSecond ?
-        `${ot.name} totalled ${otTotal} across all innings. ${isWicketWin ? `Lost by ${btMarginWk} wicket${btMarginWk === 1 ? '' : 's'}.` : `A lead of ${Math.abs(margin)} ${isWicketWin ? 'wickets' : 'runs'}.`}
+        `${ot.name} totalled ${otTotal} across all innings. ${isWicketWin ? `Lost by ${btMarginWk} wicket${btMarginWk === 1 ? '' : 's'}.` : `A lead of ${Math.abs(margin)} ${isWicketWin ? 'wickets' : 'runs'}.`}`
         : `${ot.name} posted ${first.total}, a lead of ${Math.abs(margin)} runs.`, 'major'],
       ['⏱️', 'Match status', `Match completed — no live probability change to explain.`, '—']
     ];
