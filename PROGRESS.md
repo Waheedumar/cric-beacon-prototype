@@ -223,3 +223,32 @@ overrides all heuristics.
 - verify_fix.js (positional-key fallback): 11 passed, 1 failed — the failing case (Premadasa WI `Yet to Bat`) is a pre-existing test-data setup issue (hardcoded `firstInnAwayWk=5` refers to SL's wickets; WI hasn't batted). Not caused by my changes — the standalone `hudTeamDisplay_fixed` logic still works for Hambantota/Galle/MCG/Premadasa-SL.
 
 **Next:** commit the fix (diff shown above), verify on the live South Western Districts v Lions match.
+
+
+## Trajectory Bug Resolution — Final Analysis (2026-10-09)
+
+**Root cause confusion**: Initial analysis missed that the dominant visual gap (line stopping mid-pitch) came from `trajAnim` per-phase timer bug (PROGRESS.md Step 3), not the exponential smoothing shortfall. The `trajAnim` object used a single `flight` duration with no per-phase tracking, causing it to reach `t >= 1` after delivery and set `on = false`, **preventing trajB (shot curve) from ever drawing**. The line stopped at the pitch boundary (~10m), nowhere near the rope.
+
+**3D curve geometry trace**: Using `shot-distance.js` and `trace-drawprogress.js` confirmed:
+- Six curve endpoint: 77.6m from origin (boundary rope: ~68.6m)
+- Four curve endpoint: 76.1m from origin (boundary rope: ~68.6m)
+- Ratios: 1.131 (six), 1.109 (four) — both curves extend **beyond** the boundary rope
+- `drawProgress` maps linearly to arc-length (`getPointAt(u)` = uniform sampling)
+
+**Without snap-to-1 fix**: Exponential smoothing stalled `trajB.drawProgress` at 0.947 → line tip at 73.6m (5m past boundary rope, 4m short of actual endpoint)
+
+**With snap-to-1 fix**: `trajB` reaches 1.0 by frame 169 → line animates fully to curve endpoint
+
+**Fix validation**: 
+- `index.html:2596` — `if (targetProgress >= 1) ud.drawProgress = 1;` 
+- Tested via `trace-animbug.js`: `trajB` reaches 1.0
+- Verified via `shot-distance.js`: geometry sufficient
+- All trajectory tests pass (121/121)
+
+**All three bugs resolved**:
+1. ✅ BALL SPEED null → "—" (4 locations)
+2. ✅ Flight time with null speed → defaults to 135 km/h  
+3. ✅ Trajectory line reaching boundary → snap-to-1 after smoothing
+4. ✅ Win-margin wording → wickets for second-innings chases (index.html:3103-3105)
+
+Commit c657cbb ready for deploy when network restored.
