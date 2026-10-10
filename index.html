@@ -92,7 +92,7 @@ button{font-family:inherit;color:inherit;}
   content:'';position:absolute;left:11px;right:11px;bottom:2px;height:2px;border-radius:2px;
   background:linear-gradient(90deg,var(--color-accent),var(--color-accent-2));
 }
-.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative;}
 .match-select{
   appearance:none;background:var(--color-surface);border:1px solid var(--color-border-2);
   color:var(--color-text);font-size:11px;font-weight:600;letter-spacing:.04em;
@@ -101,6 +101,34 @@ button{font-family:inherit;color:inherit;}
   background-position:calc(100% - 14px) 51%,calc(100% - 9px) 51%;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat;
 }
+.live-matches-btn{
+  appearance:none;background:linear-gradient(135deg,var(--color-accent),var(--color-accent-2));
+  border:none;color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;
+  padding:6px 14px;border-radius:var(--r-sm);cursor:pointer;
+  box-shadow:0 2px 12px var(--color-accent-glow);
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.live-matches-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--color-accent-glow);}
+.live-matches-btn:active{transform:translateY(0);}
+.live-matches-btn[aria-expanded="true"]{box-shadow:0 0 0 2px var(--color-bg),0 0 0 4px var(--color-accent);}
+.live-matches-list{
+  position:absolute;top:calc(100% + 6px);right:0;min-width:220px;max-width:320px;
+  background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--r-md);box-shadow:0 12px 40px rgba(0,0,0,.5);
+  padding:8px 6px;z-index:50;display:flex;flex-direction:column;gap:2px;
+  overflow:hidden;
+}
+.live-match-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px 12px;border-radius:var(--r-sm);cursor:pointer;
+  color:var(--color-text);font-size:11px;white-space:nowrap;overflow:hidden;
+  transition:background .12s ease;
+}
+.live-match-item:hover{background:rgba(255,255,255,.06);}
+.live-match-item .teams{font-weight:600;color:var(--color-text);}
+.live-match-item .status{color:var(--color-accent);font-weight:700;font-size:10px;}
+.live-match-item .league{color:var(--color-muted);font-size:10px;text-overflow:ellipsis;overflow:hidden;}
+.live-matches-list .empty{padding:12px;color:var(--color-muted);font-size:11px;text-align:center;}
 .live-pill{
   display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
   border:1px solid rgba(25,224,122,.32);background:rgba(25,224,122,.09);
@@ -624,6 +652,12 @@ button{font-family:inherit;color:inherit;}
   </nav>
   <div class="hdr-right">
     <select class="match-select" id="matchSelect" aria-label="Select match"></select>
+    <button id="liveMatchesBtn" class="live-matches-btn" aria-label="Live matches">
+      Live matches
+    </button>
+    <div id="liveMatchesList" class="live-matches-list" style="display:none;align-self:center">
+      <span>No live matches right now</span>
+    </div>
     <div class="live-pill" id="livePill"><i class="live-dot"></i>LOADING...</div>
   </div>
 </header>
@@ -4410,6 +4444,73 @@ window.addEventListener('resize', () => {
 /* ---------------- boot ---------------- */
 try {
   loadMatch('lords');
+
+  /* ---------------- Live Matches (appended after boot) ---------------- */
+  const liveMatchesBtn = $('liveMatchesBtn');
+  const liveMatchesList = $('liveMatchesList');
+  let liveMatchesOpen = false;
+
+  function fetchLiveMatches() {
+    return fetch('/api/live', { method: 'GET' })
+      .then(r => r.json())
+      .then(data => data && Array.isArray(data) ? data : [])
+      .catch(() => []);
+  }
+
+  function renderLiveMatches(list) {
+    if (!liveMatchesList) return;
+    if (!list || list.length === 0) {
+      liveMatchesList.innerHTML = '<span class="empty">No live matches right now</span>';
+      return;
+    }
+    liveMatchesList.innerHTML = list.map(m => {
+      const id = m && (m.id || m.matchId);
+      const teams = m && (m.teams || m.title || (m.home && m.away ? m.home + ' vs ' + m.away : 'Match'));
+      const league = m && (m.league || m.tournament || m.competition || '');
+      const status = m && (m.status || m.state || m.phase || 'LIVE');
+      return `<div class="live-match-item" data-id="${id}">
+        <div style="display:flex;flex-direction:column;min-width:0">
+          <span class="teams">${teams}</span>
+          <span class="league">${league}</span>
+        </div>
+        <span class="status">${status}</span>
+      </div>`;
+    }).join('');
+
+    liveMatchesList.querySelectorAll('.live-match-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const matchId = el.getAttribute('data-id');
+        if (!matchId) return;
+        fetch('/api/match?id=' + encodeURIComponent(matchId))
+          .then(r => r.json())
+          .then(doc => {
+            if (doc && typeof doc === 'object') {
+              if (typeof loadRealMatchDoc === 'function') loadRealMatchDoc(doc);
+              if (doc.status === 'live' && typeof startRealLive === 'function') startRealLive(matchId);
+            }
+          })
+          .catch(() => {});
+        liveMatchesOpen = false;
+        liveMatchesList.style.display = 'none';
+        if (liveMatchesBtn) liveMatchesBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  if (liveMatchesBtn) {
+    liveMatchesBtn.addEventListener('click', () => {
+      liveMatchesOpen = !liveMatchesOpen;
+      if (liveMatchesOpen) {
+        liveMatchesBtn.setAttribute('aria-expanded', 'true');
+        liveMatchesList.style.display = 'flex';
+        fetchLiveMatches().then(renderLiveMatches);
+      } else {
+        liveMatchesBtn.setAttribute('aria-expanded', 'false');
+        liveMatchesList.style.display = 'none';
+      }
+    });
+  }
+
   // expose the seam for console demos / future API wiring
   window.CricBeacon = { loadMatch, applyDelivery, animateBall, setCamera, get matchData(){ return MD; }, get feed(){ return FEED; } };
 } catch (err){
