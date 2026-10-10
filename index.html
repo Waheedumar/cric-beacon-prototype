@@ -4453,7 +4453,7 @@ try {
   function fetchLiveMatches() {
     return fetch('/api/live', { method: 'GET' })
       .then(r => r.json())
-      .then(data => data && Array.isArray(data) ? data : [])
+      .then(data => Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []))
       .catch(() => []);
   }
 
@@ -4465,7 +4465,7 @@ try {
     }
     liveMatchesList.innerHTML = list.map(m => {
       const id = m && (m.id || m.matchId);
-      const teams = m && (m.teams || m.title || (m.home && m.away ? m.home + ' vs ' + m.away : 'Match'));
+      const teams = m && m.localteam && m.visitorteam ? (m.localteam.name + ' vs ' + m.visitorteam.name) : 'Match';
       const league = m && (m.league || m.tournament || m.competition || '');
       const status = m && (m.status || m.state || m.phase || 'LIVE');
       return `<div class="live-match-item" data-id="${id}">
