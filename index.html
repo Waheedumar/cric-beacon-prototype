@@ -628,16 +628,6 @@ button{font-family:inherit;color:inherit;}
   </div>
 </header>
 
-<!-- ============ LIVE MATCH TEST (temporary, unstyled) ============ -->
-<section id="liveTest" class="panel">
-  <div class="panel-h"><h3>Live Match Test</h3></div>
-  <div class="panel-b">
-    <button id="fetchLiveBtn" class="btn">Fetch Live Matches</button>
-<div style="display:flex;gap:6px;margin-top:8px"><input id="matchIdInput" type="text" inputmode="numeric" placeholder="Sportmonks match ID" style="flex:1;min-width:0;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:inherit"><button id="loadIdBtn" class="btn">Load match</button></div>
-    <ul id="liveList"></ul>
-    <p id="noLiveMsg" style="display:none;margin-top:8px;color:var(--color-muted);">No live matches currently available.</p>
-  </div>
-</section>
 
 <main class="app">
   <!-- ============ LEFT ============ -->
@@ -3829,32 +3819,6 @@ function setRealUi(on){
   if (ms) ms.addEventListener('change', stopRealLive);
 })();
 
-/* ---------------- load any Sportmonks match by ID (live or finished) ---------------- */
-(function(){
-  const btn = document.getElementById('loadIdBtn');
-  const inp = document.getElementById('matchIdInput');
-  const msg = document.getElementById('noLiveMsg');
-  if (!btn || !inp) return;
-  const go = async () => {
-    const id = String(inp.value || '').trim();
-    if (!/^\d+$/.test(id)){ toast('Enter a numeric Sportmonks match ID', 2600); return; }
-    try {
-      stopSimLive(); stopRealLive();
-      if (msg) msg.style.display = 'none';
-      btn.disabled = true;
-      const doc = await fetchLiveDoc(id);
-      if (!doc || !doc.start || !doc.innings){ toast('Ball-by-ball data for match ' + id + ' is not available from the current data plan', 3600); return; }
-      loadRealMatchDoc(doc);
-      if (doc.status === 'live') startRealLive(id);
-      toast('Loaded ' + (doc.label || ('match ' + id)) + ' from Sportmonks via the normalized model', 3200);
-    } catch (e) {
-      toast('Could not load match ' + id + ': ' + ((e && e.message) || e), 3600);
-    } finally { btn.disabled = false; }
-  };
-  btn.addEventListener('click', go);
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-})();
-
 /* ---------------- over tabs: previous / current / next + go to over ---------------- */
 function overLabel(o){ return (MD && String(MD.id || '').indexOf('sm_') === 0) ? o.over + 1 : o.over; }
 function renderOverTabs(){
@@ -3924,10 +3888,8 @@ function runValidationDemo(){
   const dev = new URLSearchParams(location.search).has('dev');
   const vb = document.getElementById('btnValidate');
   const vo = document.getElementById('valOut');
-  const idIn = document.getElementById('matchIdInput');
   if (vb && vb.parentElement) vb.parentElement.style.display = dev ? '' : 'none';
   if (vo) vo.style.display = dev ? '' : 'none';
-  if (idIn && idIn.parentElement) idIn.parentElement.style.display = dev ? 'flex' : 'none';
 })();
 
 /* ---------------- limited-overs detection (T20 / ODI / T10 / The Hundred) ---------------- */
@@ -4431,90 +4393,6 @@ const spy = new IntersectionObserver(es => {
 ['live', 'view3d', 'ai', 'stats', 'players', 'fantasy'].forEach(id => {
   const el = $(id); if (el) spy.observe(el);
 });
-
-/* ==================================================================
-   2. LIVE MATCH TEST – temporary UI (adds a section below the header)
-   ------------------------------------------------------------------
-   Clicking "Fetch Live Matches" prompts for a SportMonks API token,
-   then calls listLiveMatches(), displays each match as a clickable
-   list item (team name via the defensive fallback name || code || UNKNOWN),
-   and clicking a list item loads the match via loadRealMatchDoc() and
-   starts pollLiveMatch().
-   ------------------------------------------------------------------
-   This section is hidden until the user clicks the button, and the
-   token is only ever collected via a prompt() in the browser – it is
-   never written into the page source.
-   ================================================================== */
-
-;(async function(){
-  const liveTest = $('liveTest');
-  if (!liveTest) return;
-
-  const fetchBtn = $('fetchLiveBtn');
-  const liveList = $('liveList');
-  const noLiveMsg = $('noLiveMsg');
-
-  // Helper: defensive team‑name fallback used by the adapter
-  function teamName(team){
-    return team && (team.name || team.code || 'UNKNOWN');
-  }
-  function ucase(t){ return (t||'').toUpperCase(); }
-
-  fetchBtn.onclick = async () => {
-    const token = ''; // token is kept server-side in /api/live
-    
-
-    try{
-      const resp = await fetch(
-        `/api/live`
-      );
-      if (!resp.ok){
-        alert('Live‑matches request failed: ' + resp.status);
-        return;
-      }
-      const data = await resp.json();
-      const matches = (data.data || data) || [];
-
-      // clear previous
-      liveList.innerHTML = '';
-      noLiveMsg.style.display = 'none';
-
-      if (matches.length === 0){
-        noLiveMsg.style.display = 'block';
-        return;
-      }
-
-      matches.forEach(m => {
-        const li = document.createElement('li');
-        const home = ucase(teamName(m.localteam));
-        const away = ucase(teamName(m.visitorteam));
-        li.textContent = `${home} v ${away}`;
-        li.dataset.id = String(m.id);
-        li.onclick = async () => {
-          try {
-            stopSimLive(); stopRealLive();
-            noLiveMsg.style.display = 'none';
-            const doc = await fetchLiveDoc(m.id);
-            if (!doc || !doc.start || !doc.innings){
-              noLiveMsg.textContent = 'Ball-by-ball data for ' + li.textContent + ' is not available from the current data plan.';
-              noLiveMsg.style.display = 'block';
-              return;
-            }
-            if (!doc.label) doc.label = li.textContent;
-            loadRealMatchDoc(doc);
-            startRealLive(m.id);
-          } catch (e) {
-            noLiveMsg.textContent = 'Could not load ' + li.textContent + ': ' + ((e && e.message) || e);
-            noLiveMsg.style.display = 'block';
-          }
-        };
-        liveList.appendChild(li);
-      });
-    }catch(err){
-      alert('Error: ' + err.message);
-    }
-  };
-})();
 
 window.addEventListener('resize', () => {
   renderMomentum();
