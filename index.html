@@ -108,7 +108,28 @@ button{font-family:inherit;color:inherit;}
 }
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--color-accent);animation:blink 1.6s infinite;}
 @keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--color-accent-glow)}50%{opacity:.35;box-shadow:0 0 0 6px transparent}}
-.match-title{
+.live-matches-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:6px 12px;border:1px solid var(--color-border-2);
+  background:linear-gradient(135deg,var(--color-accent),var(--color-accent-2));
+  color:#fff;font-size:10px;font-weight:700;letter-spacing:.12em;
+  border-radius:var(--r-sm);cursor:pointer;transition:transform .22s var(--ease),box-shadow .22s var(--ease);
+}
+.live-matches-btn:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(56,189,248,.35);}
+.live-matches-btn.loading{opacity:.6;cursor:default;transform:none;box-shadow:none;}
+.live-matches-list{
+  position:absolute;top:58px;right:16px;z-index:55;
+  background:var(--color-surface);border:1px solid var(--color-border);
+  border-radius:var(--r-md);box-shadow:var(--shadow);
+  min-width:280px;max-height:400px;overflow-y:auto;
+}
+.live-matches-list.hidden{display:none;}
+.live-matches-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:12px 16px;border-bottom:1px solid var(--color-border);
+  text-decoration:none;color:var(--color-text);cursor:pointer;transition:background .2s;
+}
+.live-matches-item:hover{background:rgba(255,255,255,.03);}
   font-family:'JetBrains Mono';font-size:12px;font-weight:700;letter-spacing:.02em;
   color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;
 }
@@ -624,9 +645,13 @@ button{font-family:inherit;color:inherit;}
   </nav>
   <div class="hdr-right">
     <select class="match-select" id="matchSelect" aria-label="Select match"></select>
+    <button class="live-matches-btn" aria-label="Live matches" title="Live matches">
+      LIVE
+    </button>
     <div class="live-pill" id="livePill"><i class="live-dot"></i>LOADING...</div>
   </div>
 </header>
+<div class="live-matches-list hidden" id="liveMatchesList"></div>
 
 
 <main class="app">
@@ -4409,9 +4434,120 @@ window.addEventListener('resize', () => {
 
 /* ---------------- boot ---------------- */
 try {
-  loadMatch('lords');
-  // expose the seam for console demos / future API wiring
-  window.CricBeacon = { loadMatch, applyDelivery, animateBall, setCamera, get matchData(){ return MD; }, get feed(){ return FEED; } };
+  // Live matches feature
+const liveMatchesBtn = $('.live-matches-btn');
+const liveMatchesList = $('#liveMatchesList');
+let liveMatchesTimeout = null;
+
+async function fetchLiveMatches() {
+  try {
+    liveMatchesBtn.classList.add('loading');
+    const response = await fetch('/api/live');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch live matches:', error);
+    return [];
+  } finally {
+    liveMatchesBtn.classList.remove('loading');
+  }
+}
+
+function renderLiveMatches(matches) {
+  if (matches.length === 0) {
+    liveMatchesList.innerHTML = '<div style="padding:16px;color:var(--color-muted);text-align:center;">No live matches right now</div>';
+    liveMatchesList.classList.remove('hidden');
+    return;
+  }
+
+  liveMatchesList.innerHTML = matches.map(match => `
+    <div class="live-matches-item" data-id="${match.id}" style="cursor:pointer;">
+      <div style="flex:1;">
+        <div>${match.localteam?.name || 'TBD'}</div>
+        <div style="font-size:12px;color:var(--color-muted);margin-top:2px;">
+          ${match.visitorteam?.name || 'TBD'}
+        </div>
+      </div>
+      <div style="text-align:right;color:var(--color-accent);font-size:11px;">
+        ${match.status === 'live' ? 'LIVE' : match.status === 'not_started' ? 'UPCOMING' : 'FINISHED'}
+      </div>
+    </div>
+  `).join('');
+
+  // Add click handlers
+  liveMatchesList.querySelectorAll('.live-matches-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const matchId = item.getAttribute('data-id');
+      if (!matchId) return;
+
+      try {
+        liveMatchesList.classList.add('hidden');
+        const response = await fetch(`/api/match?id=${matchId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const doc = await response.json();
+        loadRealMatchDoc(doc);
+        if (doc.status === 'live') {
+          startRealLive(matchId);
+        }
+      } catch (error) {
+        console.error('Failed to load match:', error);
+        toast('Failed to load match details', 3000);
+      }
+    });
+  });
+
+  liveMatchesList.classList.remove('hidden');
+}
+
+function hideLiveMatches() {
+  liveMatchesList.classList.add('hidden');
+}
+
+// Event listeners
+liveMatchesBtn.addEventListener('click', async () => {
+  if (liveMatchesList.classList.contains('hidden')) {
+    await fetchLiveMatches().then(renderLiveMatches);
+  } else {
+    hideLiveMatches();
+  }
+});
+
+// Hide when clicking outside
+document.addEventListener('click', (e) => {
+  if (!liveMatchesBtn.contains(e.target) && !liveMatchesList.contains(e.target)) {
+    hideLiveMatches();
+  }
+});
+
+// Hide when pressing Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    hideLiveMatches();
+  }
+});
+
+// Auto-refresh live matches every 30 seconds
+function startLiveMatchesRefresh() {
+  if (liveMatchesTimeout) clearTimeout(liveMatchesTimeout);
+  fetchLiveMatches().then(matches => {
+    if (!liveMatchesList.classList.contains('hidden')) {
+      renderLiveMatches(matches);
+    }
+    startLiveMatchesRefresh();
+  });
+  liveMatchesTimeout = setTimeout(startLiveMatchesRefresh, 30000);
+}
+
+// Initialize
+startLiveMatchesRefresh();
+
+// expose the seam for console demos / future API wiring
+window.CricBeacon = { loadMatch, applyDelivery, animateBall, setCamera, get matchData(){ return MD; }, get feed(){ return FEED; } };
 } catch (err){
   $('loader').innerHTML = `<div style="text-align:center;padding:20px"><p style="color:#FCA5A5;letter-spacing:.1em">3D ENGINE FAILED TO START</p><p style="margin-top:8px;font-size:11px;color:#7A8B8B;letter-spacing:0">${err.message}</p></div>`;
   console.error(err);
