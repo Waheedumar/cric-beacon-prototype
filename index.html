@@ -645,7 +645,7 @@ button{font-family:inherit;color:inherit;}
   </nav>
   <div class="hdr-right">
     <select class="match-select" id="matchSelect" aria-label="Select match"></select>
-    <button class="live-matches-btn" id="liveMatchesBtn" aria-label="Live matches" title="Live matches">
+    <button class="live-matches-btn" aria-label="Live matches" title="Live matches">
       LIVE
     </button>
     <div class="live-pill" id="livePill"><i class="live-dot"></i>LOADING...</div>
@@ -4435,8 +4435,8 @@ window.addEventListener('resize', () => {
 /* ---------------- boot ---------------- */
 try {
   // Live matches feature
-const liveMatchesBtn = $('liveMatchesBtn');
-const liveMatchesList = $('liveMatchesList');
+const liveMatchesBtn = $('.live-matches-btn');
+const liveMatchesList = $('#liveMatchesList');
 let liveMatchesTimeout = null;
 
 async function fetchLiveMatches() {
