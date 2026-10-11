@@ -3046,9 +3046,16 @@ function updateScore(){
   const firstInnWk = bt.key === MD.teams.home.key ? firstInnHomeWk : firstInnAwayWk;
   const firstInnAllOut = Number(firstInnWk) >= 10;
   const ov = s.over + '.' + s.ball;
+  // BUG FIX: the bowling/non-batting team (ot) is never the live innings, so its
+  // label must never borrow the globally-live over count (s.over/s.ball), which
+  // belongs to whichever team is CURRENTLY batting (bt). Use ot's OWN recorded
+  // first-innings overs (set per-team by the live adapter) instead, and drop the
+  // over suffix entirely for "ALL OUT" since an all-out innings has no "current" over.
+  const otSide = ot.key === MD.teams.home.key ? 'Home' : 'Away';
+  const otFirstInnOvers = MD.innings['firstInnings' + otSide + 'Overs'];
   bowlingSub = complete
     ? (hasSecondInnings ? 'FINAL · ALL INNINGS' : `FINAL · 1ST INNINGS`)
-    : (firstInnAllOut ? `ALL OUT · ${ov} OV` : `1ST INNINGS · ${ov} OV`);
+    : (firstInnAllOut ? 'ALL OUT' : (otFirstInnOvers ? `1ST INNINGS · ${otFirstInnOvers} OV` : '1ST INNINGS'));
 
   // Render each team's own innings in the main scoreboard
   const firstInnBat = bt.key === MD.teams.home.key ? firstInnHome : firstInnAway;
@@ -3061,6 +3068,12 @@ function updateScore(){
   const secondInnBowl = ot.key === MD.teams.home.key ? secondRuns(second.home) : secondRuns(second.away);
   const secondInnBowlWk = ot.key === MD.teams.home.key ? secondInnHomeWk : secondInnAwayWk;
   const secondInnBowlDec = ot.key === MD.teams.home.key ? secondInnHomeDec : secondInnAwayDec;
+  // BUG FIX: whether to show the bowling team's row in dual-innings format must
+  // depend on whether THAT team (ot) has actually started its own second innings,
+  // not the shared/global hasSecondInnings flag — otherwise ot renders "X & 0/0"
+  // the moment the OTHER team (bt) starts batting again, even though ot itself
+  // hasn't batted a second innings at all yet.
+  const otHasSecondInnings = Number(secondInnBowl) > 0;
 
   $('teamRows').innerHTML = `
     <div class="team-row bat">
@@ -3076,9 +3089,9 @@ function updateScore(){
     <div class="team-row done">
       <div class="team-id"><span class="flag">${ot.flag}</span>
         <div><div class="team-name">${ot.name}</div><div class="team-sub">${bowlingSub}</div></div></div>
-      <div class="team-score ${hasSecondInnings ? 'multi-innings' : ''}">${hasSecondInnings
+      <div class="team-score ${otHasSecondInnings ? 'multi-innings' : ''}">${otHasSecondInnings
         ? formatInningsLines(firstInnBowl, firstInnBowlWk, secondInnBowl, secondInnBowlWk, secondInnBowlDec)
-        : `${formatInningsScore(first.total, first.wickets)}`}</div>`;
+        : `${formatInningsScore(firstInnBowl, firstInnBowlWk)}`}</div>`;
   // Limited overs (T20/ODI): innings labels + batting order (first innings on top)
   if (isLimitedOvers()){
     const rows = $('teamRows');
@@ -3103,34 +3116,43 @@ function updateScore(){
   }
 
   
-  // FIX 2: For Test match chases, use official second innings score
-  // instead of potentially stale feed state (s.runs)
-  let trail;
-  if (complete) {
-    trail = btTotal - otTotal;
-  } else {
-    // Test match chase detection: if batting team is in 2nd innings,
-    // use official second innings runs rather than feed state
-    const battingTeamKey = MD.battingTeam; // 'home' or 'away'
-    const isSecondInnings = !!MD.innings.secondInnings
-      && MD.innings.secondInnings[battingTeamKey]
-      && MD.innings.secondInnings[battingTeamKey].runs > 0;
+  // BUG FIX: the previous logic read MD.innings.secondInnings[team].runs directly,
+  // assuming an {runs, wickets, declared} object. The live Sportmonks adapter
+  // stores this as a plain number instead (e.g. secondInnings.home = 44), so that
+  // check silently evaluated to false for every live match, and this fell through
+  // to `first.total - s.runs` — comparing the WRONG team's total against the
+  // live batting team's CURRENT-innings-only runs (ignoring their 1st innings).
+  // That's exactly how "Bangladesh trail by 302" came from 346 - 44.
+  //
+  // Fix: btTotal/otTotal (computed above via teamTotal()) already sum ALL
+  // innings for each team and already handle both data shapes correctly, so
+  // trail/lead should always be otTotal - btTotal — no need to re-derive it.
+  //
+  // Separately, a batting team in its own 2nd innings is only "chasing a
+  // target" once the OTHER team has already had both of ITS innings — e.g.
+  // Bangladesh batting again while Afghanistan has only had one innings is
+  // Bangladesh EXTENDING THEIR LEAD, not chasing. Gate the "need X runs"
+  // wording on the bowling team (ot) actually having second-innings runs.
+  let trail = otTotal - btTotal;
+  const isFinalChase = !complete && !isLimitedOvers() && Number(secondInnBowl) > 0;
+  // Real target = opponent's full combined total + 1, minus what bt already
+  // scored in ITS OWN first innings (bt only needs to make up the rest in
+  // the innings it's currently playing).
+  const chaseTarget = isFinalChase ? (Number(otTotal) + 1 - Number(firstInnBat)) : null;
 
-    if (!isLimitedOvers() && isSecondInnings){
-      // Use official second innings score (more reliable than feed state)
-      const officialSecondInningsRuns = MD.innings.secondInnings[battingTeamKey].runs;
-      trail = first.total - officialSecondInningsRuns;
-    } else {
-      // Fall back to feed state for limited-overs or 1st innings
-      trail = first.total - s.runs;
-    }
-  }
   // --- Win margin: runs vs wickets for second-innings chases ---
   // If the batting team is in the 2nd innings and won by reaching the target,
   // the margin should be in wickets, not runs.
-  const btKey = MD.battingTeam === 'home' ? MD.teams.home.key : MD.teams.away.key;
-  const isSecondInningsChase = complete && MD.innings.secondInnings && MD.innings.secondInnings[btKey];
-  const btWickets = isSecondInningsChase ? (MD.innings.secondInnings[btKey].wickets || 0) : 0;
+  // BUG FIX: MD.innings.secondInnings is keyed by the literal strings 'home'/'away'
+  // (see adapter), not by the team's own key (e.g. 'eng') — so this lookup was
+  // always undefined and this branch never once fired. Use MD.battingTeam directly.
+  const btKey = MD.battingTeam;
+  const btSecondInnRaw = MD.innings.secondInnings && MD.innings.secondInnings[btKey];
+  const isSecondInningsChase = complete && Number(secondRuns(btSecondInnRaw)) > 0;
+  // Wickets lost in bt's 2nd innings: use secondInnBatWk (already correctly resolved
+  // above from the per-team secondInnings*Wickets fields) rather than re-deriving from
+  // btSecondInnRaw, which is a plain number on live matches and carries no .wickets.
+  const btWickets = isSecondInningsChase ? secondInnBatWk : 0;
   const btMarginWk = isSecondInningsChase ? (10 - btWickets) : 0;
   const isWicketWin = isSecondInningsChase && btTotal > otTotal && btMarginWk > 0;
 
@@ -3140,7 +3162,7 @@ function updateScore(){
       : otTotal > btTotal
         ? (MD.resultText || `${ot.name} won by ${otTotal - btTotal} run${otTotal - btTotal === 1 ? '' : 's'}`)
         : 'Match tied'
-    : trailText(bt, trail, firstInnBowl, s);
+    : trailText(bt, trail, otTotal, s, isFinalChase, chaseTarget);
 
   $('pshipV').innerHTML = MD.overs && MD.overs.length > 0 ? `${s.partnership.runs} <small>(${s.partnership.balls})</small>` : `${s.partnership.runs} <small>(${s.partnership.balls})</small> · Stats unavailable`;
   const ovs = s.over + s.ball / 6;
@@ -3196,13 +3218,18 @@ function updateScore(){
     return `${team.short} ${teamTotalRuns}/${teamWkts}`;
   };
   const hudOtDisplay = () => hudTeamDisplay(ot);
+  // BUG FIX: same per-team issue as the main scoreboard — only render ot's
+  // second-innings segment here if ot itself has actually started one.
+  const otHudPart = otHasSecondInnings
+    ? `${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
+    : hudOtDisplay();
 
   const hudLine = !hasSecondInnings
     ? (complete ? `${hudTeamDisplay(bt)} · ${hudOtDisplay()}`
         : `${bt.short} ${s.runs}/${s.wickets} · ${hudOtDisplay()}`)
     : (complete
-        ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`
-        : `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(s.runs, s.wickets, false)} · ${ot.short} ${hudInningsScore(firstInnBowl, firstInnBowlWk, false)} & ${hudInningsScore(secondInnBowl, secondInnBowlWk, secondInnBowlDec)}`);
+        ? `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(secondInnBat, secondInnBatWk, secondInnBatDec)} · ${otHudPart}`
+        : `${bt.short} ${hudInningsScore(firstInnBat, firstInnBatWk, false)} & ${hudInningsScore(s.runs, s.wickets, false)} · ${otHudPart}`);
   $('hudScore').textContent = hudLine;
   $('hudSub').textContent = '';
 }
@@ -3942,7 +3969,7 @@ function maxOversFor(){
   if (/ODI|50.?OVER|ONE.?DAY|LIST A/.test(f)) return 50;
   return 0;
 }
-function trailText(bt, trail, otRuns, s){
+function trailText(bt, trail, otRuns, s, isFinalChase, chaseTarget){
   const nm = bt.name.charAt(0) + bt.name.slice(1).toLowerCase();
   const pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
   if (isLimitedOvers()){
@@ -3951,16 +3978,13 @@ function trailText(bt, trail, otRuns, s){
     if (need <= 0) return nm + ' have reached the target';
     return nm + ' need ' + pl(need, 'run') + ' to win';
   }
-  // FIX 1: Test match chase detection
-  // If the batting team is in their 2nd innings (MD.innings.secondInnings exists
-  // with the batting team having scored), they're chasing a target.
-  // Otherwise they're still in their 1st innings and "trail by X" is correct.
-  const battingTeamKey = MD.battingTeam; // 'home' or 'away'
-  const isSecondInnings = !!MD.innings.secondInnings
-    && MD.innings.secondInnings[battingTeamKey]
-    && MD.innings.secondInnings[battingTeamKey].runs > 0;
-  if (isSecondInnings){
-    const need = Number(otRuns) + 1 - Number(s.runs);
+  // Test match final-innings chase: isFinalChase/chaseTarget are computed by the
+  // caller (updateScore), which already knows, per-team, whether the bowling
+  // side has genuinely completed BOTH its innings (a real target exists) rather
+  // than re-deriving it here from a data shape that differs between demo and
+  // live-Sportmonks matches.
+  if (isFinalChase){
+    const need = Number(chaseTarget) - Number(s.runs);
     if (need <= 0) return nm + ' have reached the target';
     const maxOv = maxOversFor();
     if (!maxOv) return nm + ' need ' + pl(need, 'run');

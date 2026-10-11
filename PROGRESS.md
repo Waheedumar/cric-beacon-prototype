@@ -252,3 +252,22 @@ overrides all heuristics.
 4. ✅ Win-margin wording → wickets for second-innings chases (index.html:3103-3105)
 
 Commit c657cbb ready for deploy when network restored.
+
+## Bug — Scorecard: "0/0" + borrowed overs, and wrong trail/lead text on live Test matches (2026-10-11)
+
+**Reported:** Bangladesh v Afghanistan live Test — Afghanistan (not batting) showed "0/0" stamped with Bangladesh's live over count (10.4), and the trail line said "Bangladesh trail by 302 runs" while Bangladesh was actually leading by 150.
+
+**Root cause:** `sportmonksAdapter.js` stores `MD.innings.secondInnings.home/away` as a plain number for live matches; demo matches store it as `{runs, wickets, declared}`. Code in `updateScore()`/`trailText()` (index.html) assumed the object shape (`secondInnings[team].runs`), which silently evaluated to `undefined` on live data.
+
+**Fixes applied (index.html, `updateScore()` + `trailText()`):**
+1. Non-batting team's dual-innings row/label now gated on that team's OWN second-innings runs (`otHasSecondInnings`), not a shared global flag.
+2. "ALL OUT"/"1ST INNINGS" label for the non-batting team no longer borrows the live batting team's over count; uses that team's own `firstInnings{Home,Away}Overs` field, or omits the suffix.
+3. Trail/lead now uses the already-correct `btTotal`/`otTotal` (from `teamTotal()`, which already duck-types both data shapes) instead of re-deriving from the broken object-shape check.
+4. "Need X runs" (final-innings chase) wording now gated on the BOWLING team having already completed both its innings — not just "batting team has some 2nd-innings runs" (which also fires when a team is merely extending a lead, not chasing a target).
+5. Also fixed a dormant bug in the same block: win-margin-by-wickets lookup used `MD.teams.X.key` as the index into `secondInnings`, which is actually keyed by literal `'home'/'away'` — always undefined, so "won by N wickets" never fired for a completed chase. Now uses `MD.battingTeam` directly.
+
+**Verified** (standalone extraction of the real functions + synthetic MD/FEED, not assumed): exact reported BAN/AFG scenario, a genuine 4th-innings chase, a completed wicket-win, and the basic single-innings case. `isLimitedOvers()` T20/ODI path untouched/unaffected.
+
+**Status: fixed locally, committed (`0cbf29d`, branch `fix/scorecard-second-innings`), NOT yet pushed** — this cloud session has no GitHub push access to this repo (org-level restriction). Patch sent to Waheed to apply via his local machine/Claude Code session.
+
+**Next:** Waheed applies the patch and pushes from his local session; then re-verify on the live BAN v AFG match (or next live Test) in the browser.
